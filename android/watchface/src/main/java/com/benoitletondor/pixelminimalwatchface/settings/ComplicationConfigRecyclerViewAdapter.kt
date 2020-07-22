@@ -224,6 +224,7 @@ class ComplicationConfigRecyclerViewAdapter(
                     )
                 ) { showBattery ->
                     showBatteryListener(showBattery)
+                    previewAndComplicationsViewHolder?.showBottomComplication(!showBattery)
                 }
             }
         }
@@ -240,6 +241,7 @@ class ComplicationConfigRecyclerViewAdapter(
 
                     previewAndComplicationsViewHolder.setDefaultComplicationDrawable()
                     previewAndComplicationsViewHolder.showMiddleComplication(!storage.shouldShowWearOSLogo())
+                    previewAndComplicationsViewHolder.showBottomComplication(!storage.shouldShowBattery())
                     initializesColorsAndComplications()
                 }
             }
@@ -322,13 +324,12 @@ class ComplicationConfigRecyclerViewAdapter(
             if( context.isServiceAvailable(WEAR_OS_APP_PACKAGE, WEATHER_PROVIDER_SERVICE) ) {
                 list.add(TYPE_SHOW_WEATHER)
             }
-
-            list.add(TYPE_SHOW_BATTERY)
         } else {
             list.add(TYPE_BECOME_PREMIUM)
         }
         list.add(TYPE_SHOW_WEAR_OS_LOGO)
         if( isUserPremium ) {
+            list.add(TYPE_SHOW_BATTERY)
             list.add(TYPE_SHOW_COMPLICATIONS_AMBIENT)
         }
         list.add(TYPE_HOUR_FORMAT)
@@ -413,6 +414,7 @@ class PreviewAndComplicationsViewHolder(
     var bound = false
 
     private val wearOSLogoImageView: ImageView = view.findViewById(R.id.wear_os_logo_image_view)
+    private val batteryIconImageView: ImageView = view.findViewById(R.id.battery_icon)
     private val leftComplicationBackground: ImageView = view.findViewById(R.id.left_complication_background)
     private val middleComplicationBackground: ImageView = view.findViewById(R.id.middle_complication_background)
     private val rightComplicationBackground: ImageView = view.findViewById(R.id.right_complication_background)
@@ -451,6 +453,12 @@ class PreviewAndComplicationsViewHolder(
         middleComplication.visibility = if( showMiddleComplication ) { View.VISIBLE } else { View.GONE }
         middleComplicationBackground.visibility = if( showMiddleComplication ) { View.VISIBLE } else { View.INVISIBLE }
         wearOSLogoImageView.visibility = if( !showMiddleComplication ) { View.VISIBLE } else { View.GONE }
+    }
+
+    fun showBottomComplication(showBottomComplication: Boolean) {
+        bottomComplication.visibility = if( showBottomComplication ) { View.VISIBLE } else { View.GONE }
+        bottomComplicationBackground.visibility = if( showBottomComplication ) { View.VISIBLE } else { View.INVISIBLE }
+        batteryIconImageView.visibility = if( !showBottomComplication ) { View.VISIBLE } else { View.GONE }
     }
 
     fun updateComplicationViews(location: ComplicationLocation,
