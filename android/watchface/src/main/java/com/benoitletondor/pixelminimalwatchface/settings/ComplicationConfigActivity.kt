@@ -64,6 +64,8 @@ class ComplicationConfigActivity : Activity() {
             storage.setShouldShowSecondsRing(showSecondsRing)
         }, { showWeather ->
             storage.setShouldShowWeather(showWeather)
+        }, { showBattery ->
+            storage.setShouldShowBattery(showBattery)
         })
 
         wearable_recycler_view.isEdgeItemsCenteringEnabled = true

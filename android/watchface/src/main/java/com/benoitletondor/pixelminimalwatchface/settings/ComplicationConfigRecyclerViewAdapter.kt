@@ -55,6 +55,7 @@ private const val TYPE_SHOW_FILLED_TIME_AMBIENT = 9
 private const val TYPE_TIME_SIZE = 10
 private const val TYPE_SHOW_SECONDS_RING = 11
 private const val TYPE_SHOW_WEATHER = 12
+private const val TYPE_SHOW_BATTERY = 13
 
 class ComplicationConfigRecyclerViewAdapter(
     private val context: Context,
@@ -67,7 +68,8 @@ class ComplicationConfigRecyclerViewAdapter(
     private val showFilledTimeAmbientListener: (Boolean) -> Unit,
     private val timeSizeChangedListener: (Int) -> Unit,
     private val showSecondsRingListener: (Boolean) -> Unit,
-    private val showWeatherListener: (Boolean) -> Unit
+    private val showWeatherListener: (Boolean) -> Unit,
+    private val showBatteryListener: (Boolean) -> Unit
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private var selectedComplicationLocation: ComplicationLocation? = null
@@ -213,6 +215,17 @@ class ComplicationConfigRecyclerViewAdapter(
                 this.showWeatherViewHolder = showWeatherViewHolder
                 return showWeatherViewHolder
             }
+            TYPE_SHOW_BATTERY -> {
+                return ShowBatteryViewHolder(
+                    LayoutInflater.from(parent.context).inflate(
+                        R.layout.config_list_show_battery,
+                        parent,
+                        false
+                    )
+                ) { showBattery ->
+                    showBatteryListener(showBattery)
+                }
+            }
         }
         throw IllegalStateException("Unknown option type: $viewType")
     }
@@ -260,6 +273,10 @@ class ComplicationConfigRecyclerViewAdapter(
                 val showWeather = storage.shouldShowWeather()
                 (viewHolder as ShowWeatherViewHolder).setShowWeatherViewSwitchChecked(showWeather)
             }
+            TYPE_SHOW_BATTERY -> {
+                val showBattery = storage.shouldShowBattery()
+                (viewHolder as ShowBatteryViewHolder).setShowBatteryViewSwitchChecked(showBattery)
+            }
         }
     }
 
@@ -305,6 +322,8 @@ class ComplicationConfigRecyclerViewAdapter(
             if( context.isServiceAvailable(WEAR_OS_APP_PACKAGE, WEATHER_PROVIDER_SERVICE) ) {
                 list.add(TYPE_SHOW_WEATHER)
             }
+
+            list.add(TYPE_SHOW_BATTERY)
         } else {
             list.add(TYPE_BECOME_PREMIUM)
         }
@@ -675,5 +694,20 @@ class ShowWeatherViewHolder(view: View,
 
     fun setShowWeatherViewSwitchChecked(checked: Boolean) {
         showWeatherViewSwitch.isChecked = checked
+    }
+}
+
+class ShowBatteryViewHolder(view: View,
+                            showBatteryViewHolderClickListener: (Boolean) -> Unit) : RecyclerView.ViewHolder(view) {
+    private val showBatteryViewSwitch: Switch = view as Switch
+
+    init {
+        showBatteryViewSwitch.setOnCheckedChangeListener { _, checked ->
+            showBatteryViewHolderClickListener(checked)
+        }
+    }
+
+    fun setShowBatteryViewSwitchChecked(checked: Boolean) {
+        showBatteryViewSwitch.isChecked = checked
     }
 }
