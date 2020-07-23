@@ -78,6 +78,7 @@ class ComplicationConfigRecyclerViewAdapter(
     private val providerInfoRetriever = ProviderInfoRetriever(context, Executors.newCachedThreadPool())
     private var previewAndComplicationsViewHolder: PreviewAndComplicationsViewHolder? = null
     private var showWeatherViewHolder: ShowWeatherViewHolder? = null
+    private var showBatteryViewHolder: ShowBatteryViewHolder? = null
     private val settings = generateSettingsList(context, storage)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
@@ -206,7 +207,7 @@ class ComplicationConfigRecyclerViewAdapter(
                                 context,
                                 watchFaceComponentName
                             ),
-                            ComplicationConfigActivity.COMPLICATION_PERMISSION_REQUEST_CODE
+                            ComplicationConfigActivity.COMPLICATION_WEATHER_PERMISSION_REQUEST_CODE
                         )
                     } else {
                         showWeatherListener(false)
@@ -216,16 +217,27 @@ class ComplicationConfigRecyclerViewAdapter(
                 return showWeatherViewHolder
             }
             TYPE_SHOW_BATTERY -> {
-                return ShowBatteryViewHolder(
+                val showBatteryViewHolder = ShowBatteryViewHolder(
                     LayoutInflater.from(parent.context).inflate(
                         R.layout.config_list_show_battery,
                         parent,
                         false
                     )
                 ) { showBattery ->
-                    showBatteryListener(showBattery)
-                    previewAndComplicationsViewHolder?.showBottomComplication(!showBattery)
+                    if( showBattery ) {
+                        (context as Activity).startActivityForResult(
+                            ComplicationHelperActivity.createPermissionRequestHelperIntent(
+                                context,
+                                watchFaceComponentName
+                            ),
+                            ComplicationConfigActivity.COMPLICATION_BATTERY_PERMISSION_REQUEST_CODE
+                        )
+                    } else {
+                        showBatteryListener(false)
+                    }
                 }
+                this.showBatteryViewHolder = showBatteryViewHolder
+                return showBatteryViewHolder
             }
         }
         throw IllegalStateException("Unknown option type: $viewType")
@@ -378,11 +390,18 @@ class ComplicationConfigRecyclerViewAdapter(
     }
 
 
-    fun complicationsPermissionFinished() {
+    fun weatherComplicationPermissionFinished() {
         val granted = context.isPermissionGranted("com.google.android.wearable.permission.RECEIVE_COMPLICATION_DATA")
 
         showWeatherViewHolder?.setShowWeatherViewSwitchChecked(granted)
         showWeatherListener(granted)
+    }
+
+    fun batteryComplicationPermissionFinished() {
+        val granted = context.isPermissionGranted("com.google.android.wearable.permission.RECEIVE_COMPLICATION_DATA")
+
+        showBatteryViewHolder?.setShowBatteryViewSwitchChecked(granted)
+        showBatteryListener(granted)
     }
 }
 

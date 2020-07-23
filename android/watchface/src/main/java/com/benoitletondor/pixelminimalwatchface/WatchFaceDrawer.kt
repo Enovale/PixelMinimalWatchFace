@@ -24,6 +24,7 @@ import android.support.wearable.complications.rendering.ComplicationDrawable
 import android.text.format.DateUtils.*
 import android.util.ArrayMap
 import android.util.DisplayMetrics
+import android.util.Log
 import android.util.SparseArray
 import android.view.WindowInsets
 import androidx.annotation.ColorInt
@@ -62,7 +63,8 @@ interface WatchFaceDrawer {
              ambient:Boolean,
              lowBitAmbient: Boolean,
              burnInProtection: Boolean,
-             weatherComplicationData: ComplicationData?)
+             weatherComplicationData: ComplicationData?,
+             batteryComplicationData: ComplicationData?)
 
 }
 
@@ -262,7 +264,8 @@ class WatchFaceDrawerImpl : WatchFaceDrawer {
                       ambient:Boolean,
                       lowBitAmbient: Boolean,
                       burnInProtection: Boolean,
-                      weatherComplicationData: ComplicationData?) {
+                      weatherComplicationData: ComplicationData?,
+                      batteryComplicationData: ComplicationData?) {
 
         setPaintVariables(muteMode, ambient, lowBitAmbient, burnInProtection)
         drawBackground(canvas)
@@ -285,7 +288,8 @@ class WatchFaceDrawerImpl : WatchFaceDrawer {
                 storage.isUserPremium(),
                 storage.shouldShowSecondsRing(),
                 storage.shouldShowBattery(),
-                weatherComplicationData
+                weatherComplicationData,
+                batteryComplicationData
             )
         }
     }
@@ -424,7 +428,8 @@ class WatchFaceDrawerImpl : WatchFaceDrawer {
                                                  isUserPremium: Boolean,
                                                  drawSecondsRing: Boolean,
                                                  drawBattery: Boolean,
-                                                 weatherComplicationData: ComplicationData?) {
+                                                 weatherComplicationData: ComplicationData?,
+                                                 batteryComplicationData: ComplicationData?) {
         val timeText = if( storage.getUse24hTimeFormat()) {
             timeFormatter24H.format(currentTime)
         } else {
@@ -467,28 +472,43 @@ class WatchFaceDrawerImpl : WatchFaceDrawer {
             canvas.drawArc(0F, 0F, screenWidth.toFloat(), screenHeight.toFloat(), 270F, endAngle, false, secondsRingPaint)
         }
 
-        if( drawBattery ) {
-            // TODO replace this value with real ones
-            val batteryPercent = 90
+        if( isUserPremium && batteryComplicationData != null && drawBattery ) {
+            val batteryData = batteryComplicationData.shortText
+            if( batteryData != null ) {
+                val batteryText = batteryData.getText(context, currentTime.time).toString()
+                if ( !batteryText.isBlank() ) {
+                    val (batteryLevelText, batteryPercent) = try {
+                        val batteryPercent = Integer.parseInt(batteryText.filter { it.isDigit() })
+                        Pair("$batteryPercent%", batteryPercent)
+                    } catch (t: Throwable) {
+                        Log.e("WatchFaceDrawer", "Error parsing battery data", t)
+                        Pair("N/A", 50)
+                    }
 
-            val batteryLevelText = "$batteryPercent%"
-            val batteryTextLength = batteryLevelPaint.measureText(batteryLevelText)
-            val left = (centerX - (batteryTextLength / 2) - (batteryIconSize / 2)).toInt()
-            val icon = getBatteryIcon(batteryPercent)
+                    val batteryTextLength = batteryLevelPaint.measureText(batteryLevelText)
+                    val left = (centerX - (batteryTextLength / 2) - (batteryIconSize / 2)).toInt()
+                    val icon = getBatteryIcon(batteryPercent)
 
-            canvas.drawBitmap(
-                icon,
-                null,
-                Rect(left, batteryIconBottomY - batteryIconSize, left + batteryIconSize, batteryIconBottomY),
-                batteryIconPaint
-            )
+                    canvas.drawBitmap(
+                        icon,
+                        null,
+                        Rect(
+                            left,
+                            batteryIconBottomY - batteryIconSize,
+                            left + batteryIconSize,
+                            batteryIconBottomY
+                        ),
+                        batteryIconPaint
+                    )
 
-            canvas.drawText(
-                batteryLevelText,
-                (left + batteryIconSize).toFloat(),
-                (batteryLevelBottomY).toFloat(),
-                batteryLevelPaint
-            )
+                    canvas.drawText(
+                        batteryLevelText,
+                        (left + batteryIconSize).toFloat(),
+                        (batteryLevelBottomY).toFloat(),
+                        batteryLevelPaint
+                    )
+                }
+            }
         }
     }
 
