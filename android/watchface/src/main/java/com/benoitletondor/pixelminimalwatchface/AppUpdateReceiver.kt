@@ -33,7 +33,7 @@ class AppUpdateReceiver : BroadcastReceiver() {
 
     @Suppress("SameParameterValue", "UNUSED_PARAMETER")
     private fun onAppUpgrade(context: Context, oldVersion: Int, newVersion: Int) {
-        if( oldVersion <= 34 ) {
+        if( oldVersion <= 33 ) {
             val storage = Injection.storage(context)
 
             if( storage.isUserPremium() && !storage.hasShownBatteryIndicatorNotification() ) {
