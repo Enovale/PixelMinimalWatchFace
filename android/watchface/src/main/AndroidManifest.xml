@@ -84,6 +84,13 @@
 
         </service>
 
+        <receiver
+            android:name=".AppUpdateReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+
         <activity android:name=".rating.FeedbackActivity" />
 
         <meta-data
