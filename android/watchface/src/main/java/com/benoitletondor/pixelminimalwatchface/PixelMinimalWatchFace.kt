@@ -42,19 +42,17 @@ import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.benoitletondor.pixelminimalwatchface.helper.FullBrightnessActivity
-import com.benoitletondor.pixelminimalwatchface.helper.isPermissionGranted
 import com.benoitletondor.pixelminimalwatchface.helper.openActivity
 import com.benoitletondor.pixelminimalwatchface.model.ComplicationColors
 import com.benoitletondor.pixelminimalwatchface.model.Storage
 import com.benoitletondor.pixelminimalwatchface.rating.FeedbackActivity
-import com.benoitletondor.pixelminimalwatchface.settings.ComplicationConfigActivity
 import com.benoitletondor.pixelminimalwatchface.settings.ComplicationLocation
 import com.google.android.gms.wearable.*
 import java.lang.ref.WeakReference
 import java.util.*
 import kotlin.math.max
 
-private const val MISC_NOTIFICATION_CHANNEL_ID = "rating"
+const val MISC_NOTIFICATION_CHANNEL_ID = "rating"
 private const val DATA_KEY_PREMIUM = "premium"
 private const val THREE_DAYS_MS: Long = 1000 * 60 * 60 * 24 * 3
 private const val MINIMUM_COMPLICATION_UPDATE_INTERVAL_MS = 1000L
@@ -67,55 +65,7 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
 
     override fun onCreateEngine(): Engine {
         val storage = Injection.storage(this)
-
-        val latestKnownVersion = storage.getAppVersion()
-        if( BuildConfig.VERSION_CODE > latestKnownVersion ) {
-            if( latestKnownVersion > 0 ) {
-                onAppUpgrade(latestKnownVersion, BuildConfig.VERSION_CODE)
-            }
-
-            storage.setAppVersion(BuildConfig.VERSION_CODE)
-        }
-
         return Engine(this, storage)
-    }
-
-    @Suppress("SameParameterValue", "UNUSED_PARAMETER")
-    private fun onAppUpgrade(oldVersion: Int, newVersion: Int) {
-        if( oldVersion <= 32 ) {
-            val storage = Injection.storage(this)
-            if( storage.isUserPremium() && !storage.hasShownBatteryIndicatorNotification() ) {
-                storage.setBatteryIndicatorNotificationShown()
-                showBatteryIndicatorNotification()
-            }
-        }
-    }
-
-    private fun showBatteryIndicatorNotification() {
-        // Create notification channel if needed
-        if ( Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ) {
-            val importance = NotificationManager.IMPORTANCE_DEFAULT
-            val mChannel = NotificationChannel(MISC_NOTIFICATION_CHANNEL_ID, getString(R.string.misc_notification_channel_name), importance)
-            mChannel.description = getString(R.string.misc_notification_channel_description)
-
-            val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.createNotificationChannel(mChannel)
-        }
-
-        val activityIntent = Intent(this, ComplicationConfigActivity::class.java)
-        val pendingIntent = PendingIntent.getActivity(this, 0, activityIntent, PendingIntent.FLAG_CANCEL_CURRENT)
-
-        val notification = NotificationCompat.Builder(this, MISC_NOTIFICATION_CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle(getString(R.string.battery_indicator_notification_title))
-            .setContentText(getString(R.string.battery_indicator_notification_message))
-            .setStyle(NotificationCompat.BigTextStyle().bigText(getString(R.string.battery_indicator_notification_message)))
-            .addAction(NotificationCompat.Action(R.drawable.ic_settings, getString(R.string.battery_indicator_notification_cta), pendingIntent))
-            .setAutoCancel(true)
-            .build()
-
-
-        NotificationManagerCompat.from(this).notify(193728, notification)
     }
 
     private class ComplicationTimeDependentUpdateHandler(private val engine: WeakReference<Engine>,
