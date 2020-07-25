@@ -35,6 +35,7 @@ private const val KEY_TIME_SIZE = "timeSize"
 private const val KEY_SECONDS_RING = "secondsRing"
 private const val KEY_SHOW_WEATHER = "showWeather"
 private const val KEY_SHOW_BATTERY = "showBattery"
+private const val KEY_SHOW_BATTERY_NOTIFICATION = "showBatteryNotification"
 
 interface Storage {
     fun getComplicationColors(): ComplicationColors
@@ -62,6 +63,8 @@ interface Storage {
     fun setShouldShowWeather(show: Boolean)
     fun shouldShowBattery(): Boolean
     fun setShouldShowBattery(show: Boolean)
+    fun hasShownBatteryIndicatorNotification(): Boolean
+    fun setBatteryIndicatorNotificationShown()
 }
 
 class StorageImpl : Storage {
@@ -287,5 +290,13 @@ class StorageImpl : Storage {
         shouldShowBatteryCached = true
 
         sharedPreferences.edit().putBoolean(KEY_SHOW_BATTERY, show).apply()
+    }
+
+    override fun hasShownBatteryIndicatorNotification(): Boolean {
+        return sharedPreferences.getBoolean(KEY_SHOW_BATTERY_NOTIFICATION, false)
+    }
+
+    override fun setBatteryIndicatorNotificationShown() {
+        sharedPreferences.edit().putBoolean(KEY_SHOW_BATTERY_NOTIFICATION, true).apply()
     }
 }
