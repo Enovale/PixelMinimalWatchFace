@@ -234,6 +234,7 @@ class ComplicationConfigRecyclerViewAdapter(
                         )
                     } else {
                         showBatteryListener(false)
+                        previewAndComplicationsViewHolder?.showBottomComplication(true)
                     }
                 }
                 this.showBatteryViewHolder = showBatteryViewHolder
@@ -401,6 +402,7 @@ class ComplicationConfigRecyclerViewAdapter(
         val granted = context.isPermissionGranted("com.google.android.wearable.permission.RECEIVE_COMPLICATION_DATA")
 
         showBatteryViewHolder?.setShowBatteryViewSwitchChecked(granted)
+        previewAndComplicationsViewHolder?.showBottomComplication(false)
         showBatteryListener(granted)
     }
 }
