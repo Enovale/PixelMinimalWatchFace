@@ -46,7 +46,7 @@ class AppUpdateReceiver : BroadcastReceiver() {
     private fun showBatteryIndicatorNotification(context: Context) {
         try {
             val wallpaperManager = WallpaperManager.getInstance(context)
-            if ( wallpaperManager.wallpaperInfo.packageName != context.packageName ) {
+            if ( wallpaperManager.wallpaperInfo?.packageName != context.packageName ) {
                 return
             }
 
