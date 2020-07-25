@@ -31,6 +31,7 @@
     <string name="config_show_complications_ambient">Widgets in ambient mode</string>
     <string name="config_time_size">Size of time and date: %s</string>
     <string name="config_show_seconds_ring">Show seconds ring</string>
+    <string name="config_show_battery">Battery indicator as bottom widget</string>
 
     <string name="premium_confirmation">Configure widgets in Watch Face settings</string>
     <string name="open_phone_url_android_device">Continue on phone</string>

@@ -64,6 +64,8 @@ class ComplicationConfigActivity : Activity() {
             storage.setShouldShowSecondsRing(showSecondsRing)
         }, { showWeather ->
             storage.setShouldShowWeather(showWeather)
+        }, { showBattery ->
+            storage.setShouldShowBattery(showBattery)
         })
 
         wearable_recycler_view.isEdgeItemsCenteringEnabled = true
@@ -85,8 +87,10 @@ class ComplicationConfigActivity : Activity() {
             adapter.updateSelectedComplication(complicationProviderInfo)
         } else if (requestCode == UPDATE_COLORS_CONFIG_REQUEST_CODE && resultCode == RESULT_OK) {
             adapter.updatePreviewColors()
-        } else if( requestCode == COMPLICATION_PERMISSION_REQUEST_CODE ) {
-            adapter.complicationsPermissionFinished()
+        } else if( requestCode == COMPLICATION_WEATHER_PERMISSION_REQUEST_CODE ) {
+            adapter.weatherComplicationPermissionFinished()
+        } else if( requestCode == COMPLICATION_BATTERY_PERMISSION_REQUEST_CODE ) {
+            adapter.batteryComplicationPermissionFinished()
         }
     }
 
@@ -171,6 +175,7 @@ class ComplicationConfigActivity : Activity() {
     companion object {
         const val COMPLICATION_CONFIG_REQUEST_CODE = 1001
         const val UPDATE_COLORS_CONFIG_REQUEST_CODE = 1002
-        const val COMPLICATION_PERMISSION_REQUEST_CODE = 1003
+        const val COMPLICATION_WEATHER_PERMISSION_REQUEST_CODE = 1003
+        const val COMPLICATION_BATTERY_PERMISSION_REQUEST_CODE = 1004
     }
 }
