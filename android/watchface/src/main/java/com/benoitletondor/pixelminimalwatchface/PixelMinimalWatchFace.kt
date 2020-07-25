@@ -47,6 +47,7 @@ import com.benoitletondor.pixelminimalwatchface.helper.openActivity
 import com.benoitletondor.pixelminimalwatchface.model.ComplicationColors
 import com.benoitletondor.pixelminimalwatchface.model.Storage
 import com.benoitletondor.pixelminimalwatchface.rating.FeedbackActivity
+import com.benoitletondor.pixelminimalwatchface.settings.ComplicationConfigActivity
 import com.benoitletondor.pixelminimalwatchface.settings.ComplicationLocation
 import com.google.android.gms.wearable.*
 import java.lang.ref.WeakReference
@@ -81,12 +82,40 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
 
     @Suppress("SameParameterValue", "UNUSED_PARAMETER")
     private fun onAppUpgrade(oldVersion: Int, newVersion: Int) {
-        if( oldVersion <= 23 ) {
+        if( oldVersion <= 32 ) {
             val storage = Injection.storage(this)
-            storage.setShouldShowWeather(
-                storage.isUserPremium() && isPermissionGranted("com.google.android.wearable.permission.RECEIVE_COMPLICATION_DATA")
-            )
+            if( storage.isUserPremium() && !storage.hasShownBatteryIndicatorNotification() ) {
+                storage.setBatteryIndicatorNotificationShown()
+                showBatteryIndicatorNotification()
+            }
         }
+    }
+
+    private fun showBatteryIndicatorNotification() {
+        // Create notification channel if needed
+        if ( Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ) {
+            val importance = NotificationManager.IMPORTANCE_DEFAULT
+            val mChannel = NotificationChannel(MISC_NOTIFICATION_CHANNEL_ID, getString(R.string.misc_notification_channel_name), importance)
+            mChannel.description = getString(R.string.misc_notification_channel_description)
+
+            val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.createNotificationChannel(mChannel)
+        }
+
+        val activityIntent = Intent(this, ComplicationConfigActivity::class.java)
+        val pendingIntent = PendingIntent.getActivity(this, 0, activityIntent, PendingIntent.FLAG_CANCEL_CURRENT)
+
+        val notification = NotificationCompat.Builder(this, MISC_NOTIFICATION_CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle(getString(R.string.battery_indicator_notification_title))
+            .setContentText(getString(R.string.battery_indicator_notification_message))
+            .setStyle(NotificationCompat.BigTextStyle().bigText(getString(R.string.battery_indicator_notification_message)))
+            .addAction(NotificationCompat.Action(R.drawable.ic_settings, getString(R.string.battery_indicator_notification_cta), pendingIntent))
+            .setAutoCancel(true)
+            .build()
+
+
+        NotificationManagerCompat.from(this).notify(193728, notification)
     }
 
     private class ComplicationTimeDependentUpdateHandler(private val engine: WeakReference<Engine>,

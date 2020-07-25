@@ -60,6 +60,9 @@
     <string name="rating_feedback_email" translatable="false">pixelwatchface@benoitletondor.com</string>
     <string name="rating_feedback_send_subject" translatable="false">Pixel Watch Face - Feedback</string>
     <string name="rating_feedback_send_text"></string>
+    <string name="battery_indicator_notification_title">New feature: Battery indicator</string>
+    <string name="battery_indicator_notification_message">Replace bottom widget with a minimalist, Pixel like, battery indicator. Go to settings to activate it</string>
+    <string name="battery_indicator_notification_cta">Go to settings</string>
 
     <string name="color_default">Wear OS colors</string>
     <string name="color_yellow">Yellow</string>
