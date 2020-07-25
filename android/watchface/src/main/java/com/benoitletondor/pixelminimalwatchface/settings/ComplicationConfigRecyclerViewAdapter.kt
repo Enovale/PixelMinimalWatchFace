@@ -55,6 +55,7 @@ private const val TYPE_SHOW_FILLED_TIME_AMBIENT = 9
 private const val TYPE_TIME_SIZE = 10
 private const val TYPE_SHOW_SECONDS_RING = 11
 private const val TYPE_SHOW_WEATHER = 12
+private const val TYPE_SHOW_BATTERY = 13
 
 class ComplicationConfigRecyclerViewAdapter(
     private val context: Context,
@@ -67,7 +68,8 @@ class ComplicationConfigRecyclerViewAdapter(
     private val showFilledTimeAmbientListener: (Boolean) -> Unit,
     private val timeSizeChangedListener: (Int) -> Unit,
     private val showSecondsRingListener: (Boolean) -> Unit,
-    private val showWeatherListener: (Boolean) -> Unit
+    private val showWeatherListener: (Boolean) -> Unit,
+    private val showBatteryListener: (Boolean) -> Unit
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private var selectedComplicationLocation: ComplicationLocation? = null
@@ -76,6 +78,7 @@ class ComplicationConfigRecyclerViewAdapter(
     private val providerInfoRetriever = ProviderInfoRetriever(context, Executors.newCachedThreadPool())
     private var previewAndComplicationsViewHolder: PreviewAndComplicationsViewHolder? = null
     private var showWeatherViewHolder: ShowWeatherViewHolder? = null
+    private var showBatteryViewHolder: ShowBatteryViewHolder? = null
     private val settings = generateSettingsList(context, storage)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
@@ -204,7 +207,7 @@ class ComplicationConfigRecyclerViewAdapter(
                                 context,
                                 watchFaceComponentName
                             ),
-                            ComplicationConfigActivity.COMPLICATION_PERMISSION_REQUEST_CODE
+                            ComplicationConfigActivity.COMPLICATION_WEATHER_PERMISSION_REQUEST_CODE
                         )
                     } else {
                         showWeatherListener(false)
@@ -212,6 +215,29 @@ class ComplicationConfigRecyclerViewAdapter(
                 }
                 this.showWeatherViewHolder = showWeatherViewHolder
                 return showWeatherViewHolder
+            }
+            TYPE_SHOW_BATTERY -> {
+                val showBatteryViewHolder = ShowBatteryViewHolder(
+                    LayoutInflater.from(parent.context).inflate(
+                        R.layout.config_list_show_battery,
+                        parent,
+                        false
+                    )
+                ) { showBattery ->
+                    if( showBattery ) {
+                        (context as Activity).startActivityForResult(
+                            ComplicationHelperActivity.createPermissionRequestHelperIntent(
+                                context,
+                                watchFaceComponentName
+                            ),
+                            ComplicationConfigActivity.COMPLICATION_BATTERY_PERMISSION_REQUEST_CODE
+                        )
+                    } else {
+                        showBatteryListener(false)
+                    }
+                }
+                this.showBatteryViewHolder = showBatteryViewHolder
+                return showBatteryViewHolder
             }
         }
         throw IllegalStateException("Unknown option type: $viewType")
@@ -227,6 +253,7 @@ class ComplicationConfigRecyclerViewAdapter(
 
                     previewAndComplicationsViewHolder.setDefaultComplicationDrawable()
                     previewAndComplicationsViewHolder.showMiddleComplication(!storage.shouldShowWearOSLogo())
+                    previewAndComplicationsViewHolder.showBottomComplication(!storage.shouldShowBattery())
                     initializesColorsAndComplications()
                 }
             }
@@ -259,6 +286,10 @@ class ComplicationConfigRecyclerViewAdapter(
             TYPE_SHOW_WEATHER -> {
                 val showWeather = storage.shouldShowWeather()
                 (viewHolder as ShowWeatherViewHolder).setShowWeatherViewSwitchChecked(showWeather)
+            }
+            TYPE_SHOW_BATTERY -> {
+                val showBattery = storage.shouldShowBattery()
+                (viewHolder as ShowBatteryViewHolder).setShowBatteryViewSwitchChecked(showBattery)
             }
         }
     }
@@ -310,6 +341,7 @@ class ComplicationConfigRecyclerViewAdapter(
         }
         list.add(TYPE_SHOW_WEAR_OS_LOGO)
         if( isUserPremium ) {
+            list.add(TYPE_SHOW_BATTERY)
             list.add(TYPE_SHOW_COMPLICATIONS_AMBIENT)
         }
         list.add(TYPE_HOUR_FORMAT)
@@ -358,11 +390,18 @@ class ComplicationConfigRecyclerViewAdapter(
     }
 
 
-    fun complicationsPermissionFinished() {
+    fun weatherComplicationPermissionFinished() {
         val granted = context.isPermissionGranted("com.google.android.wearable.permission.RECEIVE_COMPLICATION_DATA")
 
         showWeatherViewHolder?.setShowWeatherViewSwitchChecked(granted)
         showWeatherListener(granted)
+    }
+
+    fun batteryComplicationPermissionFinished() {
+        val granted = context.isPermissionGranted("com.google.android.wearable.permission.RECEIVE_COMPLICATION_DATA")
+
+        showBatteryViewHolder?.setShowBatteryViewSwitchChecked(granted)
+        showBatteryListener(granted)
     }
 }
 
@@ -394,6 +433,7 @@ class PreviewAndComplicationsViewHolder(
     var bound = false
 
     private val wearOSLogoImageView: ImageView = view.findViewById(R.id.wear_os_logo_image_view)
+    private val batteryIconImageView: ImageView = view.findViewById(R.id.battery_icon)
     private val leftComplicationBackground: ImageView = view.findViewById(R.id.left_complication_background)
     private val middleComplicationBackground: ImageView = view.findViewById(R.id.middle_complication_background)
     private val rightComplicationBackground: ImageView = view.findViewById(R.id.right_complication_background)
@@ -432,6 +472,12 @@ class PreviewAndComplicationsViewHolder(
         middleComplication.visibility = if( showMiddleComplication ) { View.VISIBLE } else { View.GONE }
         middleComplicationBackground.visibility = if( showMiddleComplication ) { View.VISIBLE } else { View.INVISIBLE }
         wearOSLogoImageView.visibility = if( !showMiddleComplication ) { View.VISIBLE } else { View.GONE }
+    }
+
+    fun showBottomComplication(showBottomComplication: Boolean) {
+        bottomComplication.visibility = if( showBottomComplication ) { View.VISIBLE } else { View.GONE }
+        bottomComplicationBackground.visibility = if( showBottomComplication ) { View.VISIBLE } else { View.INVISIBLE }
+        batteryIconImageView.visibility = if( !showBottomComplication ) { View.VISIBLE } else { View.GONE }
     }
 
     fun updateComplicationViews(location: ComplicationLocation,
@@ -675,5 +721,20 @@ class ShowWeatherViewHolder(view: View,
 
     fun setShowWeatherViewSwitchChecked(checked: Boolean) {
         showWeatherViewSwitch.isChecked = checked
+    }
+}
+
+class ShowBatteryViewHolder(view: View,
+                            showBatteryViewHolderClickListener: (Boolean) -> Unit) : RecyclerView.ViewHolder(view) {
+    private val showBatteryViewSwitch: Switch = view as Switch
+
+    init {
+        showBatteryViewSwitch.setOnCheckedChangeListener { _, checked ->
+            showBatteryViewHolderClickListener(checked)
+        }
+    }
+
+    fun setShowBatteryViewSwitchChecked(checked: Boolean) {
+        showBatteryViewSwitch.isChecked = checked
     }
 }

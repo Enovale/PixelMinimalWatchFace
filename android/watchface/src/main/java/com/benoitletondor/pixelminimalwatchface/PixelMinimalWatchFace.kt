@@ -29,6 +29,7 @@ import android.os.Handler
 import android.os.Message
 import android.support.wearable.complications.ComplicationData
 import android.support.wearable.complications.ComplicationText
+import android.support.wearable.complications.SystemProviders
 import android.support.wearable.complications.rendering.ComplicationDrawable
 import android.support.wearable.complications.rendering.CustomComplicationDrawable
 import android.support.wearable.watchface.CanvasWatchFaceService
@@ -46,6 +47,7 @@ import com.benoitletondor.pixelminimalwatchface.helper.openActivity
 import com.benoitletondor.pixelminimalwatchface.model.ComplicationColors
 import com.benoitletondor.pixelminimalwatchface.model.Storage
 import com.benoitletondor.pixelminimalwatchface.rating.FeedbackActivity
+import com.benoitletondor.pixelminimalwatchface.settings.ComplicationConfigActivity
 import com.benoitletondor.pixelminimalwatchface.settings.ComplicationLocation
 import com.google.android.gms.wearable.*
 import java.lang.ref.WeakReference
@@ -80,12 +82,40 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
 
     @Suppress("SameParameterValue", "UNUSED_PARAMETER")
     private fun onAppUpgrade(oldVersion: Int, newVersion: Int) {
-        if( oldVersion <= 23 ) {
+        if( oldVersion <= 32 ) {
             val storage = Injection.storage(this)
-            storage.setShouldShowWeather(
-                storage.isUserPremium() && isPermissionGranted("com.google.android.wearable.permission.RECEIVE_COMPLICATION_DATA")
-            )
+            if( storage.isUserPremium() && !storage.hasShownBatteryIndicatorNotification() ) {
+                storage.setBatteryIndicatorNotificationShown()
+                showBatteryIndicatorNotification()
+            }
         }
+    }
+
+    private fun showBatteryIndicatorNotification() {
+        // Create notification channel if needed
+        if ( Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ) {
+            val importance = NotificationManager.IMPORTANCE_DEFAULT
+            val mChannel = NotificationChannel(MISC_NOTIFICATION_CHANNEL_ID, getString(R.string.misc_notification_channel_name), importance)
+            mChannel.description = getString(R.string.misc_notification_channel_description)
+
+            val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.createNotificationChannel(mChannel)
+        }
+
+        val activityIntent = Intent(this, ComplicationConfigActivity::class.java)
+        val pendingIntent = PendingIntent.getActivity(this, 0, activityIntent, PendingIntent.FLAG_CANCEL_CURRENT)
+
+        val notification = NotificationCompat.Builder(this, MISC_NOTIFICATION_CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle(getString(R.string.battery_indicator_notification_title))
+            .setContentText(getString(R.string.battery_indicator_notification_message))
+            .setStyle(NotificationCompat.BigTextStyle().bigText(getString(R.string.battery_indicator_notification_message)))
+            .addAction(NotificationCompat.Action(R.drawable.ic_settings, getString(R.string.battery_indicator_notification_cta), pendingIntent))
+            .setAutoCancel(true)
+            .build()
+
+
+        NotificationManagerCompat.from(this).notify(193728, notification)
     }
 
     private class ComplicationTimeDependentUpdateHandler(private val engine: WeakReference<Engine>,
@@ -146,7 +176,9 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
         private val timeDependentTexts = SparseArray<ComplicationText>()
 
         private var shouldShowWeather = false
+        private var shouldShowBattery = false
         private var weatherComplicationData: ComplicationData? = null
+        private var batteryComplicationData: ComplicationData? = null
 
         private var lastTapEventTimestamp: Long = 0
 
@@ -196,7 +228,8 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
             rightComplicationDrawable.callback = this
             bottomComplicationDrawable.callback = this
 
-            setActiveComplications(*COMPLICATION_IDS.plus(WEATHER_COMPLICATION_ID))
+            setActiveComplications(*COMPLICATION_IDS.plus(WEATHER_COMPLICATION_ID).plus(
+                BATTERY_COMPLICATION_ID))
 
             watchFaceDrawer.setComplicationDrawable(LEFT_COMPLICATION_ID, leftComplicationDrawable)
             watchFaceDrawer.setComplicationDrawable(MIDDLE_COMPLICATION_ID, middleComplicationDrawable)
@@ -216,6 +249,22 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
         private fun unsubscribeToWeatherComplicationData() {
             setDefaultComplicationProvider(
                 WEATHER_COMPLICATION_ID,
+                null,
+                ComplicationData.TYPE_EMPTY
+            )
+        }
+
+        private fun subscribeToBatteryComplicationData() {
+            setDefaultSystemComplicationProvider(
+                BATTERY_COMPLICATION_ID,
+                SystemProviders.WATCH_BATTERY,
+                ComplicationData.TYPE_SHORT_TEXT
+            )
+        }
+
+        private fun unsubscribeToBatteryComplicationData() {
+            setDefaultComplicationProvider(
+                BATTERY_COMPLICATION_ID,
                 null,
                 ComplicationData.TYPE_EMPTY
             )
@@ -310,6 +359,17 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
                 return
             }
 
+            if( watchFaceComplicationId == BATTERY_COMPLICATION_ID ) {
+                batteryComplicationData = if( data.type == ComplicationData.TYPE_SHORT_TEXT ) {
+                    data
+                } else {
+                    null
+                }
+
+                invalidate()
+                return
+            }
+
             // Updates correct ComplicationDrawable with updated data.
             val complicationDrawable = complicationDrawableSparseArray.get(watchFaceComplicationId)
             complicationDrawable.setComplicationData(data)
@@ -378,6 +438,18 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
                 }
             }
 
+            // Update battery subscription if needed
+            if( storage.shouldShowBattery() != shouldShowBattery && storage.isUserPremium() ) {
+                shouldShowBattery = storage.shouldShowBattery()
+
+                if( shouldShowBattery ) {
+                    subscribeToBatteryComplicationData()
+                } else {
+                    unsubscribeToBatteryComplicationData()
+                    batteryComplicationData = null
+                }
+            }
+
             calendar.timeInMillis = System.currentTimeMillis()
 
             watchFaceDrawer.draw(
@@ -387,7 +459,8 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
                 ambient,
                 lowBitAmbient,
                 burnInProtection,
-                if( shouldShowWeather ) { weatherComplicationData } else { null }
+                if( shouldShowWeather ) { weatherComplicationData } else { null },
+                if( shouldShowBattery ) { batteryComplicationData } else { null }
             )
 
             if( !ambient && isVisible && !timeDependentUpdateHandler.hasUpdateScheduled() ) {
@@ -533,6 +606,7 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
         const val MIDDLE_COMPLICATION_ID = 102
         const val BOTTOM_COMPLICATION_ID = 103
         const val WEATHER_COMPLICATION_ID = 104
+        const val BATTERY_COMPLICATION_ID = 105
 
         private val COMPLICATION_IDS = intArrayOf(
             LEFT_COMPLICATION_ID,
