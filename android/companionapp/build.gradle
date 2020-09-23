@@ -24,14 +24,20 @@ def keystoreProperties = new Properties()
 keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 
 android {
-    compileSdkVersion 29
+    compileSdkVersion 30
 
     defaultConfig {
         applicationId "com.benoitletondor.pixelminimalwatchface"
         minSdkVersion 25
+<<<<<<< HEAD
         targetSdkVersion 29
         versionCode 10036
         versionName "1.5.3"
+=======
+        targetSdkVersion 30
+        versionCode 10035
+        versionName "1.5.2"
+>>>>>>> f2d4c14109ba96186c1f285ef45745c4df1331e1
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
@@ -70,14 +76,14 @@ android {
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 
-    implementation 'androidx.appcompat:appcompat:1.1.0'
-    implementation 'androidx.core:core-ktx:1.3.0'
-    implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
+    implementation 'androidx.appcompat:appcompat:1.2.0'
+    implementation 'androidx.core:core-ktx:1.3.1'
+    implementation 'androidx.constraintlayout:constraintlayout:2.0.1'
     implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
     implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.2.0'
 
-    implementation 'com.google.firebase:firebase-analytics:17.4.4'
-    implementation 'com.google.firebase:firebase-crashlytics:17.1.1'
+    implementation 'com.google.firebase:firebase-analytics:17.5.0'
+    implementation 'com.google.firebase:firebase-crashlytics:17.2.1'
     implementation 'com.google.firebase:firebase-config:19.2.0'
 
     implementation 'org.koin:koin-core:2.1.6'
@@ -91,8 +97,8 @@ dependencies {
     implementation 'com.android.billingclient:billing:3.0.0'
     implementation 'com.android.billingclient:billing-ktx:3.0.0'
 
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.8'
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.8'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.9'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.9'
 
     implementation 'me.relex:circleindicator:2.1.4@aar'
 }
