@@ -30,8 +30,8 @@ android {
         applicationId "com.benoitletondor.pixelminimalwatchface"
         minSdkVersion 25
         targetSdkVersion 29
-        versionCode 10035
-        versionName "1.5.2"
+        versionCode 10036
+        versionName "1.5.3"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
