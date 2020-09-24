@@ -66,6 +66,8 @@ class ComplicationConfigActivity : Activity() {
             storage.setShouldShowWeather(showWeather)
         }, { showBattery ->
             storage.setShouldShowBattery(showBattery)
+        }, { useShortDateFormat ->
+            storage.setUseShortDateFormat(useShortDateFormat)
         })
 
         wearable_recycler_view.isEdgeItemsCenteringEnabled = true
