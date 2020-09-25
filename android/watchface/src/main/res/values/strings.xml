@@ -24,6 +24,7 @@
     <string name="config_version">Version: %s</string>
     <string name="config_footer">Made by Benoit Letondor</string>
     <string name="config_hour_format_24h">Use 24h time</string>
+    <string name="config_date_format_short">Use short date format</string>
     <string name="config_show_wear_os_logo">Show WearOS logo</string>
     <string name="config_show_weather">Show weather after date</string>
     <string name="config_show_filled_time_ambient">Use thin time in ambient mode</string>
