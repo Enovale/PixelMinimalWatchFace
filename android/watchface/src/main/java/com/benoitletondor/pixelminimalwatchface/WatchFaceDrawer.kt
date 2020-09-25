@@ -440,7 +440,13 @@ class WatchFaceDrawerImpl : WatchFaceDrawer {
 
         complicationsDrawingCache.drawComplications(canvas, ambient, currentTime, isUserPremium)
 
-        val dateText = formatDateTime(context, currentTime.time, FORMAT_SHOW_DATE or FORMAT_SHOW_WEEKDAY or FORMAT_ABBREV_WEEKDAY or FORMAT_ABBREV_MONTH)
+        val dateFormat = if( storage.getUseShortDateFormat() ) {
+            FORMAT_SHOW_DATE or FORMAT_SHOW_WEEKDAY or FORMAT_ABBREV_WEEKDAY or FORMAT_ABBREV_MONTH
+        } else {
+            FORMAT_SHOW_DATE or FORMAT_SHOW_WEEKDAY or FORMAT_ABBREV_WEEKDAY
+        }
+
+        val dateText = formatDateTime(context, currentTime.time, dateFormat)
         val dateTextLength = datePaint.measureText(dateText)
         val dateXOffset = if( isUserPremium && weatherComplicationData != null ) {
             val weatherText = weatherComplicationData.shortText

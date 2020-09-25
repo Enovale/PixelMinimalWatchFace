@@ -40,7 +40,9 @@ import com.benoitletondor.pixelminimalwatchface.helper.isServiceAvailable
 import com.benoitletondor.pixelminimalwatchface.helper.timeSizeToHumanReadableString
 import com.benoitletondor.pixelminimalwatchface.model.ComplicationColors
 import com.benoitletondor.pixelminimalwatchface.model.Storage
+import java.util.*
 import java.util.concurrent.Executors
+import kotlin.collections.ArrayList
 
 private const val TYPE_HEADER = 0
 private const val TYPE_PREVIEW_AND_COMPLICATIONS_CONFIG = 1
@@ -56,6 +58,7 @@ private const val TYPE_TIME_SIZE = 10
 private const val TYPE_SHOW_SECONDS_RING = 11
 private const val TYPE_SHOW_WEATHER = 12
 private const val TYPE_SHOW_BATTERY = 13
+private const val TYPE_DATE_FORMAT = 14
 
 class ComplicationConfigRecyclerViewAdapter(
     private val context: Context,
@@ -69,7 +72,8 @@ class ComplicationConfigRecyclerViewAdapter(
     private val timeSizeChangedListener: (Int) -> Unit,
     private val showSecondsRingListener: (Boolean) -> Unit,
     private val showWeatherListener: (Boolean) -> Unit,
-    private val showBatteryListener: (Boolean) -> Unit
+    private val showBatteryListener: (Boolean) -> Unit,
+    private val dateFormatSelectionListener: (Boolean) -> Unit,
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private var selectedComplicationLocation: ComplicationLocation? = null
@@ -240,6 +244,14 @@ class ComplicationConfigRecyclerViewAdapter(
                 this.showBatteryViewHolder = showBatteryViewHolder
                 return showBatteryViewHolder
             }
+            TYPE_DATE_FORMAT -> return DateFormatViewHolder(
+                LayoutInflater.from(parent.context).inflate(
+                    R.layout.config_list_date_format,
+                    parent,
+                    false
+                ),
+                dateFormatSelectionListener
+            )
         }
         throw IllegalStateException("Unknown option type: $viewType")
     }
@@ -291,6 +303,10 @@ class ComplicationConfigRecyclerViewAdapter(
             TYPE_SHOW_BATTERY -> {
                 val showBattery = storage.shouldShowBattery()
                 (viewHolder as ShowBatteryViewHolder).setShowBatteryViewSwitchChecked(showBattery)
+            }
+            TYPE_DATE_FORMAT -> {
+                val useShortDateFormat = storage.getUseShortDateFormat()
+                (viewHolder as DateFormatViewHolder).setDateFormatSwitchChecked(useShortDateFormat)
             }
         }
     }
@@ -346,6 +362,7 @@ class ComplicationConfigRecyclerViewAdapter(
             list.add(TYPE_SHOW_COMPLICATIONS_AMBIENT)
         }
         list.add(TYPE_HOUR_FORMAT)
+        list.add(TYPE_DATE_FORMAT)
         list.add(TYPE_TIME_SIZE)
         list.add(TYPE_SHOW_FILLED_TIME_AMBIENT)
         if( isScreenRound ) {
@@ -738,5 +755,20 @@ class ShowBatteryViewHolder(view: View,
 
     fun setShowBatteryViewSwitchChecked(checked: Boolean) {
         showBatteryViewSwitch.isChecked = checked
+    }
+}
+
+class DateFormatViewHolder(view: View,
+                           dateFormatClickListener: (Boolean) -> Unit) : RecyclerView.ViewHolder(view) {
+    private val dateFormatSwitch: Switch = view as Switch
+
+    init {
+        dateFormatSwitch.setOnCheckedChangeListener { _, checked ->
+            dateFormatClickListener(checked)
+        }
+    }
+
+    fun setDateFormatSwitchChecked(checked: Boolean) {
+        dateFormatSwitch.isChecked = checked
     }
 }

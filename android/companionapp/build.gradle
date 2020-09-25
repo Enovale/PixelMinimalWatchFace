@@ -30,8 +30,8 @@ android {
         applicationId "com.benoitletondor.pixelminimalwatchface"
         minSdkVersion 25
         targetSdkVersion 30
-        versionCode 10036
-        versionName "1.5.3"
+        versionCode 10038
+        versionName "1.6.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
@@ -80,9 +80,9 @@ dependencies {
     implementation 'com.google.firebase:firebase-crashlytics:17.2.1'
     implementation 'com.google.firebase:firebase-config:19.2.0'
 
-    implementation 'org.koin:koin-core:2.1.6'
-    implementation 'org.koin:koin-android:2.1.6'
-    implementation 'org.koin:koin-android-viewmodel:2.1.6'
+    implementation 'org.koin:koin-core:2.2.0-beta-1'
+    implementation 'org.koin:koin-android:2.2.0-beta-1'
+    implementation 'org.koin:koin-android-viewmodel:2.2.0-beta-1'
 
     implementation 'com.google.android.gms:play-services-wearable:17.0.0'
     implementation 'com.google.android.support:wearable:2.7.0'
