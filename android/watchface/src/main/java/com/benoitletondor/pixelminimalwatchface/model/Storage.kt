@@ -37,6 +37,7 @@ private const val KEY_SHOW_WEATHER = "showWeather"
 private const val KEY_SHOW_BATTERY = "showBattery"
 private const val KEY_SHOW_BATTERY_NOTIFICATION = "showBatteryNotification"
 private const val KEY_USE_SHORT_DATE_FORMAT = "useShortDateFormat"
+private const val KEY_SHOW_DATE_AMBIENT = "showDateAmbient"
 
 interface Storage {
     fun getComplicationColors(): ComplicationColors
@@ -68,6 +69,8 @@ interface Storage {
     fun setBatteryIndicatorNotificationShown()
     fun getUseShortDateFormat(): Boolean
     fun setUseShortDateFormat(useShortDateFormat: Boolean)
+    fun setShowDateInAmbient(showDateInAmbient: Boolean)
+    fun getShowDateInAmbient(): Boolean
 }
 
 class StorageImpl : Storage {
@@ -96,6 +99,8 @@ class StorageImpl : Storage {
     private var cacheShouldShowBattery = false
     private var useShortDateFormatCached = false
     private var cacheUseShortDateFormat = false
+    private var showDateAmbientCached = false
+    private var cacheShowDateAmbient = false
 
     fun init(context: Context): Storage {
         if( !initialized ) {
@@ -319,5 +324,21 @@ class StorageImpl : Storage {
         useShortDateFormatCached = true
 
         sharedPreferences.edit().putBoolean(KEY_USE_SHORT_DATE_FORMAT, useShortDateFormat).apply()
+    }
+
+    override fun setShowDateInAmbient(showDateInAmbient: Boolean) {
+        cacheShowDateAmbient = showDateInAmbient
+        showDateAmbientCached = true
+
+        sharedPreferences.edit().putBoolean(KEY_SHOW_DATE_AMBIENT, showDateInAmbient).apply()
+    }
+
+    override fun getShowDateInAmbient(): Boolean {
+        if( !showDateAmbientCached ) {
+            cacheShowDateAmbient = sharedPreferences.getBoolean(KEY_SHOW_DATE_AMBIENT, true)
+            showDateAmbientCached = true
+        }
+
+        return cacheShowDateAmbient
     }
 }

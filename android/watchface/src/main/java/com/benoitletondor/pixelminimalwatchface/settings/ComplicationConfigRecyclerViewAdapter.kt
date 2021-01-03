@@ -59,6 +59,7 @@ private const val TYPE_SHOW_SECONDS_RING = 11
 private const val TYPE_SHOW_WEATHER = 12
 private const val TYPE_SHOW_BATTERY = 13
 private const val TYPE_DATE_FORMAT = 14
+private const val TYPE_SHOW_DATE_AMBIENT = 15
 
 class ComplicationConfigRecyclerViewAdapter(
     private val context: Context,
@@ -74,6 +75,7 @@ class ComplicationConfigRecyclerViewAdapter(
     private val showWeatherListener: (Boolean) -> Unit,
     private val showBatteryListener: (Boolean) -> Unit,
     private val dateFormatSelectionListener: (Boolean) -> Unit,
+    private val showDateAmbientListener: (Boolean) -> Unit,
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private var selectedComplicationLocation: ComplicationLocation? = null
@@ -252,6 +254,14 @@ class ComplicationConfigRecyclerViewAdapter(
                 ),
                 dateFormatSelectionListener
             )
+            TYPE_SHOW_DATE_AMBIENT -> return ShowDateAmbientViewHolder(
+                LayoutInflater.from(parent.context).inflate(
+                    R.layout.config_list_show_date_ambient,
+                    parent,
+                    false
+                ),
+                showDateAmbientListener
+            )
         }
         throw IllegalStateException("Unknown option type: $viewType")
     }
@@ -308,6 +318,10 @@ class ComplicationConfigRecyclerViewAdapter(
                 val useShortDateFormat = storage.getUseShortDateFormat()
                 (viewHolder as DateFormatViewHolder).setDateFormatSwitchChecked(useShortDateFormat)
             }
+            TYPE_SHOW_DATE_AMBIENT -> {
+                val showDateInAmbient = storage.getShowDateInAmbient()
+                (viewHolder as ShowDateAmbientViewHolder).setShowDateAmbientSwitchChecked(showDateInAmbient)
+            }
         }
     }
 
@@ -363,6 +377,7 @@ class ComplicationConfigRecyclerViewAdapter(
         }
         list.add(TYPE_HOUR_FORMAT)
         list.add(TYPE_DATE_FORMAT)
+        list.add(TYPE_SHOW_DATE_AMBIENT)
         list.add(TYPE_TIME_SIZE)
         list.add(TYPE_SHOW_FILLED_TIME_AMBIENT)
         if( isScreenRound ) {
@@ -770,5 +785,20 @@ class DateFormatViewHolder(view: View,
 
     fun setDateFormatSwitchChecked(checked: Boolean) {
         dateFormatSwitch.isChecked = checked
+    }
+}
+
+class ShowDateAmbientViewHolder(view: View,
+                                showDateAmbientClickListener: (Boolean) -> Unit) : RecyclerView.ViewHolder(view) {
+    private val showDateAmbientSwitch: Switch = view as Switch
+
+    init {
+        showDateAmbientSwitch.setOnCheckedChangeListener { _, checked ->
+            showDateAmbientClickListener(checked)
+        }
+    }
+
+    fun setShowDateAmbientSwitchChecked(checked: Boolean) {
+        showDateAmbientSwitch.isChecked = checked
     }
 }

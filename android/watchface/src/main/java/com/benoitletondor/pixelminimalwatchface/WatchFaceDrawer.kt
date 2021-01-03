@@ -288,6 +288,7 @@ class WatchFaceDrawerImpl : WatchFaceDrawer {
                 storage.isUserPremium(),
                 storage.shouldShowSecondsRing(),
                 storage.shouldShowBattery(),
+                !ambient || storage.getShowDateInAmbient(),
                 weatherComplicationData,
                 batteryComplicationData
             )
@@ -429,6 +430,7 @@ class WatchFaceDrawerImpl : WatchFaceDrawer {
                                                  isUserPremium: Boolean,
                                                  drawSecondsRing: Boolean,
                                                  drawBattery: Boolean,
+                                                 drawDate: Boolean,
                                                  weatherComplicationData: ComplicationData?,
                                                  batteryComplicationData: ComplicationData?) {
         val timeText = if( storage.getUse24hTimeFormat()) {
@@ -443,20 +445,28 @@ class WatchFaceDrawerImpl : WatchFaceDrawer {
 
         complicationsDrawingCache.drawComplications(canvas, ambient, calendar, isUserPremium)
 
-        val dateFormat = if( storage.getUseShortDateFormat() ) {
-            FORMAT_SHOW_DATE or FORMAT_SHOW_WEEKDAY or FORMAT_ABBREV_WEEKDAY or FORMAT_ABBREV_MONTH
-        } else {
-            FORMAT_SHOW_DATE or FORMAT_SHOW_WEEKDAY or FORMAT_ABBREV_WEEKDAY
-        }
+        if( drawDate ) {
+            val dateFormat = if( storage.getUseShortDateFormat() ) {
+                FORMAT_SHOW_DATE or FORMAT_SHOW_WEEKDAY or FORMAT_ABBREV_WEEKDAY or FORMAT_ABBREV_MONTH
+            } else {
+                FORMAT_SHOW_DATE or FORMAT_SHOW_WEEKDAY or FORMAT_ABBREV_WEEKDAY
+            }
 
-        val dateText = formatDateTime(context, calendar.timeInMillis, dateFormat).capitalize(Locale.getDefault())
-        val dateTextLength = datePaint.measureText(dateText)
-        val dateXOffset = if( isUserPremium && weatherComplicationData != null ) {
-            val weatherText = weatherComplicationData.shortText
-            val weatherIcon = weatherComplicationData.icon
+            val dateText = formatDateTime(context, calendar.timeInMillis, dateFormat).capitalize(Locale.getDefault())
+            val dateTextLength = datePaint.measureText(dateText)
+            val dateXOffset = if( isUserPremium && weatherComplicationData != null ) {
+                val weatherText = weatherComplicationData.shortText
+                val weatherIcon = weatherComplicationData.icon
 
-            if( weatherText != null && weatherIcon != null ) {
-                drawWeatherAndComputeDateXOffset(weatherText, weatherIcon, calendar, dateTextLength, canvas)
+                if( weatherText != null && weatherIcon != null ) {
+                    drawWeatherAndComputeDateXOffset(weatherText, weatherIcon, calendar, dateTextLength, canvas)
+                } else {
+                    currentWeatherBitmap = null
+                    currentWeatherIcon = null
+                    weatherTextEndX = null
+
+                    centerX - (dateTextLength / 2f)
+                }
             } else {
                 currentWeatherBitmap = null
                 currentWeatherIcon = null
@@ -464,15 +474,9 @@ class WatchFaceDrawerImpl : WatchFaceDrawer {
 
                 centerX - (dateTextLength / 2f)
             }
-        } else {
-            currentWeatherBitmap = null
-            currentWeatherIcon = null
-            weatherTextEndX = null
 
-            centerX - (dateTextLength / 2f)
+            canvas.drawText(dateText, dateXOffset, dateYOffset, datePaint)
         }
-
-        canvas.drawText(dateText, dateXOffset, dateYOffset, datePaint)
 
         if( drawSecondsRing && !ambient ) {
             val endAngle = (calendar.get(Calendar.SECOND) * 6).toFloat()
