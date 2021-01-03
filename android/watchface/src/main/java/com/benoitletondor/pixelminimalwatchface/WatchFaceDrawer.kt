@@ -348,7 +348,7 @@ class WatchFaceDrawerImpl : WatchFaceDrawer {
         val wearOsImage = wearOSLogo
 
         val sizeOfComplication = (screenWidth / 4.5).toInt()
-        val verticalOffset = topBottom.toInt() - sizeOfComplication
+        val verticalOffset = if ( topBottom.toInt() > sizeOfComplication * 2 ) { topBottom.toInt() / 2 - sizeOfComplication / 2 } else { topBottom.toInt() - sizeOfComplication }
         val distanceBetweenComplications = context.dpToPx(3)
 
         val maxWidth = max(sizeOfComplication, wearOsImage.width)
@@ -388,12 +388,13 @@ class WatchFaceDrawerImpl : WatchFaceDrawer {
 
         val availableBottomSpace = screenHeight - bottomTop - chinSize - context.dpToPx(15)
         val bottomComplicationHeight = min(availableBottomSpace, context.dpToPx(36).toFloat())
-        val bottomComplicationBottom = (bottomTop + bottomComplicationHeight).toInt()
+        val bottomComplicationTop = if( isRound ) { bottomTop.toInt() + context.dpToPx(5) } else { (bottomTop + + context.dpToPx(5) + availableBottomSpace - bottomComplicationHeight).toInt() }
+        val bottomComplicationBottom = if( isRound ) { (bottomTop + bottomComplicationHeight).toInt() } else { (bottomTop + availableBottomSpace).toInt() }
         val bottomComplicationLeft = computeComplicationLeft(bottomComplicationBottom, screenHeight)
         val bottomComplicationWidth = (screenWidth - 2* bottomComplicationLeft) * 0.9
         val bottomBounds = Rect(
             (centerX - (bottomComplicationWidth / 2)).toInt(),
-            bottomTop.toInt() + context.dpToPx(5),
+            bottomComplicationTop,
             (centerX + (bottomComplicationWidth / 2)).toInt(),
             bottomComplicationBottom
         )
@@ -482,7 +483,7 @@ class WatchFaceDrawerImpl : WatchFaceDrawer {
             val batteryData = batteryComplicationData.shortText
             if( batteryData != null ) {
                 val batteryText = batteryData.getText(context, calendar.timeInMillis).toString()
-                if ( !batteryText.isBlank() ) {
+                if ( batteryText.isNotBlank() ) {
                     val (batteryLevelText, batteryPercent) = try {
                         val batteryPercent = Integer.parseInt(batteryText.filter { it.isDigit() })
                         Pair("$batteryPercent%", batteryPercent)
