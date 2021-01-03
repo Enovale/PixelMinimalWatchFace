@@ -446,7 +446,7 @@ class WatchFaceDrawerImpl : WatchFaceDrawer {
             FORMAT_SHOW_DATE or FORMAT_SHOW_WEEKDAY or FORMAT_ABBREV_WEEKDAY
         }
 
-        val dateText = formatDateTime(context, currentTime.time, dateFormat)
+        val dateText = formatDateTime(context, currentTime.time, dateFormat).capitalize(Locale.getDefault())
         val dateTextLength = datePaint.measureText(dateText)
         val dateXOffset = if( isUserPremium && weatherComplicationData != null ) {
             val weatherText = weatherComplicationData.shortText
