@@ -28,7 +28,7 @@
         android:paddingEnd="30dp"
         android:gravity="center_horizontal"
         android:text="@string/premium_2_title"
-        android:textSize="26sp"
+        android:textSize="24sp"
         android:textColor="@android:color/white"
         android:fontFamily="@font/product_sans"
         app:layout_constraintTop_toTopOf="parent"
