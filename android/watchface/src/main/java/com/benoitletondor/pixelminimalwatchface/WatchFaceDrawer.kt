@@ -58,7 +58,7 @@ interface WatchFaceDrawer {
     fun tapIsInCenterOfScreen(x: Int, y: Int): Boolean
 
     fun draw(canvas: Canvas,
-             currentTime: Date,
+             calendar: Calendar,
              muteMode: Boolean,
              ambient:Boolean,
              lowBitAmbient: Boolean,
@@ -107,7 +107,6 @@ class WatchFaceDrawerImpl : WatchFaceDrawer {
     private lateinit var timeFormatter24H: SimpleDateFormat
     private lateinit var timeFormatter12H: SimpleDateFormat
     private var currentTimeSize = 0
-    private val secondsCalendar = Calendar.getInstance()
     private var spaceBeforeWeather = 0
 
     override fun onCreate(context: Context, storage: Storage) {
@@ -259,7 +258,7 @@ class WatchFaceDrawerImpl : WatchFaceDrawer {
     }
 
     override fun draw(canvas: Canvas,
-                      currentTime: Date,
+                      calendar: Calendar,
                       muteMode: Boolean,
                       ambient:Boolean,
                       lowBitAmbient: Boolean,
@@ -281,8 +280,9 @@ class WatchFaceDrawerImpl : WatchFaceDrawer {
         if( drawingState is DrawingState.CacheAvailable ){
             drawingState.draw(
                 canvas,
-                currentTime,
-                muteMode, ambient,
+                calendar,
+                muteMode,
+                ambient,
                 lowBitAmbient,
                 burnInProtection,
                 storage.isUserPremium(),
@@ -420,7 +420,7 @@ class WatchFaceDrawerImpl : WatchFaceDrawer {
     }
 
     private fun DrawingState.CacheAvailable.draw(canvas: Canvas,
-                                                 currentTime: Date,
+                                                 calendar: Calendar,
                                                  muteMode: Boolean,
                                                  ambient:Boolean,
                                                  lowBitAmbient: Boolean,
@@ -431,14 +431,16 @@ class WatchFaceDrawerImpl : WatchFaceDrawer {
                                                  weatherComplicationData: ComplicationData?,
                                                  batteryComplicationData: ComplicationData?) {
         val timeText = if( storage.getUse24hTimeFormat()) {
-            timeFormatter24H.format(currentTime)
+            timeFormatter24H.calendar = calendar
+            timeFormatter24H.format(Date(calendar.timeInMillis))
         } else {
-            timeFormatter12H.format(currentTime)
+            timeFormatter12H.calendar = calendar
+            timeFormatter12H.format(Date(calendar.timeInMillis))
         }
         val timeXOffset = centerX - (timePaint.measureText(timeText) / 2f)
         canvas.drawText(timeText, timeXOffset, timeYOffset, timePaint)
 
-        complicationsDrawingCache.drawComplications(canvas, ambient, currentTime, isUserPremium)
+        complicationsDrawingCache.drawComplications(canvas, ambient, calendar, isUserPremium)
 
         val dateFormat = if( storage.getUseShortDateFormat() ) {
             FORMAT_SHOW_DATE or FORMAT_SHOW_WEEKDAY or FORMAT_ABBREV_WEEKDAY or FORMAT_ABBREV_MONTH
@@ -446,14 +448,14 @@ class WatchFaceDrawerImpl : WatchFaceDrawer {
             FORMAT_SHOW_DATE or FORMAT_SHOW_WEEKDAY or FORMAT_ABBREV_WEEKDAY
         }
 
-        val dateText = formatDateTime(context, currentTime.time, dateFormat).capitalize(Locale.getDefault())
+        val dateText = formatDateTime(context, calendar.timeInMillis, dateFormat).capitalize(Locale.getDefault())
         val dateTextLength = datePaint.measureText(dateText)
         val dateXOffset = if( isUserPremium && weatherComplicationData != null ) {
             val weatherText = weatherComplicationData.shortText
             val weatherIcon = weatherComplicationData.icon
 
             if( weatherText != null && weatherIcon != null ) {
-                drawWeatherAndComputeDateXOffset(weatherText, weatherIcon, currentTime, dateTextLength, canvas)
+                drawWeatherAndComputeDateXOffset(weatherText, weatherIcon, calendar, dateTextLength, canvas)
             } else {
                 currentWeatherBitmap = null
                 currentWeatherIcon = null
@@ -472,16 +474,14 @@ class WatchFaceDrawerImpl : WatchFaceDrawer {
         canvas.drawText(dateText, dateXOffset, dateYOffset, datePaint)
 
         if( drawSecondsRing && !ambient ) {
-            secondsCalendar.time = currentTime
-
-            val endAngle = (secondsCalendar.get(Calendar.SECOND) * 6).toFloat()
+            val endAngle = (calendar.get(Calendar.SECOND) * 6).toFloat()
             canvas.drawArc(0F, 0F, screenWidth.toFloat(), screenHeight.toFloat(), 270F, endAngle, false, secondsRingPaint)
         }
 
         if( isUserPremium && batteryComplicationData != null && drawBattery ) {
             val batteryData = batteryComplicationData.shortText
             if( batteryData != null ) {
-                val batteryText = batteryData.getText(context, currentTime.time).toString()
+                val batteryText = batteryData.getText(context, calendar.timeInMillis).toString()
                 if ( !batteryText.isBlank() ) {
                     val (batteryLevelText, batteryPercent) = try {
                         val batteryPercent = Integer.parseInt(batteryText.filter { it.isDigit() })
@@ -533,12 +533,12 @@ class WatchFaceDrawerImpl : WatchFaceDrawer {
     private fun DrawingState.CacheAvailable.drawWeatherAndComputeDateXOffset(
         weatherText: ComplicationText,
         weatherIcon: Icon,
-        currentTime: Date,
+        calendar: Calendar,
         dateTextLength: Float,
         canvas: Canvas
     ): Float {
         val weatherIconSize = dateHeight
-        val weatherTextString = weatherText.getText(context, currentTime.time).toString()
+        val weatherTextString = weatherText.getText(context, calendar.timeInMillis).toString()
         val weatherTextLength = datePaint.measureText(weatherTextString)
         val dateFontMetrics = datePaint.fontMetrics
 
@@ -581,7 +581,12 @@ class WatchFaceDrawerImpl : WatchFaceDrawer {
         return dateXOffset
     }
 
-    private fun ComplicationsDrawingCache.drawComplications(canvas: Canvas, ambient: Boolean, currentTime: Date, isUserPremium: Boolean) {
+    private fun ComplicationsDrawingCache.drawComplications(
+        canvas: Canvas,
+        ambient: Boolean,
+        calendar: Calendar,
+        isUserPremium: Boolean
+    ) {
         if( isUserPremium && (storage.shouldShowComplicationsInAmbientMode() || !ambient) ) {
             complicationsDrawable.forEach { (complicationId, complicationDrawable) ->
                 if( complicationId == MIDDLE_COMPLICATION_ID && storage.shouldShowWearOSLogo() ) {
@@ -592,7 +597,7 @@ class WatchFaceDrawerImpl : WatchFaceDrawer {
                     return@forEach
                 }
 
-                complicationDrawable.draw(canvas, currentTime.time)
+                complicationDrawable.draw(canvas, calendar.timeInMillis)
             }
         }
 

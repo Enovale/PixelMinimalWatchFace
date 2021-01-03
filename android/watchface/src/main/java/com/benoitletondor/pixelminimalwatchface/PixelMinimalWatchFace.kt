@@ -404,7 +404,7 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
 
             watchFaceDrawer.draw(
                 canvas,
-                calendar.time,
+                calendar,
                 muteMode,
                 ambient,
                 lowBitAmbient,
