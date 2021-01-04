@@ -20,6 +20,8 @@ import android.content.ComponentName
 import android.content.Context
 import android.graphics.Color
 import android.graphics.drawable.Drawable
+import android.os.Parcel
+import android.os.Parcelable
 import android.support.wearable.complications.ComplicationHelperActivity
 import android.support.wearable.complications.ComplicationProviderInfo
 import android.support.wearable.complications.ProviderInfoRetriever
@@ -40,7 +42,6 @@ import com.benoitletondor.pixelminimalwatchface.helper.timeSizeToHumanReadableSt
 import com.benoitletondor.pixelminimalwatchface.model.ComplicationColors
 import com.benoitletondor.pixelminimalwatchface.model.Storage
 import com.benoitletondor.pixelminimalwatchface.settings.ComplicationConfigActivity.Companion.COMPLICATION_CONFIG_REQUEST_CODE
-import java.util.*
 import java.util.concurrent.Executors
 import kotlin.collections.ArrayList
 
@@ -101,7 +102,7 @@ class ComplicationConfigRecyclerViewAdapter(
                         selectedComplicationLocation = location
 
                         (context as Activity).startActivityForResult(
-                            WidgetConfigurationActivity.createIntent(context, getComplicationId(location)),
+                            WidgetConfigurationActivity.createIntent(context, location),
                             COMPLICATION_CONFIG_REQUEST_CODE,
                         )
                     }
@@ -406,8 +407,26 @@ class ComplicationConfigRecyclerViewAdapter(
     }
 }
 
-enum class ComplicationLocation {
-    LEFT, MIDDLE, RIGHT, BOTTOM
+enum class ComplicationLocation : Parcelable {
+    LEFT, MIDDLE, RIGHT, BOTTOM;
+
+    override fun writeToParcel(parcel: Parcel, flags: Int) {
+        parcel.writeInt(ordinal)
+    }
+
+    override fun describeContents(): Int {
+        return 0
+    }
+
+    companion object CREATOR : Parcelable.Creator<ComplicationLocation> {
+        override fun createFromParcel(parcel: Parcel): ComplicationLocation {
+            return values()[parcel.readInt()]
+        }
+
+        override fun newArray(size: Int): Array<ComplicationLocation?> {
+            return arrayOfNulls(size)
+        }
+    }
 }
 
 class PreviewAndComplicationsViewHolder(
