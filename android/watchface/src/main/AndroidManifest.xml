@@ -48,6 +48,8 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".settings.WidgetConfigurationActivity" />
+
         <activity android:name="android.support.wearable.complications.ComplicationHelperActivity"/>
 
         <activity

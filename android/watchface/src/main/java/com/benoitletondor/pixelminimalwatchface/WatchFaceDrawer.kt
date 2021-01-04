@@ -250,10 +250,10 @@ class WatchFaceDrawerImpl : WatchFaceDrawer {
     @ColorInt
     private fun getComplicationPrimaryColor(complicationId: Int, complicationColors: ComplicationColors): Int {
         return when (complicationId) {
-            LEFT_COMPLICATION_ID -> { complicationColors.leftColor }
-            MIDDLE_COMPLICATION_ID -> { complicationColors.middleColor }
-            BOTTOM_COMPLICATION_ID -> { complicationColors.bottomColor }
-            else -> { complicationColors.rightColor }
+            LEFT_COMPLICATION_ID -> { complicationColors.leftColor.color }
+            MIDDLE_COMPLICATION_ID -> { complicationColors.middleColor.color }
+            BOTTOM_COMPLICATION_ID -> { complicationColors.bottomColor.color }
+            else -> { complicationColors.rightColor.color }
         }
     }
 

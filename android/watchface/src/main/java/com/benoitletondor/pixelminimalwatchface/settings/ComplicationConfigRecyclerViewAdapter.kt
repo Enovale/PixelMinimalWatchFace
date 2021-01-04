@@ -18,9 +18,10 @@ package com.benoitletondor.pixelminimalwatchface.settings
 import android.app.Activity
 import android.content.ComponentName
 import android.content.Context
-import android.content.Intent
 import android.graphics.Color
 import android.graphics.drawable.Drawable
+import android.os.Parcel
+import android.os.Parcelable
 import android.support.wearable.complications.ComplicationHelperActivity
 import android.support.wearable.complications.ComplicationProviderInfo
 import android.support.wearable.complications.ProviderInfoRetriever
@@ -29,24 +30,23 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.benoitletondor.pixelminimalwatchface.*
 import com.benoitletondor.pixelminimalwatchface.PixelMinimalWatchFace.Companion.getComplicationId
 import com.benoitletondor.pixelminimalwatchface.PixelMinimalWatchFace.Companion.getComplicationIds
-import com.benoitletondor.pixelminimalwatchface.PixelMinimalWatchFace.Companion.getSupportedComplicationTypes
 import com.benoitletondor.pixelminimalwatchface.helper.isPermissionGranted
 import com.benoitletondor.pixelminimalwatchface.helper.isScreenRound
 import com.benoitletondor.pixelminimalwatchface.helper.isServiceAvailable
 import com.benoitletondor.pixelminimalwatchface.helper.timeSizeToHumanReadableString
 import com.benoitletondor.pixelminimalwatchface.model.ComplicationColors
 import com.benoitletondor.pixelminimalwatchface.model.Storage
-import java.util.*
+import com.benoitletondor.pixelminimalwatchface.settings.ComplicationConfigActivity.Companion.COMPLICATION_CONFIG_REQUEST_CODE
 import java.util.concurrent.Executors
 import kotlin.collections.ArrayList
 
 private const val TYPE_HEADER = 0
 private const val TYPE_PREVIEW_AND_COMPLICATIONS_CONFIG = 1
-private const val TYPE_COLOR_CONFIG = 2
 private const val TYPE_FOOTER = 3
 private const val TYPE_BECOME_PREMIUM = 4
 private const val TYPE_HOUR_FORMAT = 5
@@ -101,32 +101,15 @@ class ComplicationConfigRecyclerViewAdapter(
                     PreviewAndComplicationsViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.config_list_preview_and_complications_item, parent, false)) { location ->
                         selectedComplicationLocation = location
 
-                        val selectedComplicationId = getComplicationId(location)
-                        if (selectedComplicationId >= 0) {
-                            val supportedTypes = getSupportedComplicationTypes(location)
-
-                            (context as Activity).startActivityForResult(
-                                ComplicationHelperActivity.createProviderChooserHelperIntent(
-                                    context,
-                                    watchFaceComponentName,
-                                    selectedComplicationId,
-                                    *supportedTypes
-                                ),
-                                ComplicationConfigActivity.COMPLICATION_CONFIG_REQUEST_CODE
-                            )
-                        }
+                        (context as Activity).startActivityForResult(
+                            WidgetConfigurationActivity.createIntent(context, location),
+                            COMPLICATION_CONFIG_REQUEST_CODE,
+                        )
                     }
 
                 this.previewAndComplicationsViewHolder = previewAndComplicationsViewHolder
                 return previewAndComplicationsViewHolder
             }
-            TYPE_COLOR_CONFIG -> return ColorPickerViewHolder(
-                LayoutInflater.from(parent.context).inflate(
-                    R.layout.config_list_color_item,
-                    parent,
-                    false
-                )
-            )
             TYPE_FOOTER -> return FooterViewHolder(
                 LayoutInflater.from(parent.context).inflate(
                     R.layout.config_list_footer,
@@ -325,6 +308,10 @@ class ComplicationConfigRecyclerViewAdapter(
         }
     }
 
+    fun updateComplications() {
+        initializesColorsAndComplications()
+    }
+
     private fun initializesColorsAndComplications() {
         val complicationIds = getComplicationIds()
 
@@ -362,7 +349,6 @@ class ComplicationConfigRecyclerViewAdapter(
         list.add(TYPE_HEADER)
         if( isUserPremium ) {
             list.add(TYPE_PREVIEW_AND_COMPLICATIONS_CONFIG)
-            list.add(TYPE_COLOR_CONFIG)
 
             if( context.isServiceAvailable(WEAR_OS_APP_PACKAGE, WEATHER_PROVIDER_SERVICE) ) {
                 list.add(TYPE_SHOW_WEATHER)
@@ -389,19 +375,6 @@ class ComplicationConfigRecyclerViewAdapter(
         return list
     }
 
-    /** Updates the selected complication id saved earlier with the new information.  */
-    fun updateSelectedComplication(complicationProviderInfo: ComplicationProviderInfo?) { // Checks if view is inflated and complication id is valid.
-        val selectedComplicationLocation = selectedComplicationLocation
-
-        if ( selectedComplicationLocation != null ) {
-            previewAndComplicationsViewHolder?.updateComplicationViews(
-                selectedComplicationLocation,
-                complicationProviderInfo,
-                storage.getComplicationColors()
-            )
-        }
-    }
-
     override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
         super.onAttachedToRecyclerView(recyclerView)
 
@@ -417,11 +390,6 @@ class ComplicationConfigRecyclerViewAdapter(
     fun onDestroy() {
         providerInfoRetriever.release()
     }
-
-    fun updatePreviewColors() {
-        previewAndComplicationsViewHolder?.updateComplicationsAccentColor(storage.getComplicationColors())
-    }
-
 
     fun weatherComplicationPermissionFinished() {
         val granted = context.isPermissionGranted("com.google.android.wearable.permission.RECEIVE_COMPLICATION_DATA")
@@ -439,24 +407,25 @@ class ComplicationConfigRecyclerViewAdapter(
     }
 }
 
-enum class ComplicationLocation {
-    LEFT, MIDDLE, RIGHT, BOTTOM
-}
+enum class ComplicationLocation : Parcelable {
+    LEFT, MIDDLE, RIGHT, BOTTOM;
 
-class ColorPickerViewHolder(view: View) : RecyclerView.ViewHolder(view), View.OnClickListener {
-
-    init {
-        view.setOnClickListener(this)
+    override fun writeToParcel(parcel: Parcel, flags: Int) {
+        parcel.writeInt(ordinal)
     }
 
-    override fun onClick(view: View) {
-        val launchIntent = Intent(view.context, ColorSelectionActivity::class.java)
-        val activity = view.context as Activity
+    override fun describeContents(): Int {
+        return 0
+    }
 
-        activity.startActivityForResult(
-            launchIntent,
-            ComplicationConfigActivity.UPDATE_COLORS_CONFIG_REQUEST_CODE
-        )
+    companion object CREATOR : Parcelable.Creator<ComplicationLocation> {
+        override fun createFromParcel(parcel: Parcel): ComplicationLocation {
+            return values()[parcel.readInt()]
+        }
+
+        override fun newArray(size: Int): Array<ComplicationLocation?> {
+            return arrayOfNulls(size)
+        }
     }
 }
 
@@ -476,8 +445,8 @@ class PreviewAndComplicationsViewHolder(
     private val middleComplication: ImageButton = view.findViewById(R.id.middle_complication)
     private val rightComplication: ImageButton = view.findViewById(R.id.right_complication)
     private val bottomComplication: ImageButton = view.findViewById(R.id.bottom_complication)
-    private var addComplicationDrawable: Drawable = view.context.getDrawable(R.drawable.add_complication)!!
-    private var addedComplicationDrawable: Drawable = view.context.getDrawable(R.drawable.added_complication)!!
+    private var addComplicationDrawable: Drawable = ContextCompat.getDrawable(view.context, R.drawable.add_complication)!!
+    private var addedComplicationDrawable: Drawable = ContextCompat.getDrawable(view.context, R.drawable.added_complication)!!
 
     init {
         leftComplication.setOnClickListener(this)
@@ -572,25 +541,25 @@ class PreviewAndComplicationsViewHolder(
         if( rightComplication.drawable == addComplicationDrawable ) {
             rightComplication.setColorFilter(Color.WHITE)
         } else {
-            rightComplication.setColorFilter(colors.rightColor)
+            rightComplication.setColorFilter(colors.rightColor.color)
         }
 
         if( leftComplication.drawable == addComplicationDrawable ) {
             leftComplication.setColorFilter(Color.WHITE)
         } else {
-            leftComplication.setColorFilter(colors.leftColor)
+            leftComplication.setColorFilter(colors.leftColor.color)
         }
 
         if( middleComplication.drawable == addComplicationDrawable ) {
             middleComplication.setColorFilter(Color.WHITE)
         } else {
-            middleComplication.setColorFilter(colors.middleColor)
+            middleComplication.setColorFilter(colors.middleColor.color)
         }
 
         if( bottomComplication.drawable == addComplicationDrawable ) {
             bottomComplication.setColorFilter(Color.WHITE)
         } else {
-            bottomComplication.setColorFilter(colors.bottomColor)
+            bottomComplication.setColorFilter(colors.bottomColor.color)
         }
     }
 }
