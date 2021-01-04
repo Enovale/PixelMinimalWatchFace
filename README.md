@@ -31,6 +31,6 @@ You can contact me regarding Pixel Minimal Watch Face using this email: [pixelwa
 
 ### Copyright
 
-    Copyright (C) 2020 Benoit LETONDOR. The name "Pixel Minimal Watch Face", the app idea and assets (images, names, wordings etc...) are all under copyright.
+    Copyright (C) 2021 Benoit LETONDOR. The name "Pixel Minimal Watch Face", the app idea and assets (images, names, wordings etc...) are all under copyright.
 
     Sources are availables under the Apache 2 licence (See LICENSE for details) and contributions will be warmely welcomed! Feel free to contribute :)
