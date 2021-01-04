@@ -23,6 +23,10 @@ private const val SHARED_PREFERENCES_NAME = "pixelMinimalSharedPref"
 
 private const val DEFAULT_COMPLICATION_COLOR = -147282
 private const val KEY_COMPLICATION_COLORS = "complicationColors"
+private const val KEY_LEFT_COMPLICATION_COLOR = "leftComplicationColor"
+private const val KEY_MIDDLE_COMPLICATION_COLOR = "middleComplicationColor"
+private const val KEY_RIGHT_COMPLICATION_COLOR = "rightComplicationColor"
+private const val KEY_BOTTOM_COMPLICATION_COLOR = "bottomComplicationColor"
 private const val KEY_USER_PREMIUM = "user_premium"
 private const val KEY_USE_24H_TIME_FORMAT = "use24hTimeFormat"
 private const val KEY_INSTALL_TIMESTAMP = "installTS"
@@ -101,6 +105,7 @@ class StorageImpl : Storage {
     private var cacheUseShortDateFormat = false
     private var showDateAmbientCached = false
     private var cacheShowDateAmbient = false
+    private var cacheComplicationsColor: ComplicationColors? = null
 
     fun init(context: Context): Storage {
         if( !initialized ) {
@@ -118,37 +123,82 @@ class StorageImpl : Storage {
     }
 
     override fun getComplicationColors(): ComplicationColors {
-        val color = sharedPreferences.getInt(
+        val cacheComplicationsColor = cacheComplicationsColor
+        if( cacheComplicationsColor != null ) {
+            return cacheComplicationsColor
+        }
+
+        val baseColor = sharedPreferences.getInt(
             KEY_COMPLICATION_COLORS,
             DEFAULT_COMPLICATION_COLOR
         )
 
-        if( color == DEFAULT_COMPLICATION_COLOR) {
-            return ComplicationColorsProvider.getDefaultComplicationColors(appContext)
-        }
-
-        return ComplicationColors(
-            color,
-            color,
-            color,
-            color,
-            "TODO", // FIXME
-            false
+        val leftColor = sharedPreferences.getInt(
+            KEY_LEFT_COMPLICATION_COLOR,
+            baseColor
         )
+
+        val middleColor = sharedPreferences.getInt(
+            KEY_MIDDLE_COMPLICATION_COLOR,
+            baseColor
+        )
+
+        val rightColor = sharedPreferences.getInt(
+            KEY_RIGHT_COMPLICATION_COLOR,
+            baseColor
+        )
+
+        val bottomColor = sharedPreferences.getInt(
+            KEY_BOTTOM_COMPLICATION_COLOR,
+            baseColor
+        )
+
+        val defaultColors = ComplicationColorsProvider.getDefaultComplicationColors(appContext)
+
+        val colors = ComplicationColors(
+            if( leftColor == DEFAULT_COMPLICATION_COLOR ) { defaultColors.leftColor } else { ComplicationColor(leftColor, ComplicationColorsProvider.getLabelForColor(appContext, leftColor),false) },
+            if( middleColor == DEFAULT_COMPLICATION_COLOR ) { defaultColors.middleColor } else { ComplicationColor(middleColor, ComplicationColorsProvider.getLabelForColor(appContext, middleColor),false) },
+            if( rightColor == DEFAULT_COMPLICATION_COLOR ) { defaultColors.rightColor } else { ComplicationColor(rightColor, ComplicationColorsProvider.getLabelForColor(appContext, rightColor),false) },
+            if( bottomColor == DEFAULT_COMPLICATION_COLOR ) { defaultColors.bottomColor } else { ComplicationColor(bottomColor, ComplicationColorsProvider.getLabelForColor(appContext, bottomColor),false) }
+        )
+
+        this.cacheComplicationsColor = colors
+        return colors
     }
 
     override fun setComplicationColors(complicationColors: ComplicationColors) {
-        sharedPreferences.edit().putInt(
-            KEY_COMPLICATION_COLORS,
-            if( complicationColors.isDefault ) {
-                DEFAULT_COMPLICATION_COLOR
-            } else { complicationColors.leftColor }
-        ).apply()
+        cacheComplicationsColor = complicationColors
+        sharedPreferences.edit()
+            .putInt(
+                KEY_LEFT_COMPLICATION_COLOR,
+                if( complicationColors.leftColor.isDefault ) {
+                    DEFAULT_COMPLICATION_COLOR
+                } else { complicationColors.leftColor.color }
+            )
+            .putInt(
+                KEY_MIDDLE_COMPLICATION_COLOR,
+                if( complicationColors.middleColor.isDefault ) {
+                    DEFAULT_COMPLICATION_COLOR
+                } else { complicationColors.middleColor.color }
+            )
+            .putInt(
+                KEY_RIGHT_COMPLICATION_COLOR,
+                if( complicationColors.rightColor.isDefault ) {
+                    DEFAULT_COMPLICATION_COLOR
+                } else { complicationColors.rightColor.color }
+            )
+            .putInt(
+                KEY_BOTTOM_COMPLICATION_COLOR,
+                if( complicationColors.bottomColor.isDefault ) {
+                    DEFAULT_COMPLICATION_COLOR
+                } else { complicationColors.bottomColor.color }
+            )
+            .apply()
     }
 
     override fun isUserPremium(): Boolean {
         if( !isUserPremiumCached ) {
-            cacheIsUserPremium = sharedPreferences.getBoolean(KEY_USER_PREMIUM, false)
+            cacheIsUserPremium = true //sharedPreferences.getBoolean(KEY_USER_PREMIUM, false)
             isUserPremiumCached = true
         }
 

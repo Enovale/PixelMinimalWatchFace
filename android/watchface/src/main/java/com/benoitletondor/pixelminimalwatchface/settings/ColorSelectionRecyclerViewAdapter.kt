@@ -19,13 +19,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
 import com.benoitletondor.pixelminimalwatchface.R
-import com.benoitletondor.pixelminimalwatchface.model.ComplicationColors
+import com.benoitletondor.pixelminimalwatchface.model.ComplicationColor
 
 class ColorSelectionRecyclerViewAdapter(
-    private val colors: List<ComplicationColors>,
-    private val onColorsSelectedListener: (colors: ComplicationColors) -> Unit
+    private val colors: List<ComplicationColor>,
+    private val onColorSelectedListener: (color: ComplicationColor) -> Unit
 ) : RecyclerView.Adapter<ColorViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ColorViewHolder {
@@ -33,35 +34,25 @@ class ColorSelectionRecyclerViewAdapter(
     }
 
     override fun onBindViewHolder(viewHolder: ColorViewHolder, position: Int) {
-        val colors = colors[position]
+        val color = colors[position]
 
-        viewHolder.setItem(colors) {
-            onColorsSelectedListener(colors)
+        viewHolder.setItem(color) {
+            onColorSelectedListener(color)
         }
     }
 
     override fun getItemCount(): Int {
         return colors.size
     }
-
 }
 
 class ColorViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-    private val leftColorView: View = view.findViewById(R.id.colorLeft)
-    private val middleColorView: View = view.findViewById(R.id.colorMiddle)
-    private val rightColorView: View = view.findViewById(R.id.colorRight)
-    private val colorsContainer: ViewGroup = view.findViewById(R.id.color_config_list_item_colors_container)
+    private val colorView: CardView = view.findViewById(R.id.colorView)
     private val colorLabelTextView: TextView = view.findViewById(R.id.color_config_list_item_color_label)
 
-    init {
-        colorsContainer.clipToOutline = true
-    }
-
-    fun setItem(item: ComplicationColors,
+    fun setItem(item: ComplicationColor,
                 onClickListener: () -> Unit) {
-        leftColorView.setBackgroundColor(item.leftColor)
-        middleColorView.setBackgroundColor(item.middleColor)
-        rightColorView.setBackgroundColor(item.rightColor)
+        colorView.setCardBackgroundColor(item.color)
         colorLabelTextView.text = item.label
 
         itemView.setOnClickListener {

@@ -601,6 +601,16 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
             }
         }
 
+        fun getComplicationLocation(complicationId: Int): ComplicationLocation {
+            return when (complicationId) {
+                LEFT_COMPLICATION_ID -> ComplicationLocation.LEFT
+                MIDDLE_COMPLICATION_ID -> ComplicationLocation.MIDDLE
+                RIGHT_COMPLICATION_ID -> ComplicationLocation.RIGHT
+                BOTTOM_COMPLICATION_ID -> ComplicationLocation.BOTTOM
+                else -> throw IllegalArgumentException("Unknown complicationId: $complicationId")
+            }
+        }
+
         fun getSupportedComplicationTypes(complicationLocation: ComplicationLocation): IntArray {
             return when (complicationLocation) {
                 ComplicationLocation.LEFT -> COMPLICATION_SUPPORTED_TYPES[0]

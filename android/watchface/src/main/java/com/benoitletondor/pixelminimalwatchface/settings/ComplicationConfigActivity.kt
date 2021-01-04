@@ -85,16 +85,12 @@ class ComplicationConfigActivity : Activity() {
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        if (requestCode == COMPLICATION_CONFIG_REQUEST_CODE && resultCode == RESULT_OK) {
-            val complicationProviderInfo: ComplicationProviderInfo? = data?.getParcelableExtra(ProviderChooserIntent.EXTRA_PROVIDER_INFO)
-
-            adapter.updateSelectedComplication(complicationProviderInfo)
-        } else if (requestCode == UPDATE_COLORS_CONFIG_REQUEST_CODE && resultCode == RESULT_OK) {
-            adapter.updatePreviewColors()
-        } else if( requestCode == COMPLICATION_WEATHER_PERMISSION_REQUEST_CODE ) {
+        if( requestCode == COMPLICATION_WEATHER_PERMISSION_REQUEST_CODE ) {
             adapter.weatherComplicationPermissionFinished()
         } else if( requestCode == COMPLICATION_BATTERY_PERMISSION_REQUEST_CODE ) {
             adapter.batteryComplicationPermissionFinished()
+        } else if ( requestCode == COMPLICATION_CONFIG_REQUEST_CODE && resultCode == RESULT_OK ) {
+            adapter.updateComplications()
         }
     }
 
@@ -177,9 +173,8 @@ class ComplicationConfigActivity : Activity() {
     }
 
     companion object {
-        const val COMPLICATION_CONFIG_REQUEST_CODE = 1001
-        const val UPDATE_COLORS_CONFIG_REQUEST_CODE = 1002
         const val COMPLICATION_WEATHER_PERMISSION_REQUEST_CODE = 1003
         const val COMPLICATION_BATTERY_PERMISSION_REQUEST_CODE = 1004
+        const val COMPLICATION_CONFIG_REQUEST_CODE = 1005
     }
 }
