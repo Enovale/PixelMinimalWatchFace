@@ -50,6 +50,10 @@
 
         <activity android:name=".settings.WidgetConfigurationActivity" />
 
+        <activity
+            android:name=".FeatureDrop2021Activity"
+            android:label="@string/feature_drop_2021_notification_title"/>
+
         <activity android:name="android.support.wearable.complications.ComplicationHelperActivity"/>
 
         <activity

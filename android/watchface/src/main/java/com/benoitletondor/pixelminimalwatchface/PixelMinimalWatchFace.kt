@@ -18,6 +18,7 @@ package com.benoitletondor.pixelminimalwatchface
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.app.WallpaperManager
 import android.content.*
 import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
 import android.graphics.Canvas
@@ -612,6 +613,11 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
 
         fun getComplicationIds(): IntArray {
             return COMPLICATION_IDS
+        }
+
+        fun isActive(context: Context): Boolean {
+            val wallpaperManager = WallpaperManager.getInstance(context)
+            return wallpaperManager.wallpaperInfo?.packageName == context.packageName
         }
     }
 }

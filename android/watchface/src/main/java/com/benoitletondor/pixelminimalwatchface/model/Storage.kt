@@ -39,7 +39,7 @@ private const val KEY_TIME_SIZE = "timeSize"
 private const val KEY_SECONDS_RING = "secondsRing"
 private const val KEY_SHOW_WEATHER = "showWeather"
 private const val KEY_SHOW_BATTERY = "showBattery"
-private const val KEY_SHOW_BATTERY_NOTIFICATION = "showBatteryNotification"
+private const val KEY_FEATURE_DROP_2021_NOTIFICATION = "featureDrop2021Notification"
 private const val KEY_USE_SHORT_DATE_FORMAT = "useShortDateFormat"
 private const val KEY_SHOW_DATE_AMBIENT = "showDateAmbient"
 
@@ -69,8 +69,8 @@ interface Storage {
     fun setShouldShowWeather(show: Boolean)
     fun shouldShowBattery(): Boolean
     fun setShouldShowBattery(show: Boolean)
-    fun hasShownBatteryIndicatorNotification(): Boolean
-    fun setBatteryIndicatorNotificationShown()
+    fun hasFeatureDrop2021NotificationBeenShown(): Boolean
+    fun setFeatureDrop2021NotificationShown()
     fun getUseShortDateFormat(): Boolean
     fun setUseShortDateFormat(useShortDateFormat: Boolean)
     fun setShowDateInAmbient(showDateInAmbient: Boolean)
@@ -198,7 +198,7 @@ class StorageImpl : Storage {
 
     override fun isUserPremium(): Boolean {
         if( !isUserPremiumCached ) {
-            cacheIsUserPremium = true //sharedPreferences.getBoolean(KEY_USER_PREMIUM, false)
+            cacheIsUserPremium = sharedPreferences.getBoolean(KEY_USER_PREMIUM, false)
             isUserPremiumCached = true
         }
 
@@ -352,12 +352,12 @@ class StorageImpl : Storage {
         sharedPreferences.edit().putBoolean(KEY_SHOW_BATTERY, show).apply()
     }
 
-    override fun hasShownBatteryIndicatorNotification(): Boolean {
-        return sharedPreferences.getBoolean(KEY_SHOW_BATTERY_NOTIFICATION, false)
+    override fun hasFeatureDrop2021NotificationBeenShown(): Boolean {
+        return sharedPreferences.getBoolean(KEY_FEATURE_DROP_2021_NOTIFICATION, false)
     }
 
-    override fun setBatteryIndicatorNotificationShown() {
-        sharedPreferences.edit().putBoolean(KEY_SHOW_BATTERY_NOTIFICATION, true).apply()
+    override fun setFeatureDrop2021NotificationShown() {
+        sharedPreferences.edit().putBoolean(KEY_FEATURE_DROP_2021_NOTIFICATION, true).apply()
     }
 
     override fun getUseShortDateFormat(): Boolean {

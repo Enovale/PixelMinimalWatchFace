@@ -112,7 +112,7 @@ class WatchFaceDrawerImpl : WatchFaceDrawer {
     override fun onCreate(context: Context, storage: Storage) {
         this.context = context
         this.storage = storage
-
+        
         currentTimeSize = storage.getTimeSize()
         wearOSLogoPaint = Paint()
         backgroundColor = ContextCompat.getColor(context, R.color.face_background)
