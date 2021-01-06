@@ -59,4 +59,13 @@
     <string name="playstore_opened_on_watch_message">Opening PlayStore on Watch…</string>
     <string name="playstore_not_opened_on_watch_title">Unable to open PlayStore</string>
     <string name="playstore_not_opened_on_watch_message">An error occurred opening the PlayStore on your Watch.\n\nInstall the Watch Face on your watch manually by searching on your watch\'s PlayStore:\n\"Pixel Minimal Watch Face\"\n\n(Be careful not to install another watch face by mistake called \"Pixel Watch Face\", it\'s nearly the same name!)</string>
+    <string name="donation_description">Feel like helping even more with a donation?</string>
+    <string name="donation_cta">Donate</string>
+    <string name="donation_title">Support with a donation</string>
+    <string name="donation_success_title">Thank you SO much!</string>
+    <string name="donation_success_message">Your %s donation means so much to me, your support really helps a lot!\nThank you very much and ping me if you need anything.</string>
+    <string name="donation_error_title">An error occurred</string>
+    <string name="donation_error_message">An error occurred while processing your donation (%s).\nPlease contact me at pixelwatchface@benoitletondor.com for assistance. Many thanks!</string>
+    <string name="donation_loading_error">Unable to contact the PlayStore for donation details (%s).\n\nPlease try again later or contact me using the menu.</string>
+    <string name="donation_loaded_subtitle">I\'m an indie developer, making this open source watch face on my free time.\nYour support by being premium is already a lot but if you feel like donating a bit more, it would really help!</string>
 </resources>

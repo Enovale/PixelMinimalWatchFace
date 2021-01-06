@@ -17,6 +17,7 @@ package com.benoitletondor.pixelminimalwatchfacecompanion.billing
 
 import android.app.Activity
 import androidx.lifecycle.LiveData
+import com.android.billingclient.api.SkuDetails
 
 interface Billing {
     val userPremiumEventStream: LiveData<PremiumCheckStatus>
@@ -24,6 +25,9 @@ interface Billing {
     fun isUserPremium(): Boolean
     fun updatePremiumStatusIfNeeded()
     suspend fun launchPremiumPurchaseFlow(activity: Activity): PremiumPurchaseFlowResult
+
+    suspend fun getDonationsSKUs(): List<SkuDetails>
+    suspend fun launchDonationPurchaseFlow(activity: Activity, sku: SkuDetails): Boolean
 }
 
 sealed class PremiumPurchaseFlowResult {

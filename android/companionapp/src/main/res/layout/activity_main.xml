@@ -146,6 +146,30 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"/>
 
+            <TextView
+                android:id="@+id/main_activity_premium_view_donation_text"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="@string/donation_description"
+                android:gravity="center_horizontal"
+                android:textSize="16sp"
+                android:layout_marginTop="46dp"
+                android:textColor="@android:color/white"
+                app:layout_constraintTop_toBottomOf="@+id/main_activity_premium_view_premium_text_3"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"/>
+
+            <Button
+                android:id="@+id/main_activity_premium_view_donate_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/donation_cta"
+                android:layout_marginTop="8dp"
+                style="@style/Widget.AppCompat.Button"
+                app:layout_constraintTop_toBottomOf="@+id/main_activity_premium_view_donation_text"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"/>
+
         </androidx.constraintlayout.widget.ConstraintLayout>
 
     </ScrollView>

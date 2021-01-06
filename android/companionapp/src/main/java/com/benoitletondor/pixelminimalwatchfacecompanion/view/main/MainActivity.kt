@@ -26,10 +26,10 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentPagerAdapter
-import androidx.lifecycle.Observer
 import com.benoitletondor.pixelminimalwatchfacecompanion.BuildConfig
 import com.benoitletondor.pixelminimalwatchfacecompanion.R
 import com.benoitletondor.pixelminimalwatchfacecompanion.sync.Sync
+import com.benoitletondor.pixelminimalwatchfacecompanion.view.donation.DonationActivity
 import com.benoitletondor.pixelminimalwatchfacecompanion.view.onboarding.OnboardingActivity
 import kotlinx.android.synthetic.main.activity_main.*
 import org.koin.android.viewmodel.ext.android.viewModel
@@ -43,7 +43,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        viewModel.stateEventStream.observe(this, Observer { state ->
+        viewModel.stateEventStream.observe(this, { state ->
             when(state) {
                 is MainViewModel.State.Loading -> {
                     main_activity_not_premium_view.visibility = View.GONE
@@ -145,7 +145,7 @@ class MainActivity : AppCompatActivity() {
 
         main_activity_not_premium_view_not_premium_view_pager_indicator.setViewPager(main_activity_not_premium_view_not_premium_view_pager)
 
-        viewModel.errorSyncingEvent.observe(this, Observer { syncingError ->
+        viewModel.errorSyncingEvent.observe(this, { syncingError ->
             if( main_activity_premium_view?.visibility == View.VISIBLE ) {
                 AlertDialog.Builder(this)
                     .setTitle(R.string.error_syncing_title)
@@ -155,7 +155,7 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
-        viewModel.errorPayingEvent.observe(this, Observer { paymentError ->
+        viewModel.errorPayingEvent.observe(this, { paymentError ->
             AlertDialog.Builder(this)
                 .setTitle(R.string.error_paying_title)
                 .setMessage(getString(R.string.error_paying_message, paymentError.message))
@@ -163,15 +163,15 @@ class MainActivity : AppCompatActivity() {
                 .show()
         })
 
-        viewModel.syncSucceedEvent.observe(this, Observer {
+        viewModel.syncSucceedEvent.observe(this, {
             Toast.makeText(this, R.string.sync_succeed_message, Toast.LENGTH_LONG).show()
         })
 
-        viewModel.launchOnboardingEvent.observe(this, Observer {
+        viewModel.launchOnboardingEvent.observe(this, {
             startActivity(Intent(this, OnboardingActivity::class.java))
         })
 
-        viewModel.voucherFlowLaunchEvent.observe(this, Observer { voucher ->
+        viewModel.voucherFlowLaunchEvent.observe(this, { voucher ->
             if ( !launchRedeemVoucherFlow(voucher) ) {
                 AlertDialog.Builder(this)
                     .setTitle(R.string.iab_purchase_error_title)
@@ -181,7 +181,7 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
-        viewModel.openPlayStoreStatusEvent.observe(this, Observer { opened ->
+        viewModel.openPlayStoreStatusEvent.observe(this, { opened ->
             if( opened ) {
                 Toast.makeText(this, R.string.playstore_opened_on_watch_message, Toast.LENGTH_LONG).show()
             } else {
@@ -191,6 +191,10 @@ class MainActivity : AppCompatActivity() {
                     .setPositiveButton(android.R.string.ok, null)
                     .show()
             }
+        })
+
+        viewModel.openDonateScreenEvent.observe(this, {
+            startActivity(Intent(this, DonationActivity::class.java))
         })
 
         main_activity_error_view_retry_button.setOnClickListener {
@@ -215,6 +219,10 @@ class MainActivity : AppCompatActivity() {
 
         main_activity_not_premium_view_install_button.setOnClickListener {
             viewModel.onInstallWatchFaceButtonPressed()
+        }
+
+        main_activity_premium_view_donate_button.setOnClickListener {
+            viewModel.onDonateButtonPressed()
         }
     }
 
