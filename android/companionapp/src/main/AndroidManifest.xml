@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-   Copyright 2020 Benoit LETONDOR
+   Copyright 2021 Benoit LETONDOR
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -19,6 +19,13 @@
     package="com.benoitletondor.pixelminimalwatchfacecompanion">
 
     <uses-permission android:name="android.permission.INTERNET" />
+
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.SENDTO" />
+            <data android:scheme="*" />
+        </intent>
+    </queries>
 
     <application
         android:name=".App"
@@ -50,6 +57,23 @@
                     android:scheme="pixelminimalwatchface"
                     android:host="open" />
             </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".view.donation.DonationActivity"
+            android:screenOrientation="sensorPortrait"
+            android:label="@string/donation_title">
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:scheme="pixelminimalwatchface"
+                    android:host="donate" />
+            </intent-filter>
+
         </activity>
     </application>
 

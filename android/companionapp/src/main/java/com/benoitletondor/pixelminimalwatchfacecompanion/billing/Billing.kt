@@ -1,5 +1,5 @@
 /*
- *   Copyright 2020 Benoit LETONDOR
+ *   Copyright 2021 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package com.benoitletondor.pixelminimalwatchfacecompanion.billing
 
 import android.app.Activity
 import androidx.lifecycle.LiveData
+import com.android.billingclient.api.SkuDetails
 
 interface Billing {
     val userPremiumEventStream: LiveData<PremiumCheckStatus>
@@ -24,6 +25,9 @@ interface Billing {
     fun isUserPremium(): Boolean
     fun updatePremiumStatusIfNeeded()
     suspend fun launchPremiumPurchaseFlow(activity: Activity): PremiumPurchaseFlowResult
+
+    suspend fun getDonationsSKUs(): List<SkuDetails>
+    suspend fun launchDonationPurchaseFlow(activity: Activity, sku: SkuDetails): Boolean
 }
 
 sealed class PremiumPurchaseFlowResult {

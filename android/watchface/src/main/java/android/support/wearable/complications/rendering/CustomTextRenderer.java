@@ -1,5 +1,5 @@
 /*
- *   Copyright 2020 Benoit LETONDOR
+ *   Copyright 2021 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@ package android.support.wearable.complications.rendering;
 
 import android.annotation.SuppressLint;
 import android.graphics.Canvas;
-import android.graphics.Paint;
 import android.graphics.Rect;
 import android.text.Layout;
 import android.text.SpannableStringBuilder;

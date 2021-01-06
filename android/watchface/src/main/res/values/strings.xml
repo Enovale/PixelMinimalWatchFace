@@ -1,5 +1,5 @@
 <!--
-   Copyright 2020 Benoit LETONDOR
+   Copyright 2021 Benoit LETONDOR
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -17,13 +17,22 @@
     <string name="app_name">Pixel Minimal Watch Face</string>
     <string name="complication_config">Configure widgets</string>
 
-    <string name="config_complications_color_label">Widgets accent color</string>
+    <string name="config_left_complication">Left widget settings</string>
+    <string name="config_middle_complication">Middle widget settings</string>
+    <string name="config_right_complication">Right widget settings</string>
+    <string name="config_bottom_complication">Bottom large widget settings</string>
+    <string name="config_complication_widget">Widget</string>
+    <string name="config_complication_color">Accent color</string>
+    <string name="config_color_tap_to_change">Tap to change</string>
+    <string name="config_complication_tap_to_setup">Tap to setup</string>
+    <string name="config_complication_tap_to_change">Tap to change/remove</string>
     <string name="config_premium_text">To setup widgets and display weather info you have to become a premium user.\nInstall the companion app on your phone to continue</string>
     <string name="config_premium_button_cta">Open companion app on phone</string>
     <string name="config_feedback_cta">Give your feedback</string>
     <string name="config_version">Version: %s</string>
     <string name="config_footer">Made by Benoit Letondor</string>
     <string name="config_hour_format_24h">Use 24h time</string>
+    <string name="config_show_date_ambient">Show date in ambient mode</string>
     <string name="config_date_format_short">Use short date format</string>
     <string name="config_show_wear_os_logo">Show WearOS logo</string>
     <string name="config_show_weather">Show weather after date</string>
@@ -33,12 +42,12 @@
     <string name="config_time_size">Size of time and date: %s</string>
     <string name="config_show_seconds_ring">Show seconds ring</string>
     <string name="config_show_battery">Battery indicator as bottom widget</string>
+    <string name="config_donate">Donate to support development</string>
 
     <string name="premium_confirmation">Configure widgets in Watch Face settings</string>
-    <string name="open_phone_url_android_device">Continue on phone</string>
+    <string name="open_phone_url_android_device">Continue on your phone</string>
+    <string name="open_phone_url_android_device_failure">Open Pixel Minimal Watch Face app on your phone</string>
     <string name="open_phone_url_ios_device">You need an Android phone to install the companion app.</string>
-    <string name="open_phone_url_android_not_reachable">An error occurred. Check connection and try again.</string>
-    <string name="open_phone_url_fail">Oops, an error occurred, try again later.</string>
 
     <string name="misc_notification_channel_name">Misc</string>
     <string name="misc_notification_channel_description">Help improve the product by asking for your feedback</string>
@@ -61,11 +70,20 @@
     <string name="rating_feedback_email" translatable="false">pixelwatchface@benoitletondor.com</string>
     <string name="rating_feedback_send_subject" translatable="false">Pixel Watch Face - Feedback</string>
     <string name="rating_feedback_send_text"></string>
-    <string name="battery_indicator_notification_title">New feature: Battery indicator</string>
-    <string name="battery_indicator_notification_message">Replace bottom widget with a minimalist, Pixel like, battery indicator. Go to settings to activate it</string>
-    <string name="battery_indicator_notification_cta">Go to settings</string>
+    <string name="feature_drop_2021_notification_title">New feature drop</string>
+    <string name="feature_drop_2021_notification_message">New features are available for Pixel Minimal Watch Face!</string>
+    <string name="feature_drop_2021_notification_cta">Discover what\'s new</string>
+    <string name="feature_drop_2021_title">Start of 2021 feature drop</string>
+    <string name="feature_drop_2021_welcome">Wish you the best for 2021!\nHere are some new features available now:</string>
+    <string name="feature_drop_2021_feature_1">- You can customize the color of each widget separately if you\'re a premium user</string>
+    <string name="feature_drop_2021_feature_2">- Better layout for square watches, especially the Oppo watch</string>
+    <string name="feature_drop_2021_feature_3">- You can hide the date and weather in ambient mode</string>
+    <string name="feature_drop_2021_feature_4">- Bug fixes, including one when your timezone changes, and optimisations</string>
+    <string name="feature_drop_2021_go_to_settings_cta">To setup those new options, tap this button to go to the watch face settings:</string>
+    <string name="feature_drop_2021_activate_cta">To setup those new options, use Pixel Minimal Watch Face as your watch face and long press on the time to access the settings.</string>
+    <string name="feature_drop_2021_conclusion">Thank you for using Pixel Minimal Watch Face :)</string>
 
-    <string name="color_default">Wear OS colors</string>
+    <string name="color_default">Default</string>
     <string name="color_yellow">Yellow</string>
     <string name="color_blue">Blue</string>
     <string name="color_light_blue">Light blue</string>

@@ -1,5 +1,5 @@
 /*
- *   Copyright 2020 Benoit LETONDOR
+ *   Copyright 2021 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package com.benoitletondor.pixelminimalwatchfacecompanion.injection
 
+import com.benoitletondor.pixelminimalwatchfacecompanion.view.donation.DonationViewModel
 import com.benoitletondor.pixelminimalwatchfacecompanion.view.main.MainViewModel
 import com.benoitletondor.pixelminimalwatchfacecompanion.view.onboarding.OnboardingViewModel
 import org.koin.android.viewmodel.dsl.viewModel
@@ -23,4 +24,5 @@ import org.koin.dsl.module
 val viewModelModule = module {
     viewModel { MainViewModel(get(), get(), get(), get()) }
     viewModel { OnboardingViewModel(get()) }
+    viewModel { DonationViewModel(get()) }
 }
