@@ -63,7 +63,7 @@
         android:id="@+id/donation_activity_loaded_view"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:paddingTop="8dp"
+        android:paddingTop="4dp"
         android:paddingStart="20dp"
         android:paddingEnd="20dp"
         android:visibility="gone"
@@ -84,6 +84,19 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"/>
 
+        <TextView
+            android:id="@+id/donation_loaded_subtitle_2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textSize="17sp"
+            android:textColor="@android:color/white"
+            android:text="@string/donation_loaded_subtitle_2"
+            android:lineSpacingExtra="2dp"
+            android:layout_marginTop="8dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/donation_loaded_subtitle" />
+
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/donation_loaded_recycler_view"
             android:layout_width="0dp"
@@ -91,12 +104,12 @@
             android:layout_marginTop="16dp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/donation_loaded_subtitle"
+            app:layout_constraintTop_toBottomOf="@+id/donation_loaded_subtitle_2"
             app:layout_constraintBottom_toBottomOf="parent"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <ScrollView
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/donation_activity_error_view"
         android:layout_width="0dp"
         android:layout_height="0dp"
@@ -108,36 +121,34 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+        <TextView
+            android:id="@+id/donation_activity_error_view_text"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:textSize="18sp"
+            android:layout_marginTop="20dp"
+            android:textColor="@android:color/white"
+            app:layout_constraintVertical_bias="0.35"
+            app:layout_constraintVertical_chainStyle="packed"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toTopOf="@+id/donation_activity_error_retry_button"/>
 
-            <TextView
-                android:id="@+id/donation_activity_error_view_text"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:gravity="center_horizontal"
-                android:textSize="18sp"
-                android:layout_marginTop="20dp"
-                android:textColor="@android:color/white"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"/>
+        <Button
+            android:id="@+id/donation_activity_error_retry_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/error_retry_cta"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:layout_marginTop="30dp"
+            app:layout_constraintTop_toBottomOf="@+id/donation_activity_error_view_text"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"/>
 
-            <Button
-                android:id="@+id/donation_activity_error_retry_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/error_retry_cta"
-                style="@style/Widget.AppCompat.Button.Colored"
-                android:layout_marginTop="30dp"
-                app:layout_constraintTop_toBottomOf="@+id/donation_activity_error_view_text"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"/>
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
-    </ScrollView>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

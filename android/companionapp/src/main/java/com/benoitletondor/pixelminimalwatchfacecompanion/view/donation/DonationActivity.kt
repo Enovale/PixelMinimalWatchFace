@@ -15,8 +15,6 @@
  */
 package com.benoitletondor.pixelminimalwatchfacecompanion.view.donation
 
-import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuInflater
@@ -26,6 +24,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.benoitletondor.pixelminimalwatchfacecompanion.R
+import com.benoitletondor.pixelminimalwatchfacecompanion.helper.startSupportEmailActivity
 import org.koin.android.viewmodel.ext.android.viewModel
 import kotlinx.android.synthetic.main.activity_donation.*
 
@@ -35,6 +34,8 @@ class DonationActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_donation)
+
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         donation_activity_error_retry_button.setOnClickListener {
             viewModel.onRetryLoadSKUsButtonClicked()
@@ -93,20 +94,13 @@ class DonationActivity : AppCompatActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if( item.itemId == R.id.send_feedback_button ) {
-            val sendIntent = Intent()
-            sendIntent.action = Intent.ACTION_SENDTO
-            sendIntent.data = Uri.parse("mailto:") // only email apps should handle this
-            sendIntent.putExtra(Intent.EXTRA_EMAIL, arrayOf(resources.getString(R.string.feedback_email)))
-            sendIntent.putExtra(Intent.EXTRA_SUBJECT, resources.getString(R.string.feedback_send_subject))
-
-            if ( sendIntent.resolveActivity(packageManager) != null) {
-                startActivity(sendIntent)
+        return when(item.itemId) {
+            R.id.send_feedback_button -> startSupportEmailActivity()
+            android.R.id.home -> {
+                finish()
+                true
             }
-
-            return true
+            else -> super.onOptionsItemSelected(item)
         }
-
-        return super.onOptionsItemSelected(item)
     }
 }

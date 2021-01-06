@@ -142,7 +142,7 @@ class BillingImpl(context: Context,
         val skuList = ArrayList<String>(1)
         skuList.add(SKU_PREMIUM)
 
-        val (billingResult, skuDetailsList) = querySkuDetails(
+        val (billingResult, skuDetailsList) = billingClient.querySkuDetails(
             SkuDetailsParams.newBuilder()
                 .setSkusList(skuList)
                 .setType(BillingClient.SkuType.INAPP)
@@ -158,7 +158,7 @@ class BillingImpl(context: Context,
             return PremiumPurchaseFlowResult.Error("Unable to connect to reach PlayStore (response code: " + billingResult.responseCode + "). Please restart the app and try again")
         }
 
-        if (skuDetailsList.isEmpty()) {
+        if (skuDetailsList == null || skuDetailsList.isEmpty()) {
             return PremiumPurchaseFlowResult.Error("Unable to fetch content from PlayStore (response code: skuDetailsList is empty). Please restart the app and try again")
         }
 
@@ -187,21 +187,17 @@ class BillingImpl(context: Context,
         val params = SkuDetailsParams.newBuilder()
             .setSkusList(skuList).setType(BillingClient.SkuType.INAPP)
 
-        return suspendCancellableCoroutine { continuation ->
-            billingClient.querySkuDetailsAsync(params.build()) { billingResult, skuDetailsList ->
-                if (billingResult.responseCode != BillingClient.BillingResponseCode.OK) {
-                    continuation.resumeWith(Result.failure(IllegalStateException("Unable to connect to reach PlayStore (response code: " + billingResult.responseCode + "). Please restart the app and try again")))
-                    return@querySkuDetailsAsync
-                }
+        val (billingResult, skuDetailsList) = billingClient.querySkuDetails(params.build())
 
-                if( skuDetailsList == null ) {
-                    continuation.resumeWith(Result.failure(IllegalStateException("Unable to get details from PlayStore. Please restart the app and try again")))
-                    return@querySkuDetailsAsync
-                }
-
-                continuation.resumeWith(Result.success(skuDetailsList))
-            }
+        if (billingResult.responseCode != BillingClient.BillingResponseCode.OK) {
+            throw IllegalStateException("Unable to connect to reach PlayStore (response code: " + billingResult.responseCode + "). Please restart the app and try again")
         }
+
+        if( skuDetailsList == null ) {
+            throw IllegalStateException("Unable to get details from PlayStore. Please restart the app and try again")
+        }
+
+        return skuDetailsList
     }
 
     override suspend fun launchDonationPurchaseFlow(activity: Activity, sku: SkuDetails): Boolean {
@@ -212,14 +208,6 @@ class BillingImpl(context: Context,
                 .setSkuDetails(sku)
                 .build()
             )
-        }
-    }
-
-    data class SkuDetailsResponse(val billingResult: BillingResult, val skuDetailsList: List<SkuDetails>)
-
-    private suspend fun querySkuDetails(params: SkuDetailsParams): SkuDetailsResponse = suspendCoroutine { continuation ->
-        billingClient.querySkuDetailsAsync(params) { billingResult, skuDetailsList ->
-            continuation.resumeWith(Result.success(SkuDetailsResponse(billingResult, skuDetailsList ?: emptyList())))
         }
     }
 

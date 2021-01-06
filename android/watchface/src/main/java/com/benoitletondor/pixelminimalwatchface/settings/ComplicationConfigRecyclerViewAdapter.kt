@@ -60,6 +60,7 @@ private const val TYPE_SHOW_WEATHER = 12
 private const val TYPE_SHOW_BATTERY = 13
 private const val TYPE_DATE_FORMAT = 14
 private const val TYPE_SHOW_DATE_AMBIENT = 15
+private const val TYPE_DONATE = 16
 
 class ComplicationConfigRecyclerViewAdapter(
     private val context: Context,
@@ -76,6 +77,7 @@ class ComplicationConfigRecyclerViewAdapter(
     private val showBatteryListener: (Boolean) -> Unit,
     private val dateFormatSelectionListener: (Boolean) -> Unit,
     private val showDateAmbientListener: (Boolean) -> Unit,
+    private val donateButtonPressed: () -> Unit,
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private var selectedComplicationLocation: ComplicationLocation? = null
@@ -245,6 +247,14 @@ class ComplicationConfigRecyclerViewAdapter(
                 ),
                 showDateAmbientListener
             )
+            TYPE_DONATE -> return DonateViewHolder(
+                LayoutInflater.from(parent.context).inflate(
+                    R.layout.config_list_donate,
+                    parent,
+                    false
+                ),
+                donateButtonPressed
+            )
         }
         throw IllegalStateException("Unknown option type: $viewType")
     }
@@ -361,15 +371,19 @@ class ComplicationConfigRecyclerViewAdapter(
             list.add(TYPE_SHOW_BATTERY)
             list.add(TYPE_SHOW_COMPLICATIONS_AMBIENT)
         }
-        list.add(TYPE_HOUR_FORMAT)
-        list.add(TYPE_DATE_FORMAT)
         list.add(TYPE_SHOW_DATE_AMBIENT)
+        list.add(TYPE_DATE_FORMAT)
+        list.add(TYPE_HOUR_FORMAT)
         list.add(TYPE_TIME_SIZE)
         list.add(TYPE_SHOW_FILLED_TIME_AMBIENT)
         if( isScreenRound ) {
             list.add(TYPE_SHOW_SECONDS_RING)
         }
         list.add(TYPE_SEND_FEEDBACK)
+        if( isUserPremium ) {
+            list.add(TYPE_DONATE)
+        }
+
         list.add(TYPE_FOOTER)
 
         return list
@@ -769,5 +783,14 @@ class ShowDateAmbientViewHolder(view: View,
 
     fun setShowDateAmbientSwitchChecked(checked: Boolean) {
         showDateAmbientSwitch.isChecked = checked
+    }
+}
+
+class DonateViewHolder(view: View,
+                       onDonateButtonPressed: () -> Unit) : RecyclerView.ViewHolder(view) {
+    init {
+        view.setOnClickListener {
+            onDonateButtonPressed()
+        }
     }
 }

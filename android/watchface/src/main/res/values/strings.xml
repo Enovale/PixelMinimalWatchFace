@@ -42,12 +42,12 @@
     <string name="config_time_size">Size of time and date: %s</string>
     <string name="config_show_seconds_ring">Show seconds ring</string>
     <string name="config_show_battery">Battery indicator as bottom widget</string>
+    <string name="config_donate">Donate to support development</string>
 
     <string name="premium_confirmation">Configure widgets in Watch Face settings</string>
-    <string name="open_phone_url_android_device">Continue on phone</string>
+    <string name="open_phone_url_android_device">Continue on your phone</string>
+    <string name="open_phone_url_android_device_failure">Open Pixel Minimal Watch Face app on your phone</string>
     <string name="open_phone_url_ios_device">You need an Android phone to install the companion app.</string>
-    <string name="open_phone_url_android_not_reachable">An error occurred. Check connection and try again.</string>
-    <string name="open_phone_url_fail">Oops, an error occurred, try again later.</string>
 
     <string name="misc_notification_channel_name">Misc</string>
     <string name="misc_notification_channel_description">Help improve the product by asking for your feedback</string>

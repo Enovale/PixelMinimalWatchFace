@@ -17,7 +17,6 @@ package android.support.wearable.complications.rendering;
 
 import android.annotation.SuppressLint;
 import android.graphics.Canvas;
-import android.graphics.Paint;
 import android.graphics.Rect;
 import android.text.Layout;
 import android.text.SpannableStringBuilder;

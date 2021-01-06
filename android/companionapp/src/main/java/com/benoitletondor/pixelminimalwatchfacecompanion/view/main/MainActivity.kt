@@ -28,6 +28,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentPagerAdapter
 import com.benoitletondor.pixelminimalwatchfacecompanion.BuildConfig
 import com.benoitletondor.pixelminimalwatchfacecompanion.R
+import com.benoitletondor.pixelminimalwatchfacecompanion.helper.startSupportEmailActivity
 import com.benoitletondor.pixelminimalwatchfacecompanion.sync.Sync
 import com.benoitletondor.pixelminimalwatchfacecompanion.view.donation.DonationActivity
 import com.benoitletondor.pixelminimalwatchfacecompanion.view.onboarding.OnboardingActivity
@@ -237,17 +238,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if( item.itemId == R.id.send_feedback_button ) {
-            val sendIntent = Intent()
-            sendIntent.action = Intent.ACTION_SENDTO
-            sendIntent.data = Uri.parse("mailto:") // only email apps should handle this
-            sendIntent.putExtra(Intent.EXTRA_EMAIL, arrayOf(resources.getString(R.string.feedback_email)))
-            sendIntent.putExtra(Intent.EXTRA_SUBJECT, resources.getString(R.string.feedback_send_subject))
-
-            if ( sendIntent.resolveActivity(packageManager) != null) {
-                startActivity(sendIntent)
-            }
-
-            return true
+            return startSupportEmailActivity()
         }
 
         return super.onOptionsItemSelected(item)

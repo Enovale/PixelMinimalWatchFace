@@ -17,7 +17,6 @@ package com.benoitletondor.pixelminimalwatchfacecompanion.view.onboarding
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import androidx.lifecycle.Observer
 import com.benoitletondor.pixelminimalwatchfacecompanion.R
 import kotlinx.android.synthetic.main.activity_onboarding.*
 import org.koin.android.viewmodel.ext.android.viewModel
@@ -30,7 +29,7 @@ class OnboardingActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_onboarding)
 
-        viewModel.finishEventStream.observe(this, Observer {
+        viewModel.finishEventStream.observe(this, {
             finish()
         })
 
