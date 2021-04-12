@@ -23,6 +23,8 @@ import androidx.annotation.ColorInt
 import com.benoitletondor.pixelminimalwatchface.R
 import com.benoitletondor.pixelminimalwatchface.helper.DEFAULT_TIME_SIZE
 
+const val DEFAULT_APP_VERSION = -1
+
 private const val SHARED_PREFERENCES_NAME = "pixelMinimalSharedPref"
 
 private const val DEFAULT_COMPLICATION_COLOR = -147282
@@ -264,7 +266,7 @@ class StorageImpl : Storage {
     }
 
     override fun getAppVersion(): Int {
-        return sharedPreferences.getInt(KEY_APP_VERSION, -1)
+        return sharedPreferences.getInt(KEY_APP_VERSION, DEFAULT_APP_VERSION)
     }
 
     override fun setAppVersion(version: Int) {

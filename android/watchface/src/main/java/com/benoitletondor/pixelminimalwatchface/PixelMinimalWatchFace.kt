@@ -47,6 +47,7 @@ import com.benoitletondor.pixelminimalwatchface.helper.FullBrightnessActivity
 import com.benoitletondor.pixelminimalwatchface.helper.await
 import com.benoitletondor.pixelminimalwatchface.helper.openActivity
 import com.benoitletondor.pixelminimalwatchface.model.ComplicationColors
+import com.benoitletondor.pixelminimalwatchface.model.DEFAULT_APP_VERSION
 import com.benoitletondor.pixelminimalwatchface.model.Storage
 import com.benoitletondor.pixelminimalwatchface.rating.FeedbackActivity
 import com.benoitletondor.pixelminimalwatchface.settings.ComplicationLocation
@@ -73,6 +74,12 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
 
     override fun onCreateEngine(): Engine {
         val storage = Injection.storage(this)
+
+        // Set app version to the current one if not set yet (first launch)
+        if (storage.getAppVersion() == DEFAULT_APP_VERSION) {
+            storage.setAppVersion(BuildConfig.VERSION_CODE)
+        }
+
         return Engine(this, storage)
     }
 
