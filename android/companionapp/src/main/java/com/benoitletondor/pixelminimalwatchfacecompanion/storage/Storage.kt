@@ -20,4 +20,6 @@ interface Storage {
     fun setUserPremium(premium: Boolean)
     fun setOnboardingFinished(finished: Boolean)
     fun isOnboardingFinished(): Boolean
+    fun isBatterySyncActivated(): Boolean
+    fun setBatterySyncActivated(activated: Boolean)
 }

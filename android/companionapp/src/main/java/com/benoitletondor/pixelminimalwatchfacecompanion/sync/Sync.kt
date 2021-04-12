@@ -24,6 +24,9 @@ interface Sync {
     fun subscribeToCapabilityChanges(listener: CapabilityClient.OnCapabilityChangedListener)
     fun unsubscribeToCapabilityChanges(listener: CapabilityClient.OnCapabilityChangedListener)
 
+    suspend fun sendBatterySyncStatus(syncActivated: Boolean)
+    suspend fun sendBatteryStatus(batteryPercentage: Int)
+
     sealed class WearableStatus {
         object AvailableAppNotInstalled : WearableStatus()
         object AvailableAppInstalled: WearableStatus()

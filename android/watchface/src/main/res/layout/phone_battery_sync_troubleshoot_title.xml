@@ -14,11 +14,18 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 -->
-<Switch
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/config_list_show_battery_switch"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    style="@style/ButtonConfigurationStyle"
-    android:text="@string/config_show_battery"
-    android:drawableStart="@drawable/ic_baseline_battery_charging_full"/>
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="16sp"
+        android:gravity="center"
+        android:text="@string/phone_battery_configuration_troubleshoot_title"
+        android:textColor="@color/white" />
+
+</LinearLayout>

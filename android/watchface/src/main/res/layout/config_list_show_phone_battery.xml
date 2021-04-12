@@ -14,11 +14,11 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 -->
-<Switch
+<Button
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/config_list_show_battery_switch"
+    android:id="@+id/config_list_phone_battery_button"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    style="@style/ButtonConfigurationStyle"
-    android:text="@string/config_show_battery"
-    android:drawableStart="@drawable/ic_baseline_battery_charging_full"/>
+    android:text="@string/config_show_phone_battery"
+    android:drawableStart="@drawable/ic_phone"
+    style="@style/ButtonConfigurationStyle"/>
