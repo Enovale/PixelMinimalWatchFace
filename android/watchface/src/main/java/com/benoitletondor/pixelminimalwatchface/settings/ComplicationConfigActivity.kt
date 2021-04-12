@@ -31,6 +31,7 @@ import com.benoitletondor.pixelminimalwatchface.Injection
 import com.benoitletondor.pixelminimalwatchface.R
 import com.benoitletondor.pixelminimalwatchface.model.Storage
 import com.benoitletondor.pixelminimalwatchface.rating.FeedbackActivity
+import com.benoitletondor.pixelminimalwatchface.settings.phonebattery.PhoneBatteryConfigurationActivity
 import com.google.android.wearable.intent.RemoteIntent
 import kotlinx.android.synthetic.main.activity_complication_config.*
 
@@ -70,6 +71,11 @@ class ComplicationConfigActivity : Activity() {
             storage.setShowDateInAmbient(showDateAmbient)
         }, {
             openAppForDonationOnPhone()
+        }, {
+            startActivityForResult(
+                Intent(this, PhoneBatteryConfigurationActivity::class.java),
+                COMPLICATION_PHONE_BATTERY_SETUP_REQUEST_CODE,
+            )
         })
 
         wearable_recycler_view.isEdgeItemsCenteringEnabled = true
@@ -90,6 +96,8 @@ class ComplicationConfigActivity : Activity() {
         } else if( requestCode == COMPLICATION_BATTERY_PERMISSION_REQUEST_CODE ) {
             adapter.batteryComplicationPermissionFinished()
         } else if ( requestCode == COMPLICATION_CONFIG_REQUEST_CODE && resultCode == RESULT_OK ) {
+            adapter.updateComplications()
+        } else if ( requestCode == COMPLICATION_PHONE_BATTERY_SETUP_REQUEST_CODE ) {
             adapter.updateComplications()
         }
     }
@@ -209,5 +217,6 @@ class ComplicationConfigActivity : Activity() {
         const val COMPLICATION_WEATHER_PERMISSION_REQUEST_CODE = 1003
         const val COMPLICATION_BATTERY_PERMISSION_REQUEST_CODE = 1004
         const val COMPLICATION_CONFIG_REQUEST_CODE = 1005
+        const val COMPLICATION_PHONE_BATTERY_SETUP_REQUEST_CODE = 1006
     }
 }

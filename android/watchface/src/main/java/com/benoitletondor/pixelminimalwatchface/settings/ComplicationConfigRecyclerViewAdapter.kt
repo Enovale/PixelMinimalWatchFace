@@ -61,6 +61,13 @@ private const val TYPE_SHOW_BATTERY = 13
 private const val TYPE_DATE_FORMAT = 14
 private const val TYPE_SHOW_DATE_AMBIENT = 15
 private const val TYPE_DONATE = 16
+private const val TYPE_SHOW_PHONE_BATTERY = 17
+private const val TYPE_SECTION_BATTERY = 18
+private const val TYPE_SECTION_DATE_AND_TIME = 19
+private const val TYPE_SECTION_AMBIENT = 20
+private const val TYPE_SECTION_SUPPORT = 21
+private const val TYPE_SECTION_WIDGETS = 22
+private const val TYPE_BATTERY_SECTION_HEADER = 23
 
 class ComplicationConfigRecyclerViewAdapter(
     private val context: Context,
@@ -78,6 +85,7 @@ class ComplicationConfigRecyclerViewAdapter(
     private val dateFormatSelectionListener: (Boolean) -> Unit,
     private val showDateAmbientListener: (Boolean) -> Unit,
     private val donateButtonPressed: () -> Unit,
+    private val phoneBatteryButtonPressed: () -> Unit,
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private var selectedComplicationLocation: ComplicationLocation? = null
@@ -225,7 +233,7 @@ class ComplicationConfigRecyclerViewAdapter(
                         )
                     } else {
                         showBatteryListener(false)
-                        previewAndComplicationsViewHolder?.showBottomComplication(true)
+                        previewAndComplicationsViewHolder?.showBottomComplication(!storage.shouldShowPhoneBattery())
                     }
                 }
                 this.showBatteryViewHolder = showBatteryViewHolder
@@ -255,6 +263,28 @@ class ComplicationConfigRecyclerViewAdapter(
                 ),
                 donateButtonPressed
             )
+            TYPE_SHOW_PHONE_BATTERY -> return PhoneBatteryViewHolder(
+                LayoutInflater.from(parent.context).inflate(
+                    R.layout.config_list_show_phone_battery,
+                    parent,
+                    false,
+                ),
+                phoneBatteryButtonPressed,
+            )
+            TYPE_SECTION_BATTERY, TYPE_SECTION_AMBIENT, TYPE_SECTION_DATE_AND_TIME, TYPE_SECTION_SUPPORT, TYPE_SECTION_WIDGETS -> return SectionViewHolder(
+                LayoutInflater.from(parent.context).inflate(
+                    R.layout.config_list_section,
+                    parent,
+                    false,
+                )
+            )
+            TYPE_BATTERY_SECTION_HEADER -> return BatterySectionHeaderViewHolder(
+                LayoutInflater.from(parent.context).inflate(
+                    R.layout.config_list_battery_header,
+                    parent,
+                    false,
+                )
+            )
         }
         throw IllegalStateException("Unknown option type: $viewType")
     }
@@ -266,11 +296,7 @@ class ComplicationConfigRecyclerViewAdapter(
 
                 if( !previewAndComplicationsViewHolder.bound ) {
                     previewAndComplicationsViewHolder.bound = true
-
-                    previewAndComplicationsViewHolder.setDefaultComplicationDrawable()
-                    previewAndComplicationsViewHolder.showMiddleComplication(!storage.shouldShowWearOSLogo())
-                    previewAndComplicationsViewHolder.showBottomComplication(!storage.shouldShowBattery())
-                    initializesColorsAndComplications()
+                    updateComplications()
                 }
             }
             TYPE_HOUR_FORMAT -> {
@@ -315,10 +341,18 @@ class ComplicationConfigRecyclerViewAdapter(
                 val showDateInAmbient = storage.getShowDateInAmbient()
                 (viewHolder as ShowDateAmbientViewHolder).setShowDateAmbientSwitchChecked(showDateInAmbient)
             }
+            TYPE_SECTION_BATTERY, TYPE_SECTION_AMBIENT, TYPE_SECTION_DATE_AND_TIME, TYPE_SECTION_SUPPORT, TYPE_SECTION_WIDGETS -> {
+                (viewHolder as SectionViewHolder).setSectionType(viewHolder.itemViewType)
+            }
         }
     }
 
     fun updateComplications() {
+        previewAndComplicationsViewHolder?.bound = true
+        
+        previewAndComplicationsViewHolder?.setDefaultComplicationDrawable()
+        previewAndComplicationsViewHolder?.showMiddleComplication(!storage.shouldShowWearOSLogo())
+        previewAndComplicationsViewHolder?.showBottomComplication(!storage.shouldShowBattery() && !storage.shouldShowPhoneBattery())
         initializesColorsAndComplications()
     }
 
@@ -354,31 +388,49 @@ class ComplicationConfigRecyclerViewAdapter(
         val isUserPremium = storage.isUserPremium()
         val isScreenRound = context.isScreenRound()
 
-        val list = ArrayList<Int>(11)
+        val list = ArrayList<Int>()
 
         list.add(TYPE_HEADER)
+
+        // TYPE_SECTION_WIDGETS
+        list.add(TYPE_SECTION_WIDGETS)
         if( isUserPremium ) {
             list.add(TYPE_PREVIEW_AND_COMPLICATIONS_CONFIG)
-
-            if( context.isServiceAvailable(WEAR_OS_APP_PACKAGE, WEATHER_PROVIDER_SERVICE) ) {
-                list.add(TYPE_SHOW_WEATHER)
-            }
         } else {
             list.add(TYPE_BECOME_PREMIUM)
         }
         list.add(TYPE_SHOW_WEAR_OS_LOGO)
+
+        // TYPE_SECTION_BATTERY
         if( isUserPremium ) {
+            list.add(TYPE_SECTION_BATTERY)
+            list.add(TYPE_BATTERY_SECTION_HEADER)
             list.add(TYPE_SHOW_BATTERY)
-            list.add(TYPE_SHOW_COMPLICATIONS_AMBIENT)
+            list.add(TYPE_SHOW_PHONE_BATTERY)
         }
-        list.add(TYPE_SHOW_DATE_AMBIENT)
+
+        // TYPE_SECTION_DATE_AND_TIME
+        list.add(TYPE_SECTION_DATE_AND_TIME)
         list.add(TYPE_DATE_FORMAT)
+        if( isUserPremium && context.isServiceAvailable(WEAR_OS_APP_PACKAGE, WEATHER_PROVIDER_SERVICE) ) {
+            list.add(TYPE_SHOW_WEATHER)
+        }
         list.add(TYPE_HOUR_FORMAT)
         list.add(TYPE_TIME_SIZE)
-        list.add(TYPE_SHOW_FILLED_TIME_AMBIENT)
         if( isScreenRound ) {
             list.add(TYPE_SHOW_SECONDS_RING)
         }
+
+        // TYPE_SECTION_AMBIENT
+        list.add(TYPE_SECTION_AMBIENT)
+        list.add(TYPE_SHOW_DATE_AMBIENT)
+        list.add(TYPE_SHOW_FILLED_TIME_AMBIENT)
+        if (isUserPremium) {
+            list.add(TYPE_SHOW_COMPLICATIONS_AMBIENT)
+        }
+
+        // TYPE_SECTION_SUPPORT
+        list.add(TYPE_SECTION_SUPPORT)
         list.add(TYPE_SEND_FEEDBACK)
         if( isUserPremium ) {
             list.add(TYPE_DONATE)
@@ -794,3 +846,30 @@ class DonateViewHolder(view: View,
         }
     }
 }
+
+class PhoneBatteryViewHolder(
+    view: View,
+    onPhoneBatteryButtonPressed: () -> Unit,
+) : RecyclerView.ViewHolder(view) {
+    init {
+        view.setOnClickListener {
+            onPhoneBatteryButtonPressed()
+        }
+    }
+}
+
+class SectionViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+    private val sectionTextView = view as TextView
+
+    fun setSectionType(sectionType: Int) {
+        when(sectionType) {
+            TYPE_SECTION_SUPPORT -> sectionTextView.setText(R.string.config_section_support)
+            TYPE_SECTION_DATE_AND_TIME -> sectionTextView.setText(R.string.config_section_date_and_time)
+            TYPE_SECTION_BATTERY -> sectionTextView.setText(R.string.config_section_battery)
+            TYPE_SECTION_AMBIENT -> sectionTextView.setText(R.string.config_section_ambient)
+            TYPE_SECTION_WIDGETS -> sectionTextView.setText(R.string.config_section_widgets)
+        }
+    }
+}
+
+class BatterySectionHeaderViewHolder(view: View) : RecyclerView.ViewHolder(view)

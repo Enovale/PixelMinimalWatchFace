@@ -56,16 +56,19 @@ interface WatchFaceDrawer {
                                  complicationColors: ComplicationColors)
     fun tapIsOnWeather(x: Int, y: Int): Boolean
     fun tapIsInCenterOfScreen(x: Int, y: Int): Boolean
+    fun tapIsOnBattery(x: Int, y: Int): Boolean
 
-    fun draw(canvas: Canvas,
-             calendar: Calendar,
-             muteMode: Boolean,
-             ambient:Boolean,
-             lowBitAmbient: Boolean,
-             burnInProtection: Boolean,
-             weatherComplicationData: ComplicationData?,
-             batteryComplicationData: ComplicationData?)
-
+    fun draw(
+        canvas: Canvas,
+        calendar: Calendar,
+        muteMode: Boolean,
+        ambient:Boolean,
+        lowBitAmbient: Boolean,
+        burnInProtection: Boolean,
+        weatherComplicationData: ComplicationData?,
+        batteryComplicationData: ComplicationData?,
+        phoneBatteryStatus: PhoneBatteryStatus?,
+    )
 }
 
 class WatchFaceDrawerImpl : WatchFaceDrawer {
@@ -100,6 +103,9 @@ class WatchFaceDrawerImpl : WatchFaceDrawer {
     private lateinit var battery40Icon: Bitmap
     private lateinit var battery20Icon: Bitmap
     private lateinit var battery10Icon: Bitmap
+    private lateinit var watchBatteryIcon: Bitmap
+    private lateinit var phoneBatteryIcon: Bitmap
+    private var distanceBetweenPhoneAndWatchBattery: Int = 0
     private var titleSize: Int = 0
     private var textSize: Int = 0
     private var chinSize: Int = 0
@@ -125,6 +131,7 @@ class WatchFaceDrawerImpl : WatchFaceDrawer {
         wearOSLogoAmbient = ContextCompat.getDrawable(context, R.drawable.ic_wear_os_logo_ambient)!!.toBitmap()
         batteryIconPaint = Paint()
         productSansRegularFont = ResourcesCompat.getFont(context, R.font.product_sans_regular)!!
+        distanceBetweenPhoneAndWatchBattery = context.dpToPx(3)
         timeFormatter24H = SimpleDateFormat("HH:mm", Locale.getDefault())
         timeFormatter12H = SimpleDateFormat("h:mm", Locale.getDefault())
         titleSize = context.resources.getDimensionPixelSize(R.dimen.complication_title_size)
@@ -247,6 +254,19 @@ class WatchFaceDrawerImpl : WatchFaceDrawer {
         return centerRect.contains(x, y)
     }
 
+    override fun tapIsOnBattery(x: Int, y: Int): Boolean {
+        val drawingState = drawingState as? DrawingState.CacheAvailable ?: return false
+
+        val batteryIndicatorRect = Rect(
+            (drawingState.screenWidth * 0.25f).toInt(),
+            (drawingState.batteryIconBottomY - batteryIconSize),
+            (drawingState.screenWidth * 0.75f).toInt(),
+            (drawingState.batteryIconBottomY)
+        )
+
+        return batteryIndicatorRect.contains(x, y)
+    }
+
     @ColorInt
     private fun getComplicationPrimaryColor(complicationId: Int, complicationColors: ComplicationColors): Int {
         return when (complicationId) {
@@ -257,15 +277,17 @@ class WatchFaceDrawerImpl : WatchFaceDrawer {
         }
     }
 
-    override fun draw(canvas: Canvas,
-                      calendar: Calendar,
-                      muteMode: Boolean,
-                      ambient:Boolean,
-                      lowBitAmbient: Boolean,
-                      burnInProtection: Boolean,
-                      weatherComplicationData: ComplicationData?,
-                      batteryComplicationData: ComplicationData?) {
-
+    override fun draw(
+        canvas: Canvas,
+        calendar: Calendar,
+        muteMode: Boolean,
+        ambient:Boolean,
+        lowBitAmbient: Boolean,
+        burnInProtection: Boolean,
+        weatherComplicationData: ComplicationData?,
+        batteryComplicationData: ComplicationData?,
+        phoneBatteryStatus: PhoneBatteryStatus?,
+    ) {
         setPaintVariables(muteMode, ambient, lowBitAmbient, burnInProtection)
         drawBackground(canvas)
 
@@ -288,9 +310,11 @@ class WatchFaceDrawerImpl : WatchFaceDrawer {
                 storage.isUserPremium(),
                 storage.shouldShowSecondsRing(),
                 storage.shouldShowBattery(),
+                storage.shouldShowPhoneBattery(),
                 !ambient || storage.getShowDateInAmbient(),
                 weatherComplicationData,
-                batteryComplicationData
+                batteryComplicationData,
+                phoneBatteryStatus,
             )
         }
     }
@@ -343,6 +367,8 @@ class WatchFaceDrawerImpl : WatchFaceDrawer {
         battery40Icon = ContextCompat.getDrawable(context, R.drawable.battery_40)!!.toBitmap(batteryIconSize, batteryIconSize)
         battery20Icon = ContextCompat.getDrawable(context, R.drawable.battery_20)!!.toBitmap(batteryIconSize, batteryIconSize)
         battery10Icon = ContextCompat.getDrawable(context, R.drawable.battery_10)!!.toBitmap(batteryIconSize, batteryIconSize)
+        watchBatteryIcon = ContextCompat.getDrawable(context, R.drawable.ic_watch)!!.toBitmap(batteryIconSize, batteryIconSize)
+        phoneBatteryIcon = ContextCompat.getDrawable(context, R.drawable.ic_phone)!!.toBitmap(batteryIconSize, batteryIconSize)
     }
 
     private fun DrawingState.NoCacheAvailable.buildComplicationDrawingCache(topBottom: Float, bottomTop: Float): ComplicationsDrawingCache {
@@ -423,18 +449,22 @@ class WatchFaceDrawerImpl : WatchFaceDrawer {
         }
     }
 
-    private fun DrawingState.CacheAvailable.draw(canvas: Canvas,
-                                                 calendar: Calendar,
-                                                 muteMode: Boolean,
-                                                 ambient:Boolean,
-                                                 lowBitAmbient: Boolean,
-                                                 burnInProtection: Boolean,
-                                                 isUserPremium: Boolean,
-                                                 drawSecondsRing: Boolean,
-                                                 drawBattery: Boolean,
-                                                 drawDate: Boolean,
-                                                 weatherComplicationData: ComplicationData?,
-                                                 batteryComplicationData: ComplicationData?) {
+    private fun DrawingState.CacheAvailable.draw(
+        canvas: Canvas,
+        calendar: Calendar,
+        muteMode: Boolean,
+        ambient:Boolean,
+        lowBitAmbient: Boolean,
+        burnInProtection: Boolean,
+        isUserPremium: Boolean,
+        drawSecondsRing: Boolean,
+        drawBattery: Boolean,
+        drawPhoneBattery: Boolean,
+        drawDate: Boolean,
+        weatherComplicationData: ComplicationData?,
+        batteryComplicationData: ComplicationData?,
+        phoneBatteryStatus: PhoneBatteryStatus?,
+    ) {
         val timeText = if( storage.getUse24hTimeFormat()) {
             timeFormatter24H.calendar = calendar
             timeFormatter24H.format(Date(calendar.timeInMillis))
@@ -485,47 +515,117 @@ class WatchFaceDrawerImpl : WatchFaceDrawer {
             canvas.drawArc(0F, 0F, screenWidth.toFloat(), screenHeight.toFloat(), 270F, endAngle, false, secondsRingPaint)
         }
 
-        if( isUserPremium && batteryComplicationData != null && drawBattery ) {
-            val batteryData = batteryComplicationData.shortText
-            if( batteryData != null ) {
-                val batteryText = batteryData.getText(context, calendar.timeInMillis).toString()
-                if ( batteryText.isNotBlank() ) {
-                    val (batteryLevelText, batteryPercent) = try {
-                        val batteryPercent = Integer.parseInt(batteryText.filter { it.isDigit() })
-                        Pair("$batteryPercent%", batteryPercent)
-                    } catch (t: Throwable) {
-                        Log.e("WatchFaceDrawer", "Error parsing battery data", t)
-                        Pair("N/A", 50)
-                    }
+        if( isUserPremium && (drawBattery || drawPhoneBattery) ) {
+            val batteryText = if (drawBattery) {
+                batteryComplicationData?.shortText?.getText(context, calendar.timeInMillis)
+                    ?.toString()?.filter { it.isDigit() }?.plus("%")
+            } else {
+                null
+            }
+            val phoneBatteryText = if (drawPhoneBattery) {
+                phoneBatteryStatus?.getBatteryText(calendar.timeInMillis)
+            } else {
+                null
+            }
 
-                    val batteryTextLength = batteryLevelPaint.measureText(batteryLevelText)
-                    val left = (centerX - (batteryTextLength / 2) - (batteryIconSize / 2)).toInt()
-                    val icon = getBatteryIcon(batteryPercent)
+            if (phoneBatteryText != null || batteryText != null) {
+                val batteryTextLength = if (batteryText != null) {
+                    batteryLevelPaint.measureText(batteryText)
+                } else {
+                    0f
+                }
+                val phoneBatteryTextLength = if (phoneBatteryText != null) {
+                    batteryLevelPaint.measureText(phoneBatteryText)
+                } else {
+                    0f
+                }
+
+                var numberOfIcons = 0
+                if (phoneBatteryText != null) {
+                    numberOfIcons++
+                }
+                if (batteryText != null) {
+                    numberOfIcons++
+                }
+
+                var left = (centerX - ((batteryTextLength + phoneBatteryTextLength) / 2) - ((numberOfIcons * batteryIconSize) / 2))
+                if (numberOfIcons == 2) {
+                    left -= (distanceBetweenPhoneAndWatchBattery.toFloat() / 2f)
+                }
+
+                if (batteryText != null) {
+                    val icon = if (phoneBatteryText == null ) { getBatteryIcon(batteryText) } else { watchBatteryIcon }
 
                     canvas.drawBitmap(
                         icon,
                         null,
                         Rect(
-                            left,
+                            left.toInt(),
                             batteryIconBottomY - batteryIconSize,
-                            left + batteryIconSize,
+                            left.toInt() + batteryIconSize,
                             batteryIconBottomY
                         ),
                         batteryIconPaint
                     )
 
+                    left+=batteryIconSize
+
                     canvas.drawText(
-                        batteryLevelText,
-                        (left + batteryIconSize).toFloat(),
+                        batteryText,
+                        left,
+                        (batteryLevelBottomY).toFloat(),
+                        batteryLevelPaint
+                    )
+
+                    left+=batteryTextLength
+                }
+
+                if (phoneBatteryText != null) {
+                    if (batteryText != null) {
+                        left += distanceBetweenPhoneAndWatchBattery
+                    }
+
+                    canvas.drawBitmap(
+                        phoneBatteryIcon,
+                        null,
+                        Rect(
+                            left.toInt(),
+                            batteryIconBottomY - batteryIconSize,
+                            left.toInt() + batteryIconSize,
+                            batteryIconBottomY
+                        ),
+                        batteryIconPaint
+                    )
+
+                    left+=batteryIconSize
+
+                    canvas.drawText(
+                        phoneBatteryText,
+                        left,
                         (batteryLevelBottomY).toFloat(),
                         batteryLevelPaint
                     )
                 }
+
             }
         }
     }
 
-    private fun getBatteryIcon(batteryPercent: Int): Bitmap {
+    private fun PhoneBatteryStatus.getBatteryText(currentTimestamp: Long): String {
+        return when(this) {
+            is PhoneBatteryStatus.DataReceived -> if (isStale(currentTimestamp)) { "?" } else { "${batteryPercentage}%" }
+            PhoneBatteryStatus.Unknown -> "?"
+        }
+    }
+
+    private fun getBatteryIcon(batteryText: String): Bitmap {
+        val batteryPercent = try {
+            Integer.parseInt(batteryText.replace("%", ""))
+        } catch (t: Throwable) {
+            Log.e("WatchFaceDrawer", "Error parsing battery data", t)
+            50
+        }
+
         return when {
             batteryPercent <= 10 -> { battery10Icon }
             batteryPercent <= 25 -> { battery20Icon }

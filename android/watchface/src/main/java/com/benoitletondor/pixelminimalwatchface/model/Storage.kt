@@ -39,6 +39,7 @@ private const val KEY_TIME_SIZE = "timeSize"
 private const val KEY_SECONDS_RING = "secondsRing"
 private const val KEY_SHOW_WEATHER = "showWeather"
 private const val KEY_SHOW_BATTERY = "showBattery"
+private const val KEY_SHOW_PHONE_BATTERY = "showPhoneBattery"
 private const val KEY_FEATURE_DROP_2021_NOTIFICATION = "featureDrop2021Notification"
 private const val KEY_USE_SHORT_DATE_FORMAT = "useShortDateFormat"
 private const val KEY_SHOW_DATE_AMBIENT = "showDateAmbient"
@@ -75,6 +76,8 @@ interface Storage {
     fun setUseShortDateFormat(useShortDateFormat: Boolean)
     fun setShowDateInAmbient(showDateInAmbient: Boolean)
     fun getShowDateInAmbient(): Boolean
+    fun shouldShowPhoneBattery(): Boolean
+    fun setShouldShowPhoneBattery(show: Boolean)
 }
 
 class StorageImpl : Storage {
@@ -106,6 +109,8 @@ class StorageImpl : Storage {
     private var showDateAmbientCached = false
     private var cacheShowDateAmbient = false
     private var cacheComplicationsColor: ComplicationColors? = null
+    private var shouldShowPhoneBatteryCached = false
+    private var cacheShouldShowPhoneBattery = false
 
     fun init(context: Context): Storage {
         if( !initialized ) {
@@ -198,7 +203,7 @@ class StorageImpl : Storage {
 
     override fun isUserPremium(): Boolean {
         if( !isUserPremiumCached ) {
-            cacheIsUserPremium = true//sharedPreferences.getBoolean(KEY_USER_PREMIUM, false)
+            cacheIsUserPremium = sharedPreferences.getBoolean(KEY_USER_PREMIUM, false)
             isUserPremiumCached = true
         }
 
@@ -350,6 +355,22 @@ class StorageImpl : Storage {
         shouldShowBatteryCached = true
 
         sharedPreferences.edit().putBoolean(KEY_SHOW_BATTERY, show).apply()
+    }
+
+    override fun shouldShowPhoneBattery(): Boolean {
+        if( !shouldShowPhoneBatteryCached ) {
+            cacheShouldShowPhoneBattery = sharedPreferences.getBoolean(KEY_SHOW_PHONE_BATTERY, false)
+            shouldShowPhoneBatteryCached = true
+        }
+
+        return cacheShouldShowPhoneBattery
+    }
+
+    override fun setShouldShowPhoneBattery(show: Boolean) {
+        cacheShouldShowPhoneBattery = show
+        shouldShowPhoneBatteryCached = true
+
+        sharedPreferences.edit().putBoolean(KEY_SHOW_PHONE_BATTERY, show).apply()
     }
 
     override fun hasFeatureDrop2021NotificationBeenShown(): Boolean {
