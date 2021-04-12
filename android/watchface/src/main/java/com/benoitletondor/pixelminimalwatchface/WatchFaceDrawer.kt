@@ -81,13 +81,10 @@ class WatchFaceDrawerImpl : WatchFaceDrawer {
     private lateinit var timePaint: Paint
     private lateinit var datePaint: Paint
     private lateinit var weatherIconPaint: Paint
-    private lateinit var weatherAndBatteryIconColorFilter: ColorFilter
     private lateinit var weatherAndBatteryIconColorFilterDimmed: ColorFilter
     private lateinit var secondsRingPaint: Paint
     @ColorInt private var backgroundColor: Int = 0
-    @ColorInt private var timeColor: Int = 0
     @ColorInt private var timeColorDimmed: Int = 0
-    @ColorInt private var dateAndBatteryColor: Int = 0
     @ColorInt private var dateAndBatteryColorDimmed: Int = 0
     @ColorInt private var complicationTitleColor: Int = 0
     private lateinit var wearOSLogo: Bitmap
@@ -122,9 +119,7 @@ class WatchFaceDrawerImpl : WatchFaceDrawer {
         currentTimeSize = storage.getTimeSize()
         wearOSLogoPaint = Paint()
         backgroundColor = ContextCompat.getColor(context, R.color.face_background)
-        timeColor = ContextCompat.getColor(context, R.color.face_time)
         timeColorDimmed = ContextCompat.getColor(context, R.color.face_time_dimmed)
-        dateAndBatteryColor = ContextCompat.getColor(context, R.color.face_date)
         dateAndBatteryColorDimmed = ContextCompat.getColor(context, R.color.face_date_dimmed)
         complicationTitleColor = ContextCompat.getColor(context, R.color.complication_title_color)
         wearOSLogo = ContextCompat.getDrawable(context, R.drawable.ic_wear_os_logo)!!.toBitmap()
@@ -148,7 +143,6 @@ class WatchFaceDrawerImpl : WatchFaceDrawer {
             typeface = productSansRegularFont
         }
         weatherIconPaint = Paint()
-        weatherAndBatteryIconColorFilter = PorterDuffColorFilter(dateAndBatteryColor, PorterDuff.Mode.SRC_IN)
         weatherAndBatteryIconColorFilterDimmed = PorterDuffColorFilter(dateAndBatteryColorDimmed, PorterDuff.Mode.SRC_IN)
         secondsRingPaint = Paint().apply {
             style = Paint.Style.STROKE
@@ -731,27 +725,27 @@ class WatchFaceDrawerImpl : WatchFaceDrawer {
         timePaint.apply {
             isAntiAlias = !(ambient && lowBitAmbient)
             style = if( ambient && !storage.shouldShowFilledTimeInAmbientMode() ) { Paint.Style.STROKE } else { Paint.Style.FILL }
-            color = if( ambient ) { timeColorDimmed } else { timeColor }
+            color = if( ambient ) { timeColorDimmed } else { storage.getTimeAndDateColor() }
         }
 
         datePaint.apply {
             isAntiAlias = !(ambient && lowBitAmbient)
-            color = if( ambient ) { dateAndBatteryColorDimmed } else { dateAndBatteryColor }
+            color = if( ambient ) { dateAndBatteryColorDimmed } else { storage.getTimeAndDateColor() }
         }
 
         weatherIconPaint.apply {
             isAntiAlias = !ambient
-            colorFilter = if( ambient ) { weatherAndBatteryIconColorFilterDimmed } else { weatherAndBatteryIconColorFilter }
+            colorFilter = if( ambient ) { weatherAndBatteryIconColorFilterDimmed } else { storage.getTimeAndDateColorFilter() }
         }
 
         batteryLevelPaint.apply {
             isAntiAlias = !(ambient && lowBitAmbient)
-            color = if( ambient ) { dateAndBatteryColorDimmed } else { dateAndBatteryColor }
+            color = if( ambient ) { dateAndBatteryColorDimmed } else { storage.getTimeAndDateColor() }
         }
 
         batteryIconPaint.apply {
             isAntiAlias = !(ambient && lowBitAmbient)
-            colorFilter = if( ambient ) { weatherAndBatteryIconColorFilterDimmed } else { weatherAndBatteryIconColorFilter }
+            colorFilter = if( ambient ) { weatherAndBatteryIconColorFilterDimmed } else { storage.getTimeAndDateColorFilter() }
         }
     }
 

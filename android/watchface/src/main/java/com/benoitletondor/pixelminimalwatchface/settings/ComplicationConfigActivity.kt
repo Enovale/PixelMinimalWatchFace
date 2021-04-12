@@ -29,6 +29,7 @@ import com.benoitletondor.pixelminimalwatchface.BuildConfig
 import com.benoitletondor.pixelminimalwatchface.BuildConfig.COMPANION_APP_PLAYSTORE_URL
 import com.benoitletondor.pixelminimalwatchface.Injection
 import com.benoitletondor.pixelminimalwatchface.R
+import com.benoitletondor.pixelminimalwatchface.model.ComplicationColor
 import com.benoitletondor.pixelminimalwatchface.model.Storage
 import com.benoitletondor.pixelminimalwatchface.rating.FeedbackActivity
 import com.benoitletondor.pixelminimalwatchface.settings.phonebattery.PhoneBatteryConfigurationActivity
@@ -76,6 +77,14 @@ class ComplicationConfigActivity : Activity() {
                 Intent(this, PhoneBatteryConfigurationActivity::class.java),
                 COMPLICATION_PHONE_BATTERY_SETUP_REQUEST_CODE,
             )
+        }, {
+            startActivityForResult(
+                ColorSelectionActivity.createIntent(
+                    this,
+                    ComplicationColor(getColor(R.color.white), getString(R.string.color_default), true)
+                ),
+                TIME_AND_DATE_COLOR_REQUEST_CODE
+            )
         })
 
         wearable_recycler_view.isEdgeItemsCenteringEnabled = true
@@ -99,6 +108,11 @@ class ComplicationConfigActivity : Activity() {
             adapter.updateComplications()
         } else if ( requestCode == COMPLICATION_PHONE_BATTERY_SETUP_REQUEST_CODE ) {
             adapter.updateComplications()
+        } else if ( requestCode == TIME_AND_DATE_COLOR_REQUEST_CODE && resultCode == RESULT_OK ) {
+            val color = data?.getParcelableExtra<ComplicationColor>(ColorSelectionActivity.RESULT_SELECTED_COLOR)
+            if (color != null) {
+                storage.setTimeAndDateColor(color.color)
+            }
         }
     }
 
@@ -218,5 +232,6 @@ class ComplicationConfigActivity : Activity() {
         const val COMPLICATION_BATTERY_PERMISSION_REQUEST_CODE = 1004
         const val COMPLICATION_CONFIG_REQUEST_CODE = 1005
         const val COMPLICATION_PHONE_BATTERY_SETUP_REQUEST_CODE = 1006
+        const val TIME_AND_DATE_COLOR_REQUEST_CODE = 1007
     }
 }

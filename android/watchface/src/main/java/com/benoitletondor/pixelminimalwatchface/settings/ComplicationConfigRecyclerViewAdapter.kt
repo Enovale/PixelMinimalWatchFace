@@ -68,6 +68,7 @@ private const val TYPE_SECTION_AMBIENT = 20
 private const val TYPE_SECTION_SUPPORT = 21
 private const val TYPE_SECTION_WIDGETS = 22
 private const val TYPE_BATTERY_SECTION_HEADER = 23
+private const val TYPE_TIME_AND_DATE_COLOR = 24
 
 class ComplicationConfigRecyclerViewAdapter(
     private val context: Context,
@@ -86,6 +87,7 @@ class ComplicationConfigRecyclerViewAdapter(
     private val showDateAmbientListener: (Boolean) -> Unit,
     private val donateButtonPressed: () -> Unit,
     private val phoneBatteryButtonPressed: () -> Unit,
+    private val changeTimeAndDateColorButtonPressed: () -> Unit,
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private var selectedComplicationLocation: ComplicationLocation? = null
@@ -285,6 +287,14 @@ class ComplicationConfigRecyclerViewAdapter(
                     false,
                 )
             )
+            TYPE_TIME_AND_DATE_COLOR -> return TimeAndDateColorViewHolder(
+                LayoutInflater.from(parent.context).inflate(
+                    R.layout.config_list_time_and_date_color,
+                    parent,
+                    false,
+                ),
+                changeTimeAndDateColorButtonPressed
+            )
         }
         throw IllegalStateException("Unknown option type: $viewType")
     }
@@ -417,6 +427,7 @@ class ComplicationConfigRecyclerViewAdapter(
         }
         list.add(TYPE_HOUR_FORMAT)
         list.add(TYPE_TIME_SIZE)
+        list.add(TYPE_TIME_AND_DATE_COLOR)
         if( isScreenRound ) {
             list.add(TYPE_SHOW_SECONDS_RING)
         }
@@ -873,3 +884,14 @@ class SectionViewHolder(view: View) : RecyclerView.ViewHolder(view) {
 }
 
 class BatterySectionHeaderViewHolder(view: View) : RecyclerView.ViewHolder(view)
+
+class TimeAndDateColorViewHolder(
+    view: View,
+    onChangeDateAndTimeColorPressed: () -> Unit,
+) : RecyclerView.ViewHolder(view) {
+    init {
+        view.setOnClickListener {
+            onChangeDateAndTimeColorPressed()
+        }
+    }
+}

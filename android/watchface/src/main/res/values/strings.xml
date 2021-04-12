@@ -50,6 +50,7 @@
     <string name="config_section_support">Support</string>
     <string name="config_section_widgets">Widgets</string>
     <string name="config_battery_section_header">Activating any battery indicator replaces the bottom widget</string>
+    <string name="config_time_and_date_color">Time and date color (doesn\'t affect ambient mode)</string>
 
     <string name="premium_confirmation">Configure widgets in Watch Face settings</string>
     <string name="premium_error">An error occurred, send me an email for assistance</string>

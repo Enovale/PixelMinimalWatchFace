@@ -17,6 +17,10 @@ package com.benoitletondor.pixelminimalwatchface.model
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffColorFilter
+import androidx.annotation.ColorInt
+import com.benoitletondor.pixelminimalwatchface.R
 import com.benoitletondor.pixelminimalwatchface.helper.DEFAULT_TIME_SIZE
 
 private const val SHARED_PREFERENCES_NAME = "pixelMinimalSharedPref"
@@ -43,6 +47,7 @@ private const val KEY_SHOW_PHONE_BATTERY = "showPhoneBattery"
 private const val KEY_FEATURE_DROP_2021_NOTIFICATION = "featureDrop2021Notification"
 private const val KEY_USE_SHORT_DATE_FORMAT = "useShortDateFormat"
 private const val KEY_SHOW_DATE_AMBIENT = "showDateAmbient"
+private const val KEY_TIME_AND_DATE_COLOR = "timeAndDateColor"
 
 interface Storage {
     fun getComplicationColors(): ComplicationColors
@@ -78,6 +83,9 @@ interface Storage {
     fun getShowDateInAmbient(): Boolean
     fun shouldShowPhoneBattery(): Boolean
     fun setShouldShowPhoneBattery(show: Boolean)
+    @ColorInt fun getTimeAndDateColor(): Int
+    fun getTimeAndDateColorFilter(): PorterDuffColorFilter
+    fun setTimeAndDateColor(@ColorInt color: Int)
 }
 
 class StorageImpl : Storage {
@@ -111,6 +119,9 @@ class StorageImpl : Storage {
     private var cacheComplicationsColor: ComplicationColors? = null
     private var shouldShowPhoneBatteryCached = false
     private var cacheShouldShowPhoneBattery = false
+    private var timeAndDateColorCached = false
+    private var cachePorterDuffColorFilter = PorterDuffColorFilter(0, PorterDuff.Mode.SRC_IN)
+    private var cacheTimeAndDateColor = 0
 
     fun init(context: Context): Storage {
         if( !initialized ) {
@@ -371,6 +382,34 @@ class StorageImpl : Storage {
         shouldShowPhoneBatteryCached = true
 
         sharedPreferences.edit().putBoolean(KEY_SHOW_PHONE_BATTERY, show).apply()
+    }
+
+    override fun getTimeAndDateColor(): Int {
+        if( !timeAndDateColorCached ) {
+            cacheTimeAndDateColor = sharedPreferences.getInt(KEY_TIME_AND_DATE_COLOR, appContext.getColor(R.color.white))
+            cachePorterDuffColorFilter = PorterDuffColorFilter(cacheTimeAndDateColor, PorterDuff.Mode.SRC_IN)
+            timeAndDateColorCached = true
+        }
+
+        return cacheTimeAndDateColor
+    }
+
+    override fun getTimeAndDateColorFilter(): PorterDuffColorFilter {
+        if( !timeAndDateColorCached ) {
+            cacheTimeAndDateColor = sharedPreferences.getInt(KEY_TIME_AND_DATE_COLOR, appContext.getColor(R.color.white))
+            cachePorterDuffColorFilter = PorterDuffColorFilter(cacheTimeAndDateColor, PorterDuff.Mode.SRC_IN)
+            timeAndDateColorCached = true
+        }
+
+        return cachePorterDuffColorFilter
+    }
+
+    override fun setTimeAndDateColor(color: Int) {
+        cacheTimeAndDateColor = color
+        cachePorterDuffColorFilter = PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN)
+        timeAndDateColorCached = true
+
+        sharedPreferences.edit().putInt(KEY_TIME_AND_DATE_COLOR, color).apply()
     }
 
     override fun hasFeatureDrop2021NotificationBeenShown(): Boolean {
