@@ -85,6 +85,14 @@ class ComplicationConfigActivity : Activity() {
                 ),
                 TIME_AND_DATE_COLOR_REQUEST_CODE
             )
+        }, {
+            startActivityForResult(
+                ColorSelectionActivity.createIntent(
+                    this,
+                    ComplicationColor(getColor(R.color.white), getString(R.string.color_default), true)
+                ),
+                BATTERY_COLOR_REQUEST_CODE
+            )
         })
 
         wearable_recycler_view.isEdgeItemsCenteringEnabled = true
@@ -112,6 +120,11 @@ class ComplicationConfigActivity : Activity() {
             val color = data?.getParcelableExtra<ComplicationColor>(ColorSelectionActivity.RESULT_SELECTED_COLOR)
             if (color != null) {
                 storage.setTimeAndDateColor(color.color)
+            }
+        } else if ( requestCode == BATTERY_COLOR_REQUEST_CODE && resultCode == RESULT_OK ) {
+            val color = data?.getParcelableExtra<ComplicationColor>(ColorSelectionActivity.RESULT_SELECTED_COLOR)
+            if (color != null) {
+                storage.setBatteryIndicatorColor(color.color)
             }
         }
     }
@@ -233,5 +246,6 @@ class ComplicationConfigActivity : Activity() {
         const val COMPLICATION_CONFIG_REQUEST_CODE = 1005
         const val COMPLICATION_PHONE_BATTERY_SETUP_REQUEST_CODE = 1006
         const val TIME_AND_DATE_COLOR_REQUEST_CODE = 1007
+        const val BATTERY_COLOR_REQUEST_CODE = 1008
     }
 }

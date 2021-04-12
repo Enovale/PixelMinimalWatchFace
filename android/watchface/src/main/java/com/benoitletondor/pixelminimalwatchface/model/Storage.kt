@@ -48,6 +48,7 @@ private const val KEY_FEATURE_DROP_2021_NOTIFICATION = "featureDrop2021Notificat
 private const val KEY_USE_SHORT_DATE_FORMAT = "useShortDateFormat"
 private const val KEY_SHOW_DATE_AMBIENT = "showDateAmbient"
 private const val KEY_TIME_AND_DATE_COLOR = "timeAndDateColor"
+private const val KEY_BATTERY_COLOR = "batteryColor"
 
 interface Storage {
     fun getComplicationColors(): ComplicationColors
@@ -86,6 +87,9 @@ interface Storage {
     @ColorInt fun getTimeAndDateColor(): Int
     fun getTimeAndDateColorFilter(): PorterDuffColorFilter
     fun setTimeAndDateColor(@ColorInt color: Int)
+    @ColorInt fun getBatteryIndicatorColor(): Int
+    fun getBatteryIndicatorColorFilter(): PorterDuffColorFilter
+    fun setBatteryIndicatorColor(@ColorInt color: Int)
 }
 
 class StorageImpl : Storage {
@@ -120,8 +124,11 @@ class StorageImpl : Storage {
     private var shouldShowPhoneBatteryCached = false
     private var cacheShouldShowPhoneBattery = false
     private var timeAndDateColorCached = false
-    private var cachePorterDuffColorFilter = PorterDuffColorFilter(0, PorterDuff.Mode.SRC_IN)
+    private var cacheTimeAndDatePorterDuffColorFilter = PorterDuffColorFilter(0, PorterDuff.Mode.SRC_IN)
     private var cacheTimeAndDateColor = 0
+    private var batteryIndicatorColorCached = false
+    private var cacheBatteryPorterDuffColorFilter = PorterDuffColorFilter(0, PorterDuff.Mode.SRC_IN)
+    private var cacheBatteryIndicatorColor = 0
 
     fun init(context: Context): Storage {
         if( !initialized ) {
@@ -387,7 +394,7 @@ class StorageImpl : Storage {
     override fun getTimeAndDateColor(): Int {
         if( !timeAndDateColorCached ) {
             cacheTimeAndDateColor = sharedPreferences.getInt(KEY_TIME_AND_DATE_COLOR, appContext.getColor(R.color.white))
-            cachePorterDuffColorFilter = PorterDuffColorFilter(cacheTimeAndDateColor, PorterDuff.Mode.SRC_IN)
+            cacheTimeAndDatePorterDuffColorFilter = PorterDuffColorFilter(cacheTimeAndDateColor, PorterDuff.Mode.SRC_IN)
             timeAndDateColorCached = true
         }
 
@@ -397,19 +404,47 @@ class StorageImpl : Storage {
     override fun getTimeAndDateColorFilter(): PorterDuffColorFilter {
         if( !timeAndDateColorCached ) {
             cacheTimeAndDateColor = sharedPreferences.getInt(KEY_TIME_AND_DATE_COLOR, appContext.getColor(R.color.white))
-            cachePorterDuffColorFilter = PorterDuffColorFilter(cacheTimeAndDateColor, PorterDuff.Mode.SRC_IN)
+            cacheTimeAndDatePorterDuffColorFilter = PorterDuffColorFilter(cacheTimeAndDateColor, PorterDuff.Mode.SRC_IN)
             timeAndDateColorCached = true
         }
 
-        return cachePorterDuffColorFilter
+        return cacheTimeAndDatePorterDuffColorFilter
     }
 
     override fun setTimeAndDateColor(color: Int) {
         cacheTimeAndDateColor = color
-        cachePorterDuffColorFilter = PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN)
+        cacheTimeAndDatePorterDuffColorFilter = PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN)
         timeAndDateColorCached = true
 
         sharedPreferences.edit().putInt(KEY_TIME_AND_DATE_COLOR, color).apply()
+    }
+
+    override fun getBatteryIndicatorColor(): Int {
+        if( !batteryIndicatorColorCached ) {
+            cacheBatteryIndicatorColor = sharedPreferences.getInt(KEY_BATTERY_COLOR, appContext.getColor(R.color.white))
+            cacheBatteryPorterDuffColorFilter = PorterDuffColorFilter(cacheBatteryIndicatorColor, PorterDuff.Mode.SRC_IN)
+            batteryIndicatorColorCached = true
+        }
+
+        return cacheBatteryIndicatorColor
+    }
+
+    override fun getBatteryIndicatorColorFilter(): PorterDuffColorFilter {
+        if( !batteryIndicatorColorCached ) {
+            cacheBatteryIndicatorColor = sharedPreferences.getInt(KEY_BATTERY_COLOR, appContext.getColor(R.color.white))
+            cacheBatteryPorterDuffColorFilter = PorterDuffColorFilter(cacheBatteryIndicatorColor, PorterDuff.Mode.SRC_IN)
+            batteryIndicatorColorCached = true
+        }
+
+        return cacheBatteryPorterDuffColorFilter
+    }
+
+    override fun setBatteryIndicatorColor(color: Int) {
+        cacheBatteryIndicatorColor = color
+        cacheBatteryPorterDuffColorFilter = PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN)
+        batteryIndicatorColorCached = true
+
+        sharedPreferences.edit().putInt(KEY_BATTERY_COLOR, color).apply()
     }
 
     override fun hasFeatureDrop2021NotificationBeenShown(): Boolean {

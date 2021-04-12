@@ -69,6 +69,7 @@ private const val TYPE_SECTION_SUPPORT = 21
 private const val TYPE_SECTION_WIDGETS = 22
 private const val TYPE_BATTERY_SECTION_HEADER = 23
 private const val TYPE_TIME_AND_DATE_COLOR = 24
+private const val TYPE_BATTERY_INDICATOR_COLOR = 25
 
 class ComplicationConfigRecyclerViewAdapter(
     private val context: Context,
@@ -88,6 +89,7 @@ class ComplicationConfigRecyclerViewAdapter(
     private val donateButtonPressed: () -> Unit,
     private val phoneBatteryButtonPressed: () -> Unit,
     private val changeTimeAndDateColorButtonPressed: () -> Unit,
+    private val changeBatteryIndicatorColorButtonPressed: () -> Unit,
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private var selectedComplicationLocation: ComplicationLocation? = null
@@ -295,6 +297,14 @@ class ComplicationConfigRecyclerViewAdapter(
                 ),
                 changeTimeAndDateColorButtonPressed
             )
+            TYPE_BATTERY_INDICATOR_COLOR -> return BatteryIndicatorColorViewHolder(
+                LayoutInflater.from(parent.context).inflate(
+                    R.layout.config_list_battery_color,
+                    parent,
+                    false,
+                ),
+                changeBatteryIndicatorColorButtonPressed
+            )
         }
         throw IllegalStateException("Unknown option type: $viewType")
     }
@@ -417,6 +427,7 @@ class ComplicationConfigRecyclerViewAdapter(
             list.add(TYPE_BATTERY_SECTION_HEADER)
             list.add(TYPE_SHOW_BATTERY)
             list.add(TYPE_SHOW_PHONE_BATTERY)
+            list.add(TYPE_BATTERY_INDICATOR_COLOR)
         }
 
         // TYPE_SECTION_DATE_AND_TIME
@@ -892,6 +903,17 @@ class TimeAndDateColorViewHolder(
     init {
         view.setOnClickListener {
             onChangeDateAndTimeColorPressed()
+        }
+    }
+}
+
+class BatteryIndicatorColorViewHolder(
+    view: View,
+    onChangeBatteryIndicatorColorPressed: () -> Unit,
+) : RecyclerView.ViewHolder(view) {
+    init {
+        view.setOnClickListener {
+            onChangeBatteryIndicatorColorPressed()
         }
     }
 }
