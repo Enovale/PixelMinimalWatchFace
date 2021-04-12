@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="@string/phone_battery_configuration_error_title"
+        android:textColor="@color/white"
+        android:textStyle="bold"
+        android:gravity="center"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="@string/phone_battery_configuration_error"
+        android:textColor="@color/white"
+        android:layout_marginTop="6dp"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/phone_battery_configuration_error_description"
+        android:textColor="@color/white"
+        android:textStyle="bold"
+        android:layout_marginTop="3dp"/>
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/phone_battery_sync_retry_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:minHeight="0dp"
+        android:layout_marginTop="8dp"
+        android:text="@string/phone_battery_configuration_error_retry_button"
+        android:backgroundTint="@color/blue_a400"
+        android:textColor="@color/white"
+        android:layout_gravity="center_horizontal"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/phone_battery_configuration_error_troubleshoot_section"
+        android:textColor="@color/white"
+        android:layout_marginTop="10dp"/>
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/phone_battery_sync_troubleshoot_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:minHeight="0dp"
+        android:layout_marginTop="4dp"
+        android:text="@string/phone_battery_configuration_error_troubleshoot_button"
+        android:backgroundTint="@color/white"
+        android:textColor="@color/black"
+        android:layout_gravity="center_horizontal"/>
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/phone_battery_sync_deactivate_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:minHeight="0dp"
+        android:text="@string/phone_battery_configuration_error_deactivate_button"
+        android:backgroundTint="@color/red_a200"
+        android:layout_gravity="center_horizontal"/>
+
+</LinearLayout>
