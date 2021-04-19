@@ -694,7 +694,7 @@ class WatchFaceDrawerImpl : WatchFaceDrawer {
                     return@forEach
                 }
 
-                if( complicationId == BOTTOM_COMPLICATION_ID && storage.shouldShowBattery() ) {
+                if( complicationId == BOTTOM_COMPLICATION_ID && (storage.shouldShowBattery() || storage.shouldShowPhoneBattery()) ) {
                     return@forEach
                 }
 
