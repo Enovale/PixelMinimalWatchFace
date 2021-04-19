@@ -1,5 +1,5 @@
 /*
- *   Copyright 2020 Benoit LETONDOR
+ *   Copyright 2021 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -18,9 +18,10 @@ package com.benoitletondor.pixelminimalwatchface.settings
 import android.app.Activity
 import android.content.ComponentName
 import android.content.Context
-import android.content.Intent
 import android.graphics.Color
 import android.graphics.drawable.Drawable
+import android.os.Parcel
+import android.os.Parcelable
 import android.support.wearable.complications.ComplicationHelperActivity
 import android.support.wearable.complications.ComplicationProviderInfo
 import android.support.wearable.complications.ProviderInfoRetriever
@@ -29,24 +30,23 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.benoitletondor.pixelminimalwatchface.*
 import com.benoitletondor.pixelminimalwatchface.PixelMinimalWatchFace.Companion.getComplicationId
 import com.benoitletondor.pixelminimalwatchface.PixelMinimalWatchFace.Companion.getComplicationIds
-import com.benoitletondor.pixelminimalwatchface.PixelMinimalWatchFace.Companion.getSupportedComplicationTypes
 import com.benoitletondor.pixelminimalwatchface.helper.isPermissionGranted
 import com.benoitletondor.pixelminimalwatchface.helper.isScreenRound
 import com.benoitletondor.pixelminimalwatchface.helper.isServiceAvailable
 import com.benoitletondor.pixelminimalwatchface.helper.timeSizeToHumanReadableString
 import com.benoitletondor.pixelminimalwatchface.model.ComplicationColors
 import com.benoitletondor.pixelminimalwatchface.model.Storage
-import java.util.*
+import com.benoitletondor.pixelminimalwatchface.settings.ComplicationConfigActivity.Companion.COMPLICATION_CONFIG_REQUEST_CODE
 import java.util.concurrent.Executors
 import kotlin.collections.ArrayList
 
 private const val TYPE_HEADER = 0
 private const val TYPE_PREVIEW_AND_COMPLICATIONS_CONFIG = 1
-private const val TYPE_COLOR_CONFIG = 2
 private const val TYPE_FOOTER = 3
 private const val TYPE_BECOME_PREMIUM = 4
 private const val TYPE_HOUR_FORMAT = 5
@@ -59,6 +59,17 @@ private const val TYPE_SHOW_SECONDS_RING = 11
 private const val TYPE_SHOW_WEATHER = 12
 private const val TYPE_SHOW_BATTERY = 13
 private const val TYPE_DATE_FORMAT = 14
+private const val TYPE_SHOW_DATE_AMBIENT = 15
+private const val TYPE_DONATE = 16
+private const val TYPE_SHOW_PHONE_BATTERY = 17
+private const val TYPE_SECTION_BATTERY = 18
+private const val TYPE_SECTION_DATE_AND_TIME = 19
+private const val TYPE_SECTION_AMBIENT = 20
+private const val TYPE_SECTION_SUPPORT = 21
+private const val TYPE_SECTION_WIDGETS = 22
+private const val TYPE_BATTERY_SECTION_HEADER = 23
+private const val TYPE_TIME_AND_DATE_COLOR = 24
+private const val TYPE_BATTERY_INDICATOR_COLOR = 25
 
 class ComplicationConfigRecyclerViewAdapter(
     private val context: Context,
@@ -74,6 +85,11 @@ class ComplicationConfigRecyclerViewAdapter(
     private val showWeatherListener: (Boolean) -> Unit,
     private val showBatteryListener: (Boolean) -> Unit,
     private val dateFormatSelectionListener: (Boolean) -> Unit,
+    private val showDateAmbientListener: (Boolean) -> Unit,
+    private val donateButtonPressed: () -> Unit,
+    private val phoneBatteryButtonPressed: () -> Unit,
+    private val changeTimeAndDateColorButtonPressed: () -> Unit,
+    private val changeBatteryIndicatorColorButtonPressed: () -> Unit,
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private var selectedComplicationLocation: ComplicationLocation? = null
@@ -99,32 +115,15 @@ class ComplicationConfigRecyclerViewAdapter(
                     PreviewAndComplicationsViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.config_list_preview_and_complications_item, parent, false)) { location ->
                         selectedComplicationLocation = location
 
-                        val selectedComplicationId = getComplicationId(location)
-                        if (selectedComplicationId >= 0) {
-                            val supportedTypes = getSupportedComplicationTypes(location)
-
-                            (context as Activity).startActivityForResult(
-                                ComplicationHelperActivity.createProviderChooserHelperIntent(
-                                    context,
-                                    watchFaceComponentName,
-                                    selectedComplicationId,
-                                    *supportedTypes
-                                ),
-                                ComplicationConfigActivity.COMPLICATION_CONFIG_REQUEST_CODE
-                            )
-                        }
+                        (context as Activity).startActivityForResult(
+                            WidgetConfigurationActivity.createIntent(context, location),
+                            COMPLICATION_CONFIG_REQUEST_CODE,
+                        )
                     }
 
                 this.previewAndComplicationsViewHolder = previewAndComplicationsViewHolder
                 return previewAndComplicationsViewHolder
             }
-            TYPE_COLOR_CONFIG -> return ColorPickerViewHolder(
-                LayoutInflater.from(parent.context).inflate(
-                    R.layout.config_list_color_item,
-                    parent,
-                    false
-                )
-            )
             TYPE_FOOTER -> return FooterViewHolder(
                 LayoutInflater.from(parent.context).inflate(
                     R.layout.config_list_footer,
@@ -238,7 +237,7 @@ class ComplicationConfigRecyclerViewAdapter(
                         )
                     } else {
                         showBatteryListener(false)
-                        previewAndComplicationsViewHolder?.showBottomComplication(true)
+                        previewAndComplicationsViewHolder?.showBottomComplication(!storage.shouldShowPhoneBattery())
                     }
                 }
                 this.showBatteryViewHolder = showBatteryViewHolder
@@ -252,6 +251,60 @@ class ComplicationConfigRecyclerViewAdapter(
                 ),
                 dateFormatSelectionListener
             )
+            TYPE_SHOW_DATE_AMBIENT -> return ShowDateAmbientViewHolder(
+                LayoutInflater.from(parent.context).inflate(
+                    R.layout.config_list_show_date_ambient,
+                    parent,
+                    false
+                ),
+                showDateAmbientListener
+            )
+            TYPE_DONATE -> return DonateViewHolder(
+                LayoutInflater.from(parent.context).inflate(
+                    R.layout.config_list_donate,
+                    parent,
+                    false
+                ),
+                donateButtonPressed
+            )
+            TYPE_SHOW_PHONE_BATTERY -> return PhoneBatteryViewHolder(
+                LayoutInflater.from(parent.context).inflate(
+                    R.layout.config_list_show_phone_battery,
+                    parent,
+                    false,
+                ),
+                phoneBatteryButtonPressed,
+            )
+            TYPE_SECTION_BATTERY, TYPE_SECTION_AMBIENT, TYPE_SECTION_DATE_AND_TIME, TYPE_SECTION_SUPPORT, TYPE_SECTION_WIDGETS -> return SectionViewHolder(
+                LayoutInflater.from(parent.context).inflate(
+                    R.layout.config_list_section,
+                    parent,
+                    false,
+                )
+            )
+            TYPE_BATTERY_SECTION_HEADER -> return BatterySectionHeaderViewHolder(
+                LayoutInflater.from(parent.context).inflate(
+                    R.layout.config_list_battery_header,
+                    parent,
+                    false,
+                )
+            )
+            TYPE_TIME_AND_DATE_COLOR -> return TimeAndDateColorViewHolder(
+                LayoutInflater.from(parent.context).inflate(
+                    R.layout.config_list_time_and_date_color,
+                    parent,
+                    false,
+                ),
+                changeTimeAndDateColorButtonPressed
+            )
+            TYPE_BATTERY_INDICATOR_COLOR -> return BatteryIndicatorColorViewHolder(
+                LayoutInflater.from(parent.context).inflate(
+                    R.layout.config_list_battery_color,
+                    parent,
+                    false,
+                ),
+                changeBatteryIndicatorColorButtonPressed
+            )
         }
         throw IllegalStateException("Unknown option type: $viewType")
     }
@@ -263,11 +316,7 @@ class ComplicationConfigRecyclerViewAdapter(
 
                 if( !previewAndComplicationsViewHolder.bound ) {
                     previewAndComplicationsViewHolder.bound = true
-
-                    previewAndComplicationsViewHolder.setDefaultComplicationDrawable()
-                    previewAndComplicationsViewHolder.showMiddleComplication(!storage.shouldShowWearOSLogo())
-                    previewAndComplicationsViewHolder.showBottomComplication(!storage.shouldShowBattery())
-                    initializesColorsAndComplications()
+                    updateComplications()
                 }
             }
             TYPE_HOUR_FORMAT -> {
@@ -308,7 +357,23 @@ class ComplicationConfigRecyclerViewAdapter(
                 val useShortDateFormat = storage.getUseShortDateFormat()
                 (viewHolder as DateFormatViewHolder).setDateFormatSwitchChecked(useShortDateFormat)
             }
+            TYPE_SHOW_DATE_AMBIENT -> {
+                val showDateInAmbient = storage.getShowDateInAmbient()
+                (viewHolder as ShowDateAmbientViewHolder).setShowDateAmbientSwitchChecked(showDateInAmbient)
+            }
+            TYPE_SECTION_BATTERY, TYPE_SECTION_AMBIENT, TYPE_SECTION_DATE_AND_TIME, TYPE_SECTION_SUPPORT, TYPE_SECTION_WIDGETS -> {
+                (viewHolder as SectionViewHolder).setSectionType(viewHolder.itemViewType)
+            }
         }
+    }
+
+    fun updateComplications() {
+        previewAndComplicationsViewHolder?.bound = true
+        
+        previewAndComplicationsViewHolder?.setDefaultComplicationDrawable()
+        previewAndComplicationsViewHolder?.showMiddleComplication(!storage.shouldShowWearOSLogo())
+        previewAndComplicationsViewHolder?.showBottomComplication(!storage.shouldShowBattery() && !storage.shouldShowPhoneBattery())
+        initializesColorsAndComplications()
     }
 
     private fun initializesColorsAndComplications() {
@@ -343,48 +408,59 @@ class ComplicationConfigRecyclerViewAdapter(
         val isUserPremium = storage.isUserPremium()
         val isScreenRound = context.isScreenRound()
 
-        val list = ArrayList<Int>(11)
+        val list = ArrayList<Int>()
 
         list.add(TYPE_HEADER)
+
+        // TYPE_SECTION_WIDGETS
+        list.add(TYPE_SECTION_WIDGETS)
         if( isUserPremium ) {
             list.add(TYPE_PREVIEW_AND_COMPLICATIONS_CONFIG)
-            list.add(TYPE_COLOR_CONFIG)
-
-            if( context.isServiceAvailable(WEAR_OS_APP_PACKAGE, WEATHER_PROVIDER_SERVICE) ) {
-                list.add(TYPE_SHOW_WEATHER)
-            }
         } else {
             list.add(TYPE_BECOME_PREMIUM)
         }
         list.add(TYPE_SHOW_WEAR_OS_LOGO)
+
+        // TYPE_SECTION_BATTERY
         if( isUserPremium ) {
+            list.add(TYPE_SECTION_BATTERY)
+            list.add(TYPE_BATTERY_SECTION_HEADER)
             list.add(TYPE_SHOW_BATTERY)
-            list.add(TYPE_SHOW_COMPLICATIONS_AMBIENT)
+            list.add(TYPE_SHOW_PHONE_BATTERY)
+            list.add(TYPE_BATTERY_INDICATOR_COLOR)
+        }
+
+        // TYPE_SECTION_DATE_AND_TIME
+        list.add(TYPE_SECTION_DATE_AND_TIME)
+        list.add(TYPE_DATE_FORMAT)
+        if( isUserPremium && context.isServiceAvailable(WEAR_OS_APP_PACKAGE, WEATHER_PROVIDER_SERVICE) ) {
+            list.add(TYPE_SHOW_WEATHER)
         }
         list.add(TYPE_HOUR_FORMAT)
-        list.add(TYPE_DATE_FORMAT)
         list.add(TYPE_TIME_SIZE)
-        list.add(TYPE_SHOW_FILLED_TIME_AMBIENT)
+        list.add(TYPE_TIME_AND_DATE_COLOR)
         if( isScreenRound ) {
             list.add(TYPE_SHOW_SECONDS_RING)
         }
+
+        // TYPE_SECTION_AMBIENT
+        list.add(TYPE_SECTION_AMBIENT)
+        list.add(TYPE_SHOW_DATE_AMBIENT)
+        list.add(TYPE_SHOW_FILLED_TIME_AMBIENT)
+        if (isUserPremium) {
+            list.add(TYPE_SHOW_COMPLICATIONS_AMBIENT)
+        }
+
+        // TYPE_SECTION_SUPPORT
+        list.add(TYPE_SECTION_SUPPORT)
         list.add(TYPE_SEND_FEEDBACK)
+        if( isUserPremium ) {
+            list.add(TYPE_DONATE)
+        }
+
         list.add(TYPE_FOOTER)
 
         return list
-    }
-
-    /** Updates the selected complication id saved earlier with the new information.  */
-    fun updateSelectedComplication(complicationProviderInfo: ComplicationProviderInfo?) { // Checks if view is inflated and complication id is valid.
-        val selectedComplicationLocation = selectedComplicationLocation
-
-        if ( selectedComplicationLocation != null ) {
-            previewAndComplicationsViewHolder?.updateComplicationViews(
-                selectedComplicationLocation,
-                complicationProviderInfo,
-                storage.getComplicationColors()
-            )
-        }
     }
 
     override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
@@ -403,11 +479,6 @@ class ComplicationConfigRecyclerViewAdapter(
         providerInfoRetriever.release()
     }
 
-    fun updatePreviewColors() {
-        previewAndComplicationsViewHolder?.updateComplicationsAccentColor(storage.getComplicationColors())
-    }
-
-
     fun weatherComplicationPermissionFinished() {
         val granted = context.isPermissionGranted("com.google.android.wearable.permission.RECEIVE_COMPLICATION_DATA")
 
@@ -424,24 +495,25 @@ class ComplicationConfigRecyclerViewAdapter(
     }
 }
 
-enum class ComplicationLocation {
-    LEFT, MIDDLE, RIGHT, BOTTOM
-}
+enum class ComplicationLocation : Parcelable {
+    LEFT, MIDDLE, RIGHT, BOTTOM;
 
-class ColorPickerViewHolder(view: View) : RecyclerView.ViewHolder(view), View.OnClickListener {
-
-    init {
-        view.setOnClickListener(this)
+    override fun writeToParcel(parcel: Parcel, flags: Int) {
+        parcel.writeInt(ordinal)
     }
 
-    override fun onClick(view: View) {
-        val launchIntent = Intent(view.context, ColorSelectionActivity::class.java)
-        val activity = view.context as Activity
+    override fun describeContents(): Int {
+        return 0
+    }
 
-        activity.startActivityForResult(
-            launchIntent,
-            ComplicationConfigActivity.UPDATE_COLORS_CONFIG_REQUEST_CODE
-        )
+    companion object CREATOR : Parcelable.Creator<ComplicationLocation> {
+        override fun createFromParcel(parcel: Parcel): ComplicationLocation {
+            return values()[parcel.readInt()]
+        }
+
+        override fun newArray(size: Int): Array<ComplicationLocation?> {
+            return arrayOfNulls(size)
+        }
     }
 }
 
@@ -461,8 +533,8 @@ class PreviewAndComplicationsViewHolder(
     private val middleComplication: ImageButton = view.findViewById(R.id.middle_complication)
     private val rightComplication: ImageButton = view.findViewById(R.id.right_complication)
     private val bottomComplication: ImageButton = view.findViewById(R.id.bottom_complication)
-    private var addComplicationDrawable: Drawable = view.context.getDrawable(R.drawable.add_complication)!!
-    private var addedComplicationDrawable: Drawable = view.context.getDrawable(R.drawable.added_complication)!!
+    private var addComplicationDrawable: Drawable = ContextCompat.getDrawable(view.context, R.drawable.add_complication)!!
+    private var addedComplicationDrawable: Drawable = ContextCompat.getDrawable(view.context, R.drawable.added_complication)!!
 
     init {
         leftComplication.setOnClickListener(this)
@@ -557,25 +629,25 @@ class PreviewAndComplicationsViewHolder(
         if( rightComplication.drawable == addComplicationDrawable ) {
             rightComplication.setColorFilter(Color.WHITE)
         } else {
-            rightComplication.setColorFilter(colors.rightColor)
+            rightComplication.setColorFilter(colors.rightColor.color)
         }
 
         if( leftComplication.drawable == addComplicationDrawable ) {
             leftComplication.setColorFilter(Color.WHITE)
         } else {
-            leftComplication.setColorFilter(colors.leftColor)
+            leftComplication.setColorFilter(colors.leftColor.color)
         }
 
         if( middleComplication.drawable == addComplicationDrawable ) {
             middleComplication.setColorFilter(Color.WHITE)
         } else {
-            middleComplication.setColorFilter(colors.middleColor)
+            middleComplication.setColorFilter(colors.middleColor.color)
         }
 
         if( bottomComplication.drawable == addComplicationDrawable ) {
             bottomComplication.setColorFilter(Color.WHITE)
         } else {
-            bottomComplication.setColorFilter(colors.bottomColor)
+            bottomComplication.setColorFilter(colors.bottomColor.color)
         }
     }
 }
@@ -770,5 +842,78 @@ class DateFormatViewHolder(view: View,
 
     fun setDateFormatSwitchChecked(checked: Boolean) {
         dateFormatSwitch.isChecked = checked
+    }
+}
+
+class ShowDateAmbientViewHolder(view: View,
+                                showDateAmbientClickListener: (Boolean) -> Unit) : RecyclerView.ViewHolder(view) {
+    private val showDateAmbientSwitch: Switch = view as Switch
+
+    init {
+        showDateAmbientSwitch.setOnCheckedChangeListener { _, checked ->
+            showDateAmbientClickListener(checked)
+        }
+    }
+
+    fun setShowDateAmbientSwitchChecked(checked: Boolean) {
+        showDateAmbientSwitch.isChecked = checked
+    }
+}
+
+class DonateViewHolder(view: View,
+                       onDonateButtonPressed: () -> Unit) : RecyclerView.ViewHolder(view) {
+    init {
+        view.setOnClickListener {
+            onDonateButtonPressed()
+        }
+    }
+}
+
+class PhoneBatteryViewHolder(
+    view: View,
+    onPhoneBatteryButtonPressed: () -> Unit,
+) : RecyclerView.ViewHolder(view) {
+    init {
+        view.setOnClickListener {
+            onPhoneBatteryButtonPressed()
+        }
+    }
+}
+
+class SectionViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+    private val sectionTextView = view as TextView
+
+    fun setSectionType(sectionType: Int) {
+        when(sectionType) {
+            TYPE_SECTION_SUPPORT -> sectionTextView.setText(R.string.config_section_support)
+            TYPE_SECTION_DATE_AND_TIME -> sectionTextView.setText(R.string.config_section_date_and_time)
+            TYPE_SECTION_BATTERY -> sectionTextView.setText(R.string.config_section_battery)
+            TYPE_SECTION_AMBIENT -> sectionTextView.setText(R.string.config_section_ambient)
+            TYPE_SECTION_WIDGETS -> sectionTextView.setText(R.string.config_section_widgets)
+        }
+    }
+}
+
+class BatterySectionHeaderViewHolder(view: View) : RecyclerView.ViewHolder(view)
+
+class TimeAndDateColorViewHolder(
+    view: View,
+    onChangeDateAndTimeColorPressed: () -> Unit,
+) : RecyclerView.ViewHolder(view) {
+    init {
+        view.setOnClickListener {
+            onChangeDateAndTimeColorPressed()
+        }
+    }
+}
+
+class BatteryIndicatorColorViewHolder(
+    view: View,
+    onChangeBatteryIndicatorColorPressed: () -> Unit,
+) : RecyclerView.ViewHolder(view) {
+    init {
+        view.setOnClickListener {
+            onChangeBatteryIndicatorColorPressed()
+        }
     }
 }

@@ -1,5 +1,5 @@
 /*
- *   Copyright 2020 Benoit LETONDOR
+ *   Copyright 2021 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -56,16 +56,19 @@ interface WatchFaceDrawer {
                                  complicationColors: ComplicationColors)
     fun tapIsOnWeather(x: Int, y: Int): Boolean
     fun tapIsInCenterOfScreen(x: Int, y: Int): Boolean
+    fun tapIsOnBattery(x: Int, y: Int): Boolean
 
-    fun draw(canvas: Canvas,
-             currentTime: Date,
-             muteMode: Boolean,
-             ambient:Boolean,
-             lowBitAmbient: Boolean,
-             burnInProtection: Boolean,
-             weatherComplicationData: ComplicationData?,
-             batteryComplicationData: ComplicationData?)
-
+    fun draw(
+        canvas: Canvas,
+        calendar: Calendar,
+        muteMode: Boolean,
+        ambient:Boolean,
+        lowBitAmbient: Boolean,
+        burnInProtection: Boolean,
+        weatherComplicationData: ComplicationData?,
+        batteryComplicationData: ComplicationData?,
+        phoneBatteryStatus: PhoneBatteryStatus?,
+    )
 }
 
 class WatchFaceDrawerImpl : WatchFaceDrawer {
@@ -78,13 +81,10 @@ class WatchFaceDrawerImpl : WatchFaceDrawer {
     private lateinit var timePaint: Paint
     private lateinit var datePaint: Paint
     private lateinit var weatherIconPaint: Paint
-    private lateinit var weatherAndBatteryIconColorFilter: ColorFilter
     private lateinit var weatherAndBatteryIconColorFilterDimmed: ColorFilter
     private lateinit var secondsRingPaint: Paint
     @ColorInt private var backgroundColor: Int = 0
-    @ColorInt private var timeColor: Int = 0
     @ColorInt private var timeColorDimmed: Int = 0
-    @ColorInt private var dateAndBatteryColor: Int = 0
     @ColorInt private var dateAndBatteryColorDimmed: Int = 0
     @ColorInt private var complicationTitleColor: Int = 0
     private lateinit var wearOSLogo: Bitmap
@@ -100,6 +100,9 @@ class WatchFaceDrawerImpl : WatchFaceDrawer {
     private lateinit var battery40Icon: Bitmap
     private lateinit var battery20Icon: Bitmap
     private lateinit var battery10Icon: Bitmap
+    private lateinit var watchBatteryIcon: Bitmap
+    private lateinit var phoneBatteryIcon: Bitmap
+    private var distanceBetweenPhoneAndWatchBattery: Int = 0
     private var titleSize: Int = 0
     private var textSize: Int = 0
     private var chinSize: Int = 0
@@ -107,7 +110,6 @@ class WatchFaceDrawerImpl : WatchFaceDrawer {
     private lateinit var timeFormatter24H: SimpleDateFormat
     private lateinit var timeFormatter12H: SimpleDateFormat
     private var currentTimeSize = 0
-    private val secondsCalendar = Calendar.getInstance()
     private var spaceBeforeWeather = 0
 
     override fun onCreate(context: Context, storage: Storage) {
@@ -117,15 +119,14 @@ class WatchFaceDrawerImpl : WatchFaceDrawer {
         currentTimeSize = storage.getTimeSize()
         wearOSLogoPaint = Paint()
         backgroundColor = ContextCompat.getColor(context, R.color.face_background)
-        timeColor = ContextCompat.getColor(context, R.color.face_time)
         timeColorDimmed = ContextCompat.getColor(context, R.color.face_time_dimmed)
-        dateAndBatteryColor = ContextCompat.getColor(context, R.color.face_date)
         dateAndBatteryColorDimmed = ContextCompat.getColor(context, R.color.face_date_dimmed)
         complicationTitleColor = ContextCompat.getColor(context, R.color.complication_title_color)
         wearOSLogo = ContextCompat.getDrawable(context, R.drawable.ic_wear_os_logo)!!.toBitmap()
         wearOSLogoAmbient = ContextCompat.getDrawable(context, R.drawable.ic_wear_os_logo_ambient)!!.toBitmap()
         batteryIconPaint = Paint()
         productSansRegularFont = ResourcesCompat.getFont(context, R.font.product_sans_regular)!!
+        distanceBetweenPhoneAndWatchBattery = context.dpToPx(3)
         timeFormatter24H = SimpleDateFormat("HH:mm", Locale.getDefault())
         timeFormatter12H = SimpleDateFormat("h:mm", Locale.getDefault())
         titleSize = context.resources.getDimensionPixelSize(R.dimen.complication_title_size)
@@ -142,7 +143,6 @@ class WatchFaceDrawerImpl : WatchFaceDrawer {
             typeface = productSansRegularFont
         }
         weatherIconPaint = Paint()
-        weatherAndBatteryIconColorFilter = PorterDuffColorFilter(dateAndBatteryColor, PorterDuff.Mode.SRC_IN)
         weatherAndBatteryIconColorFilterDimmed = PorterDuffColorFilter(dateAndBatteryColorDimmed, PorterDuff.Mode.SRC_IN)
         secondsRingPaint = Paint().apply {
             style = Paint.Style.STROKE
@@ -248,25 +248,40 @@ class WatchFaceDrawerImpl : WatchFaceDrawer {
         return centerRect.contains(x, y)
     }
 
+    override fun tapIsOnBattery(x: Int, y: Int): Boolean {
+        val drawingState = drawingState as? DrawingState.CacheAvailable ?: return false
+
+        val batteryIndicatorRect = Rect(
+            (drawingState.screenWidth * 0.25f).toInt(),
+            (drawingState.batteryIconBottomY - batteryIconSize),
+            (drawingState.screenWidth * 0.75f).toInt(),
+            (drawingState.batteryIconBottomY)
+        )
+
+        return batteryIndicatorRect.contains(x, y)
+    }
+
     @ColorInt
     private fun getComplicationPrimaryColor(complicationId: Int, complicationColors: ComplicationColors): Int {
         return when (complicationId) {
-            LEFT_COMPLICATION_ID -> { complicationColors.leftColor }
-            MIDDLE_COMPLICATION_ID -> { complicationColors.middleColor }
-            BOTTOM_COMPLICATION_ID -> { complicationColors.bottomColor }
-            else -> { complicationColors.rightColor }
+            LEFT_COMPLICATION_ID -> { complicationColors.leftColor.color }
+            MIDDLE_COMPLICATION_ID -> { complicationColors.middleColor.color }
+            BOTTOM_COMPLICATION_ID -> { complicationColors.bottomColor.color }
+            else -> { complicationColors.rightColor.color }
         }
     }
 
-    override fun draw(canvas: Canvas,
-                      currentTime: Date,
-                      muteMode: Boolean,
-                      ambient:Boolean,
-                      lowBitAmbient: Boolean,
-                      burnInProtection: Boolean,
-                      weatherComplicationData: ComplicationData?,
-                      batteryComplicationData: ComplicationData?) {
-
+    override fun draw(
+        canvas: Canvas,
+        calendar: Calendar,
+        muteMode: Boolean,
+        ambient:Boolean,
+        lowBitAmbient: Boolean,
+        burnInProtection: Boolean,
+        weatherComplicationData: ComplicationData?,
+        batteryComplicationData: ComplicationData?,
+        phoneBatteryStatus: PhoneBatteryStatus?,
+    ) {
         setPaintVariables(muteMode, ambient, lowBitAmbient, burnInProtection)
         drawBackground(canvas)
 
@@ -281,15 +296,19 @@ class WatchFaceDrawerImpl : WatchFaceDrawer {
         if( drawingState is DrawingState.CacheAvailable ){
             drawingState.draw(
                 canvas,
-                currentTime,
-                muteMode, ambient,
+                calendar,
+                muteMode,
+                ambient,
                 lowBitAmbient,
                 burnInProtection,
                 storage.isUserPremium(),
                 storage.shouldShowSecondsRing(),
                 storage.shouldShowBattery(),
+                storage.shouldShowPhoneBattery(),
+                !ambient || storage.getShowDateInAmbient(),
                 weatherComplicationData,
-                batteryComplicationData
+                batteryComplicationData,
+                phoneBatteryStatus,
             )
         }
     }
@@ -312,7 +331,7 @@ class WatchFaceDrawerImpl : WatchFaceDrawer {
         val dateYOffset = timeYOffset + (timeTextBounds.height() / 2) - (dateTextHeight / 2.0f ) + context.dpToPx(8)
 
         val complicationsDrawingCache = buildComplicationDrawingCache(
-            timeYOffset - timeTextBounds.height() - context.dpToPx(2),
+            timeYOffset - timeTextBounds.height() - context.dpToPx(6),
             dateYOffset + dateTextHeight / 2
         )
 
@@ -342,13 +361,17 @@ class WatchFaceDrawerImpl : WatchFaceDrawer {
         battery40Icon = ContextCompat.getDrawable(context, R.drawable.battery_40)!!.toBitmap(batteryIconSize, batteryIconSize)
         battery20Icon = ContextCompat.getDrawable(context, R.drawable.battery_20)!!.toBitmap(batteryIconSize, batteryIconSize)
         battery10Icon = ContextCompat.getDrawable(context, R.drawable.battery_10)!!.toBitmap(batteryIconSize, batteryIconSize)
+        watchBatteryIcon = ContextCompat.getDrawable(context, R.drawable.ic_watch)!!.toBitmap(batteryIconSize, batteryIconSize)
+        phoneBatteryIcon = ContextCompat.getDrawable(context, R.drawable.ic_phone)!!.toBitmap(batteryIconSize, batteryIconSize)
     }
 
     private fun DrawingState.NoCacheAvailable.buildComplicationDrawingCache(topBottom: Float, bottomTop: Float): ComplicationsDrawingCache {
         val wearOsImage = wearOSLogo
 
-        val sizeOfComplication = (screenWidth / 4.5).toInt()
-        val verticalOffset = topBottom.toInt() - sizeOfComplication
+        val topAndBottomMargins = context.dpToPx(15)
+        val sizeOfComplication = if( isRound ) { (screenWidth / 4.5).toInt() } else { min(topBottom.toInt() - topAndBottomMargins - context.dpToPx(2), (screenWidth / 3.5).toInt()) }
+        // If watch is round, align top widgets with the top of the time, otherwise center them in the top space
+        val verticalOffset = if ( isRound ) { topBottom.toInt() - sizeOfComplication } else { topBottom.toInt() / 2 - (sizeOfComplication / 2) + topAndBottomMargins }
         val distanceBetweenComplications = context.dpToPx(3)
 
         val maxWidth = max(sizeOfComplication, wearOsImage.width)
@@ -386,14 +409,15 @@ class WatchFaceDrawerImpl : WatchFaceDrawer {
             rightComplicationDrawable.bounds = rightBounds
         }
 
-        val availableBottomSpace = screenHeight - bottomTop - chinSize - context.dpToPx(15)
+        val availableBottomSpace = screenHeight - bottomTop - chinSize - topAndBottomMargins
         val bottomComplicationHeight = min(availableBottomSpace, context.dpToPx(36).toFloat())
-        val bottomComplicationBottom = (bottomTop + bottomComplicationHeight).toInt()
+        val bottomComplicationTop = if( isRound ) { bottomTop.toInt() + context.dpToPx(5) } else { (bottomTop + + context.dpToPx(5) + availableBottomSpace - bottomComplicationHeight).toInt() }
+        val bottomComplicationBottom = if( isRound ) { (bottomTop + bottomComplicationHeight).toInt() } else { (bottomTop + availableBottomSpace).toInt() }
         val bottomComplicationLeft = computeComplicationLeft(bottomComplicationBottom, screenHeight)
         val bottomComplicationWidth = (screenWidth - 2* bottomComplicationLeft) * 0.9
         val bottomBounds = Rect(
             (centerX - (bottomComplicationWidth / 2)).toInt(),
-            bottomTop.toInt() + context.dpToPx(5),
+            bottomComplicationTop,
             (centerX + (bottomComplicationWidth / 2)).toInt(),
             bottomComplicationBottom
         )
@@ -419,41 +443,56 @@ class WatchFaceDrawerImpl : WatchFaceDrawer {
         }
     }
 
-    private fun DrawingState.CacheAvailable.draw(canvas: Canvas,
-                                                 currentTime: Date,
-                                                 muteMode: Boolean,
-                                                 ambient:Boolean,
-                                                 lowBitAmbient: Boolean,
-                                                 burnInProtection: Boolean,
-                                                 isUserPremium: Boolean,
-                                                 drawSecondsRing: Boolean,
-                                                 drawBattery: Boolean,
-                                                 weatherComplicationData: ComplicationData?,
-                                                 batteryComplicationData: ComplicationData?) {
+    private fun DrawingState.CacheAvailable.draw(
+        canvas: Canvas,
+        calendar: Calendar,
+        muteMode: Boolean,
+        ambient:Boolean,
+        lowBitAmbient: Boolean,
+        burnInProtection: Boolean,
+        isUserPremium: Boolean,
+        drawSecondsRing: Boolean,
+        drawBattery: Boolean,
+        drawPhoneBattery: Boolean,
+        drawDate: Boolean,
+        weatherComplicationData: ComplicationData?,
+        batteryComplicationData: ComplicationData?,
+        phoneBatteryStatus: PhoneBatteryStatus?,
+    ) {
         val timeText = if( storage.getUse24hTimeFormat()) {
-            timeFormatter24H.format(currentTime)
+            timeFormatter24H.calendar = calendar
+            timeFormatter24H.format(Date(calendar.timeInMillis))
         } else {
-            timeFormatter12H.format(currentTime)
+            timeFormatter12H.calendar = calendar
+            timeFormatter12H.format(Date(calendar.timeInMillis))
         }
         val timeXOffset = centerX - (timePaint.measureText(timeText) / 2f)
         canvas.drawText(timeText, timeXOffset, timeYOffset, timePaint)
 
-        complicationsDrawingCache.drawComplications(canvas, ambient, currentTime, isUserPremium)
+        complicationsDrawingCache.drawComplications(canvas, ambient, calendar, isUserPremium)
 
-        val dateFormat = if( storage.getUseShortDateFormat() ) {
-            FORMAT_SHOW_DATE or FORMAT_SHOW_WEEKDAY or FORMAT_ABBREV_WEEKDAY or FORMAT_ABBREV_MONTH
-        } else {
-            FORMAT_SHOW_DATE or FORMAT_SHOW_WEEKDAY or FORMAT_ABBREV_WEEKDAY
-        }
+        if( drawDate ) {
+            val dateFormat = if( storage.getUseShortDateFormat() ) {
+                FORMAT_SHOW_DATE or FORMAT_SHOW_WEEKDAY or FORMAT_ABBREV_WEEKDAY or FORMAT_ABBREV_MONTH
+            } else {
+                FORMAT_SHOW_DATE or FORMAT_SHOW_WEEKDAY or FORMAT_ABBREV_WEEKDAY
+            }
 
-        val dateText = formatDateTime(context, currentTime.time, dateFormat)
-        val dateTextLength = datePaint.measureText(dateText)
-        val dateXOffset = if( isUserPremium && weatherComplicationData != null ) {
-            val weatherText = weatherComplicationData.shortText
-            val weatherIcon = weatherComplicationData.icon
+            val dateText = formatDateTime(context, calendar.timeInMillis, dateFormat).capitalize(Locale.getDefault())
+            val dateTextLength = datePaint.measureText(dateText)
+            val dateXOffset = if( isUserPremium && weatherComplicationData != null ) {
+                val weatherText = weatherComplicationData.shortText
+                val weatherIcon = weatherComplicationData.icon
 
-            if( weatherText != null && weatherIcon != null ) {
-                drawWeatherAndComputeDateXOffset(weatherText, weatherIcon, currentTime, dateTextLength, canvas)
+                if( weatherText != null && weatherIcon != null ) {
+                    drawWeatherAndComputeDateXOffset(weatherText, weatherIcon, calendar, dateTextLength, canvas)
+                } else {
+                    currentWeatherBitmap = null
+                    currentWeatherIcon = null
+                    weatherTextEndX = null
+
+                    centerX - (dateTextLength / 2f)
+                }
             } else {
                 currentWeatherBitmap = null
                 currentWeatherIcon = null
@@ -461,64 +500,126 @@ class WatchFaceDrawerImpl : WatchFaceDrawer {
 
                 centerX - (dateTextLength / 2f)
             }
-        } else {
-            currentWeatherBitmap = null
-            currentWeatherIcon = null
-            weatherTextEndX = null
 
-            centerX - (dateTextLength / 2f)
+            canvas.drawText(dateText, dateXOffset, dateYOffset, datePaint)
         }
 
-        canvas.drawText(dateText, dateXOffset, dateYOffset, datePaint)
-
         if( drawSecondsRing && !ambient ) {
-            secondsCalendar.time = currentTime
-
-            val endAngle = (secondsCalendar.get(Calendar.SECOND) * 6).toFloat()
+            val endAngle = (calendar.get(Calendar.SECOND) * 6).toFloat()
             canvas.drawArc(0F, 0F, screenWidth.toFloat(), screenHeight.toFloat(), 270F, endAngle, false, secondsRingPaint)
         }
 
-        if( isUserPremium && batteryComplicationData != null && drawBattery ) {
-            val batteryData = batteryComplicationData.shortText
-            if( batteryData != null ) {
-                val batteryText = batteryData.getText(context, currentTime.time).toString()
-                if ( !batteryText.isBlank() ) {
-                    val (batteryLevelText, batteryPercent) = try {
-                        val batteryPercent = Integer.parseInt(batteryText.filter { it.isDigit() })
-                        Pair("$batteryPercent%", batteryPercent)
-                    } catch (t: Throwable) {
-                        Log.e("WatchFaceDrawer", "Error parsing battery data", t)
-                        Pair("N/A", 50)
-                    }
+        if( isUserPremium && (drawBattery || drawPhoneBattery) ) {
+            val batteryText = if (drawBattery) {
+                batteryComplicationData?.shortText?.getText(context, calendar.timeInMillis)
+                    ?.toString()?.filter { it.isDigit() }?.plus("%")
+            } else {
+                null
+            }
+            val phoneBatteryText = if (drawPhoneBattery) {
+                phoneBatteryStatus?.getBatteryText(calendar.timeInMillis)
+            } else {
+                null
+            }
 
-                    val batteryTextLength = batteryLevelPaint.measureText(batteryLevelText)
-                    val left = (centerX - (batteryTextLength / 2) - (batteryIconSize / 2)).toInt()
-                    val icon = getBatteryIcon(batteryPercent)
+            if (phoneBatteryText != null || batteryText != null) {
+                val batteryTextLength = if (batteryText != null) {
+                    batteryLevelPaint.measureText(batteryText)
+                } else {
+                    0f
+                }
+                val phoneBatteryTextLength = if (phoneBatteryText != null) {
+                    batteryLevelPaint.measureText(phoneBatteryText)
+                } else {
+                    0f
+                }
+
+                var numberOfIcons = 0
+                if (phoneBatteryText != null) {
+                    numberOfIcons++
+                }
+                if (batteryText != null) {
+                    numberOfIcons++
+                }
+
+                var left = (centerX - ((batteryTextLength + phoneBatteryTextLength) / 2) - ((numberOfIcons * batteryIconSize) / 2))
+                if (numberOfIcons == 2) {
+                    left -= (distanceBetweenPhoneAndWatchBattery.toFloat() / 2f)
+                }
+
+                if (batteryText != null) {
+                    val icon = if (phoneBatteryText == null ) { getBatteryIcon(batteryText) } else { watchBatteryIcon }
 
                     canvas.drawBitmap(
                         icon,
                         null,
                         Rect(
-                            left,
+                            left.toInt(),
                             batteryIconBottomY - batteryIconSize,
-                            left + batteryIconSize,
+                            left.toInt() + batteryIconSize,
                             batteryIconBottomY
                         ),
                         batteryIconPaint
                     )
 
+                    left+=batteryIconSize
+
                     canvas.drawText(
-                        batteryLevelText,
-                        (left + batteryIconSize).toFloat(),
+                        batteryText,
+                        left,
+                        (batteryLevelBottomY).toFloat(),
+                        batteryLevelPaint
+                    )
+
+                    left+=batteryTextLength
+                }
+
+                if (phoneBatteryText != null) {
+                    if (batteryText != null) {
+                        left += distanceBetweenPhoneAndWatchBattery
+                    }
+
+                    canvas.drawBitmap(
+                        phoneBatteryIcon,
+                        null,
+                        Rect(
+                            left.toInt(),
+                            batteryIconBottomY - batteryIconSize,
+                            left.toInt() + batteryIconSize,
+                            batteryIconBottomY
+                        ),
+                        batteryIconPaint
+                    )
+
+                    left+=batteryIconSize
+
+                    canvas.drawText(
+                        phoneBatteryText,
+                        left,
                         (batteryLevelBottomY).toFloat(),
                         batteryLevelPaint
                     )
                 }
+
             }
         }
     }
 
-    private fun getBatteryIcon(batteryPercent: Int): Bitmap {
+    private fun PhoneBatteryStatus.getBatteryText(currentTimestamp: Long): String {
+        return when(this) {
+            is PhoneBatteryStatus.DataReceived -> if (isStale(currentTimestamp)) { "?" } else { "${batteryPercentage}%" }
+            PhoneBatteryStatus.Unknown -> "?"
+        }
+    }
+
+    private fun getBatteryIcon(batteryText: String): Bitmap {
+        val batteryPercent = try {
+            Integer.parseInt(batteryText.replace("%", ""))
+        } catch (t: Throwable) {
+            Log.e("WatchFaceDrawer", "Error parsing battery data", t)
+            50
+        }
+
         return when {
             batteryPercent <= 10 -> { battery10Icon }
             batteryPercent <= 25 -> { battery20Icon }
@@ -533,12 +634,12 @@ class WatchFaceDrawerImpl : WatchFaceDrawer {
     private fun DrawingState.CacheAvailable.drawWeatherAndComputeDateXOffset(
         weatherText: ComplicationText,
         weatherIcon: Icon,
-        currentTime: Date,
+        calendar: Calendar,
         dateTextLength: Float,
         canvas: Canvas
     ): Float {
         val weatherIconSize = dateHeight
-        val weatherTextString = weatherText.getText(context, currentTime.time).toString()
+        val weatherTextString = weatherText.getText(context, calendar.timeInMillis).toString()
         val weatherTextLength = datePaint.measureText(weatherTextString)
         val dateFontMetrics = datePaint.fontMetrics
 
@@ -581,18 +682,23 @@ class WatchFaceDrawerImpl : WatchFaceDrawer {
         return dateXOffset
     }
 
-    private fun ComplicationsDrawingCache.drawComplications(canvas: Canvas, ambient: Boolean, currentTime: Date, isUserPremium: Boolean) {
+    private fun ComplicationsDrawingCache.drawComplications(
+        canvas: Canvas,
+        ambient: Boolean,
+        calendar: Calendar,
+        isUserPremium: Boolean
+    ) {
         if( isUserPremium && (storage.shouldShowComplicationsInAmbientMode() || !ambient) ) {
             complicationsDrawable.forEach { (complicationId, complicationDrawable) ->
                 if( complicationId == MIDDLE_COMPLICATION_ID && storage.shouldShowWearOSLogo() ) {
                     return@forEach
                 }
 
-                if( complicationId == BOTTOM_COMPLICATION_ID && storage.shouldShowBattery() ) {
+                if( complicationId == BOTTOM_COMPLICATION_ID && (storage.shouldShowBattery() || storage.shouldShowPhoneBattery()) ) {
                     return@forEach
                 }
 
-                complicationDrawable.draw(canvas, currentTime.time)
+                complicationDrawable.draw(canvas, calendar.timeInMillis)
             }
         }
 
@@ -619,27 +725,27 @@ class WatchFaceDrawerImpl : WatchFaceDrawer {
         timePaint.apply {
             isAntiAlias = !(ambient && lowBitAmbient)
             style = if( ambient && !storage.shouldShowFilledTimeInAmbientMode() ) { Paint.Style.STROKE } else { Paint.Style.FILL }
-            color = if( ambient ) { timeColorDimmed } else { timeColor }
+            color = if( ambient ) { timeColorDimmed } else { storage.getTimeAndDateColor() }
         }
 
         datePaint.apply {
             isAntiAlias = !(ambient && lowBitAmbient)
-            color = if( ambient ) { dateAndBatteryColorDimmed } else { dateAndBatteryColor }
+            color = if( ambient ) { dateAndBatteryColorDimmed } else { storage.getTimeAndDateColor() }
         }
 
         weatherIconPaint.apply {
             isAntiAlias = !ambient
-            colorFilter = if( ambient ) { weatherAndBatteryIconColorFilterDimmed } else { weatherAndBatteryIconColorFilter }
+            colorFilter = if( ambient ) { weatherAndBatteryIconColorFilterDimmed } else { storage.getTimeAndDateColorFilter() }
         }
 
         batteryLevelPaint.apply {
             isAntiAlias = !(ambient && lowBitAmbient)
-            color = if( ambient ) { dateAndBatteryColorDimmed } else { dateAndBatteryColor }
+            color = if( ambient ) { dateAndBatteryColorDimmed } else { storage.getBatteryIndicatorColor() }
         }
 
         batteryIconPaint.apply {
             isAntiAlias = !(ambient && lowBitAmbient)
-            colorFilter = if( ambient ) { weatherAndBatteryIconColorFilterDimmed } else { weatherAndBatteryIconColorFilter }
+            colorFilter = if( ambient ) { weatherAndBatteryIconColorFilterDimmed } else { storage.getBatteryIndicatorColorFilter() }
         }
     }
 

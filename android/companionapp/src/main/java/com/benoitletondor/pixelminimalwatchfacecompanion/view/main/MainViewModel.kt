@@ -1,5 +1,5 @@
 /*
- *   Copyright 2020 Benoit LETONDOR
+ *   Copyright 2021 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -40,6 +40,7 @@ class MainViewModel(private val billing: Billing,
     val errorSyncingEvent = SingleLiveEvent<Throwable>()
     val errorPayingEvent = SingleLiveEvent<Throwable>()
     val syncSucceedEvent = SingleLiveEvent<Unit>()
+    val openDonateScreenEvent = SingleLiveEvent<Unit>()
     val stateEventStream = MutableLiveData(if( billing.isUserPremium() ) { State.Premium(AppInstalledStatus.Verifying) } else { State.Loading })
     val voucherFlowLaunchEvent = SingleLiveEvent<String>()
     val openPlayStoreStatusEvent = SingleLiveEvent<Boolean>()
@@ -158,6 +159,11 @@ class MainViewModel(private val billing: Billing,
             }
         }
     }
+
+    fun onDonateButtonPressed() {
+        openDonateScreenEvent.value = Unit
+    }
+
 
     private suspend fun fetchAppInstalledStatus(): AppInstalledStatus {
         return AppInstalledStatus.Result(sync.getWearableStatus())

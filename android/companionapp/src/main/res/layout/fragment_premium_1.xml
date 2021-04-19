@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-   Copyright 2020 Benoit LETONDOR
+   Copyright 2021 Benoit LETONDOR
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@
         android:paddingEnd="30dp"
         android:gravity="center_horizontal"
         android:text="@string/premium_1_title"
-        android:textSize="26sp"
+        android:textSize="24sp"
         android:textColor="@android:color/white"
         android:fontFamily="@font/product_sans"
         app:layout_constraintTop_toTopOf="parent"

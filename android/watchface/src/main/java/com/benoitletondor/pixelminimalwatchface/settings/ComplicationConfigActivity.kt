@@ -1,5 +1,5 @@
 /*
- *   Copyright 2020 Benoit LETONDOR
+ *   Copyright 2021 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -21,8 +21,6 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.ResultReceiver
-import android.support.wearable.complications.ComplicationProviderInfo
-import android.support.wearable.complications.ProviderChooserIntent
 import android.support.wearable.phone.PhoneDeviceType
 import android.support.wearable.view.ConfirmationOverlay
 import android.widget.Toast
@@ -31,8 +29,10 @@ import com.benoitletondor.pixelminimalwatchface.BuildConfig
 import com.benoitletondor.pixelminimalwatchface.BuildConfig.COMPANION_APP_PLAYSTORE_URL
 import com.benoitletondor.pixelminimalwatchface.Injection
 import com.benoitletondor.pixelminimalwatchface.R
+import com.benoitletondor.pixelminimalwatchface.model.ComplicationColor
 import com.benoitletondor.pixelminimalwatchface.model.Storage
 import com.benoitletondor.pixelminimalwatchface.rating.FeedbackActivity
+import com.benoitletondor.pixelminimalwatchface.settings.phonebattery.PhoneBatteryConfigurationActivity
 import com.google.android.wearable.intent.RemoteIntent
 import kotlinx.android.synthetic.main.activity_complication_config.*
 
@@ -68,6 +68,31 @@ class ComplicationConfigActivity : Activity() {
             storage.setShouldShowBattery(showBattery)
         }, { useShortDateFormat ->
             storage.setUseShortDateFormat(useShortDateFormat)
+        }, { showDateAmbient ->
+            storage.setShowDateInAmbient(showDateAmbient)
+        }, {
+            openAppForDonationOnPhone()
+        }, {
+            startActivityForResult(
+                Intent(this, PhoneBatteryConfigurationActivity::class.java),
+                COMPLICATION_PHONE_BATTERY_SETUP_REQUEST_CODE,
+            )
+        }, {
+            startActivityForResult(
+                ColorSelectionActivity.createIntent(
+                    this,
+                    ComplicationColor(getColor(R.color.white), getString(R.string.color_default), true)
+                ),
+                TIME_AND_DATE_COLOR_REQUEST_CODE
+            )
+        }, {
+            startActivityForResult(
+                ColorSelectionActivity.createIntent(
+                    this,
+                    ComplicationColor(getColor(R.color.white), getString(R.string.color_default), true)
+                ),
+                BATTERY_COLOR_REQUEST_CODE
+            )
         })
 
         wearable_recycler_view.isEdgeItemsCenteringEnabled = true
@@ -83,16 +108,24 @@ class ComplicationConfigActivity : Activity() {
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        if (requestCode == COMPLICATION_CONFIG_REQUEST_CODE && resultCode == RESULT_OK) {
-            val complicationProviderInfo: ComplicationProviderInfo? = data?.getParcelableExtra(ProviderChooserIntent.EXTRA_PROVIDER_INFO)
-
-            adapter.updateSelectedComplication(complicationProviderInfo)
-        } else if (requestCode == UPDATE_COLORS_CONFIG_REQUEST_CODE && resultCode == RESULT_OK) {
-            adapter.updatePreviewColors()
-        } else if( requestCode == COMPLICATION_WEATHER_PERMISSION_REQUEST_CODE ) {
+        if( requestCode == COMPLICATION_WEATHER_PERMISSION_REQUEST_CODE ) {
             adapter.weatherComplicationPermissionFinished()
         } else if( requestCode == COMPLICATION_BATTERY_PERMISSION_REQUEST_CODE ) {
             adapter.batteryComplicationPermissionFinished()
+        } else if ( requestCode == COMPLICATION_CONFIG_REQUEST_CODE && resultCode == RESULT_OK ) {
+            adapter.updateComplications()
+        } else if ( requestCode == COMPLICATION_PHONE_BATTERY_SETUP_REQUEST_CODE ) {
+            adapter.updateComplications()
+        } else if ( requestCode == TIME_AND_DATE_COLOR_REQUEST_CODE && resultCode == RESULT_OK ) {
+            val color = data?.getParcelableExtra<ComplicationColor>(ColorSelectionActivity.RESULT_SELECTED_COLOR)
+            if (color != null) {
+                storage.setTimeAndDateColor(color.color)
+            }
+        } else if ( requestCode == BATTERY_COLOR_REQUEST_CODE && resultCode == RESULT_OK ) {
+            val color = data?.getParcelableExtra<ComplicationColor>(ColorSelectionActivity.RESULT_SELECTED_COLOR)
+            if (color != null) {
+                storage.setBatteryIndicatorColor(color.color)
+            }
         }
     }
 
@@ -131,8 +164,39 @@ class ComplicationConfigActivity : Activity() {
         openAppInStoreOnPhone()
     }
 
+    private fun openAppForDonationOnPhone() {
+        if ( PhoneDeviceType.getPhoneDeviceType(applicationContext) == PhoneDeviceType.DEVICE_TYPE_ANDROID ) {
+            // Create Remote Intent to open Play Store listing of app on remote device.
+            val intentAndroid = Intent(Intent.ACTION_VIEW)
+                .addCategory(Intent.CATEGORY_BROWSABLE)
+                .setData(Uri.parse("pixelminimalwatchface://donate"))
+                .setPackage(BuildConfig.APPLICATION_ID)
 
-    private fun openAppInStoreOnPhone() {
+            RemoteIntent.startRemoteActivity(
+                applicationContext,
+                intentAndroid,
+                object : ResultReceiver(Handler()) {
+                    override fun onReceiveResult(resultCode: Int, resultData: Bundle?) {
+                        if (resultCode == RemoteIntent.RESULT_OK) {
+                            ConfirmationOverlay()
+                                .setType(ConfirmationOverlay.OPEN_ON_PHONE_ANIMATION)
+                                .setDuration(3000)
+                                .setMessage(getString(R.string.open_phone_url_android_device))
+                                .showOn(this@ComplicationConfigActivity)
+                        } else {
+                            openAppInStoreOnPhone(finish = false)
+                        }
+                    }
+                }
+            )
+
+            return
+        }
+
+        openAppInStoreOnPhone(finish = false)
+    }
+
+    private fun openAppInStoreOnPhone(finish: Boolean = true) {
         when (PhoneDeviceType.getPhoneDeviceType(applicationContext)) {
             PhoneDeviceType.DEVICE_TYPE_ANDROID -> {
                 // Create Remote Intent to open Play Store listing of app on remote device.
@@ -148,7 +212,9 @@ class ComplicationConfigActivity : Activity() {
                             if (resultCode == RemoteIntent.RESULT_OK) {
                                 ConfirmationOverlay()
                                     .setFinishedAnimationListener {
-                                        finish()
+                                        if( finish ) {
+                                            finish()
+                                        }
                                     }
                                     .setType(ConfirmationOverlay.OPEN_ON_PHONE_ANIMATION)
                                     .setDuration(3000)
@@ -156,9 +222,9 @@ class ComplicationConfigActivity : Activity() {
                                     .showOn(this@ComplicationConfigActivity)
                             } else if (resultCode == RemoteIntent.RESULT_FAILED) {
                                 ConfirmationOverlay()
-                                    .setType(ConfirmationOverlay.FAILURE_ANIMATION)
+                                    .setType(ConfirmationOverlay.OPEN_ON_PHONE_ANIMATION)
                                     .setDuration(3000)
-                                    .setMessage(getString(R.string.open_phone_url_android_not_reachable))
+                                    .setMessage(getString(R.string.open_phone_url_android_device_failure))
                                     .showOn(this@ComplicationConfigActivity)
                             }
                         }
@@ -169,15 +235,17 @@ class ComplicationConfigActivity : Activity() {
                 Toast.makeText(this@ComplicationConfigActivity, R.string.open_phone_url_ios_device, Toast.LENGTH_LONG).show()
             }
             PhoneDeviceType.DEVICE_TYPE_ERROR_UNKNOWN -> {
-                Toast.makeText(this@ComplicationConfigActivity, R.string.open_phone_url_fail, Toast.LENGTH_LONG).show()
+                Toast.makeText(this@ComplicationConfigActivity, R.string.open_phone_url_android_device_failure, Toast.LENGTH_LONG).show()
             }
         }
     }
 
     companion object {
-        const val COMPLICATION_CONFIG_REQUEST_CODE = 1001
-        const val UPDATE_COLORS_CONFIG_REQUEST_CODE = 1002
         const val COMPLICATION_WEATHER_PERMISSION_REQUEST_CODE = 1003
         const val COMPLICATION_BATTERY_PERMISSION_REQUEST_CODE = 1004
+        const val COMPLICATION_CONFIG_REQUEST_CODE = 1005
+        const val COMPLICATION_PHONE_BATTERY_SETUP_REQUEST_CODE = 1006
+        const val TIME_AND_DATE_COLOR_REQUEST_CODE = 1007
+        const val BATTERY_COLOR_REQUEST_CODE = 1008
     }
 }

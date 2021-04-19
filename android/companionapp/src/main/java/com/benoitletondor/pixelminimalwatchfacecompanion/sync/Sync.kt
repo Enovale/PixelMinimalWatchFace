@@ -1,5 +1,5 @@
 /*
- *   Copyright 2020 Benoit LETONDOR
+ *   Copyright 2021 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -23,6 +23,9 @@ interface Sync {
     suspend fun openPlayStoreOnWatch(): Boolean
     fun subscribeToCapabilityChanges(listener: CapabilityClient.OnCapabilityChangedListener)
     fun unsubscribeToCapabilityChanges(listener: CapabilityClient.OnCapabilityChangedListener)
+
+    suspend fun sendBatterySyncStatus(syncActivated: Boolean)
+    suspend fun sendBatteryStatus(batteryPercentage: Int)
 
     sealed class WearableStatus {
         object AvailableAppNotInstalled : WearableStatus()

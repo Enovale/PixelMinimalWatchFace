@@ -1,5 +1,5 @@
 /*
- *   Copyright 2020 Benoit LETONDOR
+ *   Copyright 2021 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import com.benoitletondor.pixelminimalwatchfacecompanion.billing.Billing
 import com.benoitletondor.pixelminimalwatchfacecompanion.config.Config
 import com.benoitletondor.pixelminimalwatchfacecompanion.injection.appModule
 import com.benoitletondor.pixelminimalwatchfacecompanion.injection.viewModelModule
+import com.benoitletondor.pixelminimalwatchfacecompanion.storage.Storage
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import org.koin.android.ext.android.inject
@@ -33,6 +34,7 @@ import org.koin.core.context.startKoin
 class App : Application() {
     private val billing: Billing by inject()
     private val config: Config by inject()
+    private val storage: Storage by inject()
 
     override fun onCreate() {
         super.onCreate()
@@ -73,6 +75,11 @@ class App : Application() {
 
             override fun onActivityDestroyed(activity: Activity) {}
         })
+
+        // Register battery receiver if needed
+        if (storage.isBatterySyncActivated()) {
+            BatteryStatusBroadcastReceiver.subscribeToUpdates(this)
+        }
     }
 
     private fun onAppForeground() {

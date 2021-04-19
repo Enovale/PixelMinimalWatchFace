@@ -1,5 +1,5 @@
 /*
- *   Copyright 2020 Benoit LETONDOR
+ *   Copyright 2021 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -28,14 +28,21 @@ android {
         applicationId "com.benoitletondor.pixelminimalwatchface"
         minSdkVersion 25
         targetSdkVersion 30
-        versionCode 38
-        versionName "1.6.0"
+        versionCode 44
+        versionName "1.8.0"
         multiDexEnabled true
 
         buildConfigField "String", "COMPANION_APP_PLAYSTORE_URL", '"https://play.google.com/store/apps/details?id=com.benoitletondor.pixelminimalwatchface"'
+        buildConfigField "String", "COMPANION_APP_CAPABILITY", '"pixel_minimal_watch_face_companion_app"'
     }
 
     signingConfigs {
+        debug {
+            keyAlias "pixelwatchface"
+            keyPassword "pixelwatchfacedebug"
+            storeFile file("../key/debug.jks")
+            storePassword "pixelwatchfacedebug"
+        }
         release {
             keyAlias keystoreProperties['keyAlias']
             keyPassword keystoreProperties['keyPassword']
@@ -45,6 +52,9 @@ android {
     }
 
     buildTypes {
+        debug {
+            signingConfig signingConfigs.debug
+        }
         release {
             signingConfig signingConfigs.release
             minifyEnabled true
@@ -66,10 +76,12 @@ android {
 dependencies {
     implementation"org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 
-    implementation 'androidx.wear:wear:1.0.0'
-    implementation 'com.google.android.support:wearable:2.7.0'
+    implementation 'androidx.wear:wear:1.1.0'
+    implementation 'com.google.android.support:wearable:2.8.1'
     implementation 'com.google.android.gms:play-services-wearable:17.0.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.0.1'
+    implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
+    implementation 'androidx.cardview:cardview:1.0.0'
+    implementation 'androidx.activity:activity-ktx:1.2.2'
 
-    compileOnly 'com.google.android.wearable:wearable:2.7.0'
+    compileOnly 'com.google.android.wearable:wearable:2.8.1'
 }

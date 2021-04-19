@@ -1,5 +1,5 @@
 /*
- *   Copyright 2020 Benoit LETONDOR
+ *   Copyright 2021 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -21,9 +21,11 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.ResultReceiver
+import android.util.Log
 import com.benoitletondor.pixelminimalwatchfacecompanion.BuildConfig
 import com.google.android.gms.tasks.Task
 import com.google.android.gms.wearable.CapabilityClient
+import com.google.android.gms.wearable.Node
 import com.google.android.gms.wearable.PutDataMapRequest
 import com.google.android.gms.wearable.Wearable
 import com.google.android.wearable.intent.RemoteIntent
@@ -34,12 +36,16 @@ import kotlin.coroutines.resumeWithException
 
 private const val KEY_PREMIUM = "premium"
 private const val KEY_TIMESTAMP = "ts"
+private const val KEY_SYNC_ACTIVATED = "/batterySync/syncActivated"
+private const val KEY_BATTERY_STATUS_PERCENT = "/batterySync/batteryStatus"
 
 class SyncImpl(private val context: Context) : Sync {
-    private val dataClient = Wearable.getDataClient(context)
     private val capabilityClient = Wearable.getCapabilityClient(context)
+    private val messageClient = Wearable.getMessageClient(context)
+    private val dataClient = Wearable.getDataClient(context)
 
     override suspend fun sendPremiumStatus(isUserPremium: Boolean) {
+        // Sending as data request
         val putDataRequest = PutDataMapRequest.create("/premium").run {
             dataMap.putBoolean(KEY_PREMIUM, isUserPremium)
             dataMap.putLong(KEY_TIMESTAMP, System.currentTimeMillis())
@@ -47,8 +53,16 @@ class SyncImpl(private val context: Context) : Sync {
         }
 
         putDataRequest.setUrgent()
-
         dataClient.putDataItem(putDataRequest).await()
+
+        // Sending also as message
+        getConnectedWatchNode()?.let { watchNode ->
+            messageClient.sendMessage(
+                watchNode.id,
+                KEY_PREMIUM,
+                byteArrayOf(if (isUserPremium) { 1 } else { 0 }),
+            ).await()
+        }
     }
 
     override suspend fun getWearableStatus(): Sync.WearableStatus {
@@ -106,10 +120,49 @@ class SyncImpl(private val context: Context) : Sync {
         capabilityClient.removeListener(listener)
     }
 
+    override suspend fun sendBatterySyncStatus(syncActivated: Boolean) {
+        val watchNode = getConnectedWatchNode() ?: throw IllegalStateException("Unable to reach watch")
+
+        messageClient.sendMessage(
+            watchNode.id,
+            KEY_SYNC_ACTIVATED,
+            byteArrayOf(if(syncActivated) { 1 } else { 0 }),
+        ).await()
+    }
+
+    override suspend fun sendBatteryStatus(batteryPercentage: Int) {
+        val watchNode = getConnectedWatchNode() ?: throw IllegalStateException("Unable to reach watch")
+
+        messageClient.sendMessage(
+            watchNode.id,
+            KEY_BATTERY_STATUS_PERCENT,
+            byteArrayOf(batteryPercentage.toByte()),
+        ).await()
+    }
+
+    private suspend fun getConnectedWatchNode(): Node? {
+        try {
+            val capabilityResult = capabilityClient.getCapability(BuildConfig.WATCH_CAPABILITY, CapabilityClient.FILTER_REACHABLE).await()
+
+            if (capabilityResult.name != BuildConfig.WATCH_CAPABILITY) {
+                return null
+            }
+
+            return capabilityResult.nodes.findBestNode()
+        } catch (t: Throwable) {
+            Log.e("Sync", "Unable to find watch node", t)
+            return null
+        }
+    }
+
 }
 
 private suspend fun <T> Task<T>.await() = suspendCancellableCoroutine<T> { continuation ->
     addOnSuccessListener { if( continuation.isActive ) { continuation.resume(it) } }
     addOnFailureListener { if( continuation.isActive ) { continuation.resumeWithException(it) } }
     addOnCanceledListener { continuation.cancel() }
+}
+
+private fun Set<Node>.findBestNode(): Node? {
+    return firstOrNull { it.isNearby } ?: firstOrNull()
 }

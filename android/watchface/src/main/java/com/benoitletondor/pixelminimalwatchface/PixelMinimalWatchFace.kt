@@ -1,5 +1,5 @@
 /*
- *   Copyright 2020 Benoit LETONDOR
+ *   Copyright 2021 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.benoitletondor.pixelminimalwatchface
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.app.WallpaperManager
 import android.content.*
 import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
 import android.graphics.Canvas
@@ -35,6 +36,7 @@ import android.support.wearable.complications.rendering.CustomComplicationDrawab
 import android.support.wearable.watchface.CanvasWatchFaceService
 import android.support.wearable.watchface.WatchFaceService
 import android.support.wearable.watchface.WatchFaceStyle
+import android.util.Log
 import android.util.SparseArray
 import android.view.SurfaceHolder
 import android.view.WindowInsets
@@ -42,19 +44,26 @@ import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.benoitletondor.pixelminimalwatchface.helper.FullBrightnessActivity
+import com.benoitletondor.pixelminimalwatchface.helper.await
 import com.benoitletondor.pixelminimalwatchface.helper.openActivity
 import com.benoitletondor.pixelminimalwatchface.model.ComplicationColors
+import com.benoitletondor.pixelminimalwatchface.model.DEFAULT_APP_VERSION
 import com.benoitletondor.pixelminimalwatchface.model.Storage
 import com.benoitletondor.pixelminimalwatchface.rating.FeedbackActivity
 import com.benoitletondor.pixelminimalwatchface.settings.ComplicationLocation
+import com.benoitletondor.pixelminimalwatchface.settings.phonebattery.*
 import com.google.android.gms.wearable.*
+import kotlinx.coroutines.*
+import java.lang.Runnable
 import java.lang.ref.WeakReference
 import java.util.*
 import kotlin.math.max
 
 const val MISC_NOTIFICATION_CHANNEL_ID = "rating"
 private const val DATA_KEY_PREMIUM = "premium"
+private const val DATA_KEY_BATTERY_STATUS_PERCENT = "/batterySync/batteryStatus"
 private const val THREE_DAYS_MS: Long = 1000 * 60 * 60 * 24 * 3
+private const val THIRTY_MINS_MS: Long = 1000 * 60 * 30
 private const val MINIMUM_COMPLICATION_UPDATE_INTERVAL_MS = 1000L
 
 const val WEAR_OS_APP_PACKAGE = "com.google.android.wearable.app"
@@ -65,6 +74,12 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
 
     override fun onCreateEngine(): Engine {
         val storage = Injection.storage(this)
+
+        // Set app version to the current one if not set yet (first launch)
+        if (storage.getAppVersion() == DEFAULT_APP_VERSION) {
+            storage.setAppVersion(BuildConfig.VERSION_CODE)
+        }
+
         return Engine(this, storage)
     }
 
@@ -107,7 +122,12 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
 
     inner class Engine(private val service: WatchFaceService,
                        private val storage: Storage
-    ) : CanvasWatchFaceService.Engine(), DataClient.OnDataChangedListener, Drawable.Callback {
+    ) : CanvasWatchFaceService.Engine(),
+        DataClient.OnDataChangedListener,
+        MessageClient.OnMessageReceivedListener,
+        Drawable.Callback,
+        CoroutineScope by CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    {
         private lateinit var calendar: Calendar
         private var registeredTimeZoneReceiver = false
 
@@ -132,6 +152,8 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
 
         private var lastTapEventTimestamp: Long = 0
 
+        private var lastPhoneSyncRequestTimestamp: Long? = null
+        private var phoneBatteryStatus: PhoneBatteryStatus = PhoneBatteryStatus.Unknown
 
         private val timeZoneReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context, intent: Intent) {
@@ -155,6 +177,8 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
             initializeComplications()
 
             Wearable.getDataClient(service).addListener(this)
+            Wearable.getMessageClient(service).addListener(this)
+            syncPhoneBatteryStatus()
         }
 
         private fun initializeComplications() {
@@ -223,7 +247,9 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
         override fun onDestroy() {
             unregisterReceiver()
             Wearable.getDataClient(service).removeListener(this)
+            Wearable.getMessageClient(service).removeListener(this)
             timeDependentUpdateHandler.cancelUpdate()
+            cancel()
 
             super.onDestroy()
         }
@@ -262,6 +288,14 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
                 System.currentTimeMillis() - storage.getInstallTimestamp() > THREE_DAYS_MS ) {
                 storage.setRatingDisplayed(true)
                 sendRatingNotification()
+            }
+
+            val lastPhoneSyncRequestTimestamp = lastPhoneSyncRequestTimestamp
+            if( storage.shouldShowPhoneBattery() &&
+                phoneBatteryStatus.isStale(System.currentTimeMillis()) &&
+                (lastPhoneSyncRequestTimestamp == null || System.currentTimeMillis() - lastPhoneSyncRequestTimestamp > THIRTY_MINS_MS) ) {
+                this.lastPhoneSyncRequestTimestamp = System.currentTimeMillis()
+                syncPhoneBatteryStatus()
             }
 
             invalidate()
@@ -371,6 +405,12 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
                             return
                         }
                     }
+                    if ( storage.shouldShowPhoneBattery() && phoneBatteryStatus.isStale(System.currentTimeMillis()) && watchFaceDrawer.tapIsOnBattery(x, y)) {
+                        startActivity(Intent(this@PixelMinimalWatchFace, PhoneBatteryConfigurationActivity::class.java).apply {
+                            flags = FLAG_ACTIVITY_NEW_TASK
+                        })
+                        return
+                    }
                 }
             }
         }
@@ -404,13 +444,14 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
 
             watchFaceDrawer.draw(
                 canvas,
-                calendar.time,
+                calendar,
                 muteMode,
                 ambient,
                 lowBitAmbient,
                 burnInProtection,
                 if( shouldShowWeather ) { weatherComplicationData } else { null },
-                if( shouldShowBattery ) { batteryComplicationData } else { null }
+                if( shouldShowBattery ) { batteryComplicationData } else { null },
+                if (storage.shouldShowPhoneBattery()) { phoneBatteryStatus } else { null },
             )
 
             if( !ambient && isVisible && !timeDependentUpdateHandler.hasUpdateScheduled() ) {
@@ -496,16 +537,50 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
         override fun onDataChanged(dataEvents: DataEventBuffer) {
             for (event in dataEvents) {
                 if (event.type == DataEvent.TYPE_CHANGED) {
-                    val isPremium = DataMapItem.fromDataItem(event.dataItem).dataMap.getBoolean(DATA_KEY_PREMIUM)
-                    storage.setUserPremium(isPremium)
+                    val dataMap = DataMapItem.fromDataItem(event.dataItem).dataMap
 
-                    if( isPremium ) {
-                        Toast.makeText(service, R.string.premium_confirmation, Toast.LENGTH_LONG).show()
+                    if (dataMap.containsKey(DATA_KEY_PREMIUM)) {
+                        handleIsPremiumCallback(dataMap.getBoolean(DATA_KEY_PREMIUM))
                     }
-
-                    invalidate()
                 }
             }
+        }
+
+        override fun onMessageReceived(messageEvent: MessageEvent) {
+            if (messageEvent.path == DATA_KEY_BATTERY_STATUS_PERCENT) {
+                try {
+                    val phoneBatteryPercentage: Int = messageEvent.data[0].toInt()
+                    if (phoneBatteryPercentage in 0..100) {
+                        val previousPhoneBatteryStatus = phoneBatteryStatus as? PhoneBatteryStatus.DataReceived
+                        phoneBatteryStatus = PhoneBatteryStatus.DataReceived(phoneBatteryPercentage, System.currentTimeMillis())
+
+                        if (storage.shouldShowPhoneBattery() &&
+                            (phoneBatteryPercentage != previousPhoneBatteryStatus?.batteryPercentage || previousPhoneBatteryStatus.isStale(System.currentTimeMillis()))) {
+                            invalidate()
+                        }
+                    }
+                } catch (t: Throwable) {
+                    Log.e("PixelWatchFace", "Error while parsing phone battery percentage from phone", t)
+                }
+            } else if (messageEvent.path == DATA_KEY_PREMIUM) {
+                try {
+                    handleIsPremiumCallback(messageEvent.data[0].toInt() == 1)
+                } catch (t: Throwable) {
+                    Log.e("PixelWatchFace", "Error while parsing premium status from phone", t)
+                    Toast.makeText(service, R.string.premium_error, Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+
+        private fun handleIsPremiumCallback(isPremium: Boolean) {
+            val wasPremium = storage.isUserPremium()
+            storage.setUserPremium(isPremium)
+
+            if( !wasPremium && isPremium ) {
+                Toast.makeText(service, R.string.premium_confirmation, Toast.LENGTH_LONG).show()
+            }
+
+            invalidate()
         }
 
         override fun unscheduleDrawable(who: Drawable, what: Runnable) {
@@ -547,6 +622,25 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
 
 
             NotificationManagerCompat.from(service).notify(193828, notification)
+        }
+
+        private fun syncPhoneBatteryStatus() {
+            launch {
+                try {
+                    val capabilityInfo = withTimeout(5000) {
+                        Wearable.getCapabilityClient(service).getCapability(BuildConfig.COMPANION_APP_CAPABILITY, CapabilityClient.FILTER_REACHABLE).await()
+                    }
+
+                    if (storage.shouldShowPhoneBattery()) {
+                        capabilityInfo.nodes.findBestNode()?.startPhoneBatterySync(this@PixelMinimalWatchFace)
+                    } else {
+                        capabilityInfo.nodes.findBestNode()?.stopPhoneBatterySync(this@PixelMinimalWatchFace)
+                    }
+
+                } catch (t: Throwable) {
+                    Log.e("PixelWatchFace", "Error while sending phone battery sync signal", t)
+                }
+            }
         }
     }
 
@@ -613,7 +707,27 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
         fun getComplicationIds(): IntArray {
             return COMPLICATION_IDS
         }
+
+        fun isActive(context: Context): Boolean {
+            val wallpaperManager = WallpaperManager.getInstance(context)
+            return wallpaperManager.wallpaperInfo?.packageName == context.packageName
+        }
     }
 }
 
+sealed class PhoneBatteryStatus {
+    abstract fun isStale(currentTimestamp: Long): Boolean
 
+    object Unknown : PhoneBatteryStatus() {
+        override fun isStale(currentTimestamp: Long): Boolean = true
+    }
+    class DataReceived(val batteryPercentage: Int, val timestamp: Long) : PhoneBatteryStatus() {
+        override fun isStale(currentTimestamp: Long): Boolean {
+            return currentTimestamp - timestamp > STALE_PHONE_BATTERY_LIMIT_MS
+        }
+
+        companion object {
+            private const val STALE_PHONE_BATTERY_LIMIT_MS = 1000*60*60 // 1h
+        }
+    }
+}

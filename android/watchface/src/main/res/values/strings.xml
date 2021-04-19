@@ -1,5 +1,5 @@
 <!--
-   Copyright 2020 Benoit LETONDOR
+   Copyright 2021 Benoit LETONDOR
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -17,13 +17,22 @@
     <string name="app_name">Pixel Minimal Watch Face</string>
     <string name="complication_config">Configure widgets</string>
 
-    <string name="config_complications_color_label">Widgets accent color</string>
+    <string name="config_left_complication">Left widget settings</string>
+    <string name="config_middle_complication">Middle widget settings</string>
+    <string name="config_right_complication">Right widget settings</string>
+    <string name="config_bottom_complication">Bottom large widget settings</string>
+    <string name="config_complication_widget">Widget</string>
+    <string name="config_complication_color">Accent color</string>
+    <string name="config_color_tap_to_change">Tap to change</string>
+    <string name="config_complication_tap_to_setup">Tap to setup</string>
+    <string name="config_complication_tap_to_change">Tap to change/remove</string>
     <string name="config_premium_text">To setup widgets and display weather info you have to become a premium user.\nInstall the companion app on your phone to continue</string>
     <string name="config_premium_button_cta">Open companion app on phone</string>
     <string name="config_feedback_cta">Give your feedback</string>
     <string name="config_version">Version: %s</string>
     <string name="config_footer">Made by Benoit Letondor</string>
     <string name="config_hour_format_24h">Use 24h time</string>
+    <string name="config_show_date_ambient">Show date in ambient mode</string>
     <string name="config_date_format_short">Use short date format</string>
     <string name="config_show_wear_os_logo">Show WearOS logo</string>
     <string name="config_show_weather">Show weather after date</string>
@@ -32,13 +41,23 @@
     <string name="config_show_complications_ambient">Widgets in ambient mode</string>
     <string name="config_time_size">Size of time and date: %s</string>
     <string name="config_show_seconds_ring">Show seconds ring</string>
-    <string name="config_show_battery">Battery indicator as bottom widget</string>
+    <string name="config_show_battery">Watch battery indicator</string>
+    <string name="config_show_phone_battery">(Beta) Phone battery indicator setup</string>
+    <string name="config_donate">Donate to support development</string>
+    <string name="config_section_ambient">Ambient mode</string>
+    <string name="config_section_date_and_time">Time and date</string>
+    <string name="config_section_battery">Display battery status</string>
+    <string name="config_section_support">Support</string>
+    <string name="config_section_widgets">Widgets</string>
+    <string name="config_battery_section_header">Activating any battery indicator replaces the bottom widget</string>
+    <string name="config_time_and_date_color">Time and date color (doesn\'t affect ambient mode)</string>
+    <string name="config_battery_indicator_color">Battery indicators color (doesn\'t affect ambient mode)</string>
 
     <string name="premium_confirmation">Configure widgets in Watch Face settings</string>
-    <string name="open_phone_url_android_device">Continue on phone</string>
+    <string name="premium_error">An error occurred, send me an email for assistance</string>
+    <string name="open_phone_url_android_device">Continue on your phone</string>
+    <string name="open_phone_url_android_device_failure">Open Pixel Minimal Watch Face app on your phone</string>
     <string name="open_phone_url_ios_device">You need an Android phone to install the companion app.</string>
-    <string name="open_phone_url_android_not_reachable">An error occurred. Check connection and try again.</string>
-    <string name="open_phone_url_fail">Oops, an error occurred, try again later.</string>
 
     <string name="misc_notification_channel_name">Misc</string>
     <string name="misc_notification_channel_description">Help improve the product by asking for your feedback</string>
@@ -61,11 +80,20 @@
     <string name="rating_feedback_email" translatable="false">pixelwatchface@benoitletondor.com</string>
     <string name="rating_feedback_send_subject" translatable="false">Pixel Watch Face - Feedback</string>
     <string name="rating_feedback_send_text"></string>
-    <string name="battery_indicator_notification_title">New feature: Battery indicator</string>
-    <string name="battery_indicator_notification_message">Replace bottom widget with a minimalist, Pixel like, battery indicator. Go to settings to activate it</string>
-    <string name="battery_indicator_notification_cta">Go to settings</string>
+    <string name="feature_drop_2021_notification_title">New feature drop</string>
+    <string name="feature_drop_2021_notification_message">New features are available for Pixel Minimal Watch Face!</string>
+    <string name="feature_drop_2021_notification_cta">Discover what\'s new</string>
+    <string name="feature_drop_2021_title">Spring 21 feature drop</string>
+    <string name="feature_drop_2021_welcome">New update for Pixel Minimal Watch Face with new features:</string>
+    <string name="feature_drop_2021_feature_1">- Premium users: Display of phone battery as bottom widget, available in beta.\n(Make sure you have the app installed on your phone to activate it!)</string>
+    <string name="feature_drop_2021_feature_2">- Change the color of time and date and also of battery indicators</string>
+    <string name="feature_drop_2021_feature_3">- Better layout for square watches, especially the Oppo watch</string>
+    <string name="feature_drop_2021_feature_4">- Bug fixes and optimisations</string>
+    <string name="feature_drop_2021_go_to_settings_cta">To setup those new options, tap this button to go to the watch face settings:</string>
+    <string name="feature_drop_2021_activate_cta">To setup those new options, use Pixel Minimal Watch Face as your watch face and long press on the time to access the settings.</string>
+    <string name="feature_drop_2021_conclusion">Thank you for using Pixel Minimal Watch Face :)</string>
 
-    <string name="color_default">Wear OS colors</string>
+    <string name="color_default">Default</string>
     <string name="color_yellow">Yellow</string>
     <string name="color_blue">Blue</string>
     <string name="color_light_blue">Light blue</string>
@@ -92,4 +120,24 @@
     <string name="time_size_50">default</string>
     <string name="time_size_75">big</string>
     <string name="time_size_100">bigger</string>
+
+    <string name="phone_battery_configuration_title">(Beta) Phone battery sync setup</string>
+    <string name="phone_battery_configuration_connecting">Connecting to your phone…</string>
+    <string name="phone_battery_configuration_syncing">Syncing state with phone…</string>
+    <string name="phone_battery_configuration_connected">Connected to your phone\'s companion app</string>
+    <string name="phone_battery_configuration_connected_sync">Phone battery as bottom widget</string>
+    <string name="phone_battery_configuration_error_title">Connection error</string>
+    <string name="phone_battery_configuration_error">Unable to connect to the companion app on your phone</string>
+    <string name="phone_battery_configuration_error_troubleshoot_button">Troubleshoot</string>
+    <string name="phone_battery_configuration_error_retry_button">Retry</string>
+    <string name="phone_battery_configuration_error_deactivate_button">Deactivate sync</string>
+    <string name="phone_battery_configuration_error_description">Make sure your phone is connected and \"Pixel Minimal Watch Face\" companion app is installed on it.</string>
+    <string name="phone_battery_configuration_error_troubleshoot_section">If the issue persists:</string>
+
+    <string name="phone_battery_configuration_troubleshoot_title">(Beta) Phone battery sync troubleshoot</string>
+    <string name="phone_battery_configuration_troubleshoot_description_1">To sync your phone battery with your watch, your phone needs to be able to send updates to your watch.</string>
+    <string name="phone_battery_configuration_troubleshoot_description_2">This is still in beta as multiple things can fail during this process, from bluetooth issues to WearOS specific problems.</string>
+    <string name="phone_battery_configuration_troubleshoot_description_3">Here are a few things you can try to make it work:</string>
+    <string name="phone_battery_configuration_troubleshoot_description_4">1. Make sure you have \"Pixel Minimal Watch Face\" app installed on your phone too\n(open it once to make sure it\'s alive)\n\n2. Ensure both \"Pixel Minimal Watch Face\" and \"WearOS\" apps on your phone are up-to-date\n\n3. Try disabling battery optimisation for \"Pixel Minimal Watch Face\" on your phone.</string>
+    <string name="phone_battery_configuration_troubleshoot_description_5">If you cannot make it work, please send me an email and I\'ll try to help:</string>
 </resources>

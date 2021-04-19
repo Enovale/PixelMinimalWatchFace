@@ -1,5 +1,5 @@
 /*
- *   Copyright 2020 Benoit LETONDOR
+ *   Copyright 2021 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.android.billingclient.api.*
 import com.benoitletondor.pixelminimalwatchfacecompanion.storage.Storage
+import kotlinx.coroutines.suspendCancellableCoroutine
 import java.io.IOException
 import java.util.*
 import kotlin.coroutines.Continuation
@@ -31,6 +32,15 @@ import kotlin.coroutines.suspendCoroutine
  * SKU premium
  */
 private const val SKU_PREMIUM = "premium"
+
+/**
+ * SKUs donation
+ */
+const val SKU_DONATION_TIER_1 = "donation_tier_1"
+const val SKU_DONATION_TIER_2 = "donation_tier_2"
+const val SKU_DONATION_TIER_3 = "donation_tier_3"
+const val SKU_DONATION_TIER_4 = "donation_tier_4"
+const val SKU_DONATION_TIER_5 = "donation_tier_5"
 
 class BillingImpl(context: Context,
                   private val storage: Storage) : Billing, PurchasesUpdatedListener, BillingClientStateListener,
@@ -48,6 +58,7 @@ class BillingImpl(context: Context,
     private var iabStatus: PremiumCheckStatus = PremiumCheckStatus.Initializing
 
     private var premiumFlowContinuation: Continuation<PremiumPurchaseFlowResult>? = null
+    private var donationFlowContinuation: Continuation<Boolean>? = null
 
     override val userPremiumEventStream: LiveData<PremiumCheckStatus>
         get() = userPremiumEventSteamInternal
@@ -131,7 +142,7 @@ class BillingImpl(context: Context,
         val skuList = ArrayList<String>(1)
         skuList.add(SKU_PREMIUM)
 
-        val (billingResult, skuDetailsList) = querySkuDetails(
+        val (billingResult, skuDetailsList) = billingClient.querySkuDetails(
             SkuDetailsParams.newBuilder()
                 .setSkusList(skuList)
                 .setType(BillingClient.SkuType.INAPP)
@@ -147,7 +158,7 @@ class BillingImpl(context: Context,
             return PremiumPurchaseFlowResult.Error("Unable to connect to reach PlayStore (response code: " + billingResult.responseCode + "). Please restart the app and try again")
         }
 
-        if (skuDetailsList.isEmpty()) {
+        if (skuDetailsList == null || skuDetailsList.isEmpty()) {
             return PremiumPurchaseFlowResult.Error("Unable to fetch content from PlayStore (response code: skuDetailsList is empty). Please restart the app and try again")
         }
 
@@ -161,11 +172,42 @@ class BillingImpl(context: Context,
         }
     }
 
-    data class SkuDetailsResponse(val billingResult: BillingResult, val skuDetailsList: List<SkuDetails>)
+    override suspend fun getDonationsSKUs(): List<SkuDetails> {
+        if( iabStatus is PremiumCheckStatus.Initializing || iabStatus is PremiumCheckStatus.Error ) {
+            throw IllegalStateException("IAB is not setup")
+        }
 
-    private suspend fun querySkuDetails(params: SkuDetailsParams): SkuDetailsResponse = suspendCoroutine { continuation ->
-        billingClient.querySkuDetailsAsync(params) { billingResult, skuDetailsList ->
-            continuation.resumeWith(Result.success(SkuDetailsResponse(billingResult, skuDetailsList ?: emptyList())))
+        val skuList = listOf(
+            SKU_DONATION_TIER_1,
+            SKU_DONATION_TIER_2,
+            SKU_DONATION_TIER_3,
+            SKU_DONATION_TIER_4,
+            SKU_DONATION_TIER_5,
+        )
+        val params = SkuDetailsParams.newBuilder()
+            .setSkusList(skuList).setType(BillingClient.SkuType.INAPP)
+
+        val (billingResult, skuDetailsList) = billingClient.querySkuDetails(params.build())
+
+        if (billingResult.responseCode != BillingClient.BillingResponseCode.OK) {
+            throw IllegalStateException("Unable to connect to reach PlayStore (response code: " + billingResult.responseCode + "). Please restart the app and try again")
+        }
+
+        if( skuDetailsList == null ) {
+            throw IllegalStateException("Unable to get details from PlayStore. Please restart the app and try again")
+        }
+
+        return skuDetailsList
+    }
+
+    override suspend fun launchDonationPurchaseFlow(activity: Activity, sku: SkuDetails): Boolean {
+        return suspendCancellableCoroutine { continuation ->
+            donationFlowContinuation = continuation
+
+            billingClient.launchBillingFlow(activity, BillingFlowParams.newBuilder()
+                .setSkuDetails(sku)
+                .build()
+            )
         }
     }
 
@@ -216,46 +258,102 @@ class BillingImpl(context: Context,
     }
 
     override fun onPurchasesUpdated(billingResult: BillingResult, purchases: List<Purchase>?) {
-        Log.d("BillingImpl", "Purchase finished: " + billingResult.responseCode)
+        if( premiumFlowContinuation != null ) {
+            Log.d("BillingImpl", "Purchase finished: " + billingResult.responseCode)
 
-        if (billingResult.responseCode != BillingClient.BillingResponseCode.OK) {
-            Log.e("BillingImpl", "Error while purchasing premium: " + billingResult.responseCode)
-            when {
-                billingResult.responseCode == BillingClient.BillingResponseCode.USER_CANCELED -> premiumFlowContinuation?.resumeWith(Result.success(PremiumPurchaseFlowResult.Cancelled))
-                billingResult.responseCode == BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED -> {
-                    setIabStatusAndNotify(PremiumCheckStatus.Premium)
-                    premiumFlowContinuation?.resumeWith(Result.success(PremiumPurchaseFlowResult.Success))
-                    return
+            if (billingResult.responseCode != BillingClient.BillingResponseCode.OK) {
+                Log.e("BillingImpl", "Error while purchasing premium: " + billingResult.responseCode)
+                when (billingResult.responseCode) {
+                    BillingClient.BillingResponseCode.USER_CANCELED -> premiumFlowContinuation?.resumeWith(Result.success(PremiumPurchaseFlowResult.Cancelled))
+                    BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED -> {
+                        setIabStatusAndNotify(PremiumCheckStatus.Premium)
+                        premiumFlowContinuation?.resumeWith(Result.success(PremiumPurchaseFlowResult.Success))
+                        return
+                    }
+                    else -> premiumFlowContinuation?.resumeWith(Result.success(PremiumPurchaseFlowResult.Error("An error occurred (status code: " + billingResult.responseCode + ")")))
                 }
-                else -> premiumFlowContinuation?.resumeWith(Result.success(PremiumPurchaseFlowResult.Error("An error occurred (status code: " + billingResult.responseCode + ")")))
-            }
 
-            premiumFlowContinuation = null
-            return
-        }
-
-
-        if ( purchases.isNullOrEmpty() ) {
-            premiumFlowContinuation?.resumeWith(Result.success(PremiumPurchaseFlowResult.Error("No purchased item found")))
-            premiumFlowContinuation = null
-            return
-        }
-
-        Log.d("BillingImpl", "Purchase successful.")
-
-        for (purchase in purchases) {
-            if (SKU_PREMIUM == purchase.sku) {
-                billingClient.acknowledgePurchase(AcknowledgePurchaseParams.newBuilder().setPurchaseToken(purchase.purchaseToken).build(), this)
+                premiumFlowContinuation = null
                 return
             }
-        }
 
-        premiumFlowContinuation?.resumeWith(Result.success(PremiumPurchaseFlowResult.Error("No purchased item found")))
-        premiumFlowContinuation = null
+
+            if ( purchases.isNullOrEmpty() ) {
+                premiumFlowContinuation?.resumeWith(Result.success(PremiumPurchaseFlowResult.Error("No purchased item found")))
+                premiumFlowContinuation = null
+                return
+            }
+
+            Log.d("BillingImpl", "Purchase successful.")
+
+            for (purchase in purchases) {
+                if (SKU_PREMIUM == purchase.sku) {
+                    billingClient.acknowledgePurchase(AcknowledgePurchaseParams.newBuilder().setPurchaseToken(purchase.purchaseToken).build(), this)
+                    return
+                }
+            }
+
+            premiumFlowContinuation?.resumeWith(Result.success(PremiumPurchaseFlowResult.Error("No purchased item found")))
+            premiumFlowContinuation = null
+        } else if( donationFlowContinuation != null ) {
+            Log.d("BillingImpl", "Purchase donation finished: " + billingResult.responseCode)
+
+            if (billingResult.responseCode != BillingClient.BillingResponseCode.OK) {
+                Log.e("BillingImpl", "Error while purchasing donation: " + billingResult.responseCode)
+                when (billingResult.responseCode) {
+                    BillingClient.BillingResponseCode.USER_CANCELED -> donationFlowContinuation?.resumeWith(Result.success(false))
+                    else -> donationFlowContinuation?.resumeWith(Result.failure(IllegalStateException("An error occurred (status code: " + billingResult.responseCode + ")")))
+                }
+
+                donationFlowContinuation = null
+                return
+            }
+
+            if ( purchases.isNullOrEmpty() ) {
+                donationFlowContinuation?.resumeWith(Result.failure(IllegalStateException("An error occurred: No purchases returned")))
+                donationFlowContinuation = null
+                return
+            }
+
+            var hasPurchaseToAck = false
+            for (purchase in purchases) {
+                if( !purchase.isAcknowledged ) {
+                    hasPurchaseToAck = true
+                    Log.d("BillingImpl", "Consume donation.")
+
+                    val consumeParams =
+                        ConsumeParams.newBuilder()
+                            .setPurchaseToken(purchase.purchaseToken)
+                            .build()
+
+                    billingClient.consumeAsync(consumeParams) { consumeBillingResult, outToken ->
+                        Log.d("BillingImpl", "Consume donation finished with result: ${consumeBillingResult.debugMessage}")
+                        if (consumeBillingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+                            donationFlowContinuation?.resumeWith(Result.success(true))
+                        } else {
+                            donationFlowContinuation?.resumeWith(
+                                Result.failure(
+                                    IllegalStateException("Error when consuming purchase with Google (${billingResult.responseCode}, ${billingResult.debugMessage}). Please try again")
+                                )
+                            )
+                        }
+
+                        donationFlowContinuation = null
+                    }
+                }
+            }
+
+            if( !hasPurchaseToAck ) {
+                donationFlowContinuation?.resumeWith(Result.failure(IllegalStateException("Unable to find your donation, please try again or contact Google.")))
+                donationFlowContinuation = null
+            }
+        } else {
+            Log.w("BillingImpl", "Got onPurchasesUpdated result without a listener with status: ${billingResult.responseCode}. Ignoring")
+        }
     }
 
     override fun onAcknowledgePurchaseResponse(billingResult: BillingResult) {
-        Log.d("BillingImpl", "Acknowledge successful.")
+        Log.d("BillingImpl", "Acknowledge premium successful.")
 
         if( billingResult.responseCode != BillingClient.BillingResponseCode.OK ) {
             premiumFlowContinuation?.resumeWith(Result.success(PremiumPurchaseFlowResult.Error("Error when acknowledging purchase with Google (${billingResult.responseCode}, ${billingResult.debugMessage}). Please try again")))

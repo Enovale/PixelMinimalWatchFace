@@ -1,5 +1,5 @@
 /*
- *   Copyright 2020 Benoit LETONDOR
+ *   Copyright 2021 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -15,12 +15,9 @@
  */
 package com.benoitletondor.pixelminimalwatchfacecompanion.config
 
-import com.google.android.gms.tasks.Task
+import com.benoitletondor.pixelminimalwatchfacecompanion.helper.await
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigFetchThrottledException
-import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
 
 class ConfigImpl(private val firebaseRemoteConfig: FirebaseRemoteConfig) : Config {
 
@@ -61,11 +58,5 @@ class ConfigImpl(private val firebaseRemoteConfig: FirebaseRemoteConfig) : Confi
         }
 
         return firebaseRemoteConfig.activate().await()
-    }
-
-    private suspend fun <T> Task<T>.await() = suspendCancellableCoroutine<T> { continuation ->
-        addOnSuccessListener { if( continuation.isActive ) { continuation.resume(it) } }
-        addOnFailureListener { if( continuation.isActive ) { continuation.resumeWithException(it) } }
-        addOnCanceledListener { continuation.cancel() }
     }
 }

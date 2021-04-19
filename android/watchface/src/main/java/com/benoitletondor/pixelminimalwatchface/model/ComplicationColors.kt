@@ -1,5 +1,5 @@
 /*
- *   Copyright 2020 Benoit LETONDOR
+ *   Copyright 2021 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -15,37 +15,46 @@
  */
 package com.benoitletondor.pixelminimalwatchface.model
 
+import android.os.Parcel
+import android.os.Parcelable
 import androidx.annotation.ColorInt
 
-data class ComplicationColors(@ColorInt val leftColor: Int,
-                              @ColorInt val middleColor: Int,
-                              @ColorInt val rightColor: Int,
-                              @ColorInt val bottomColor: Int,
-                              val label: String,
-                              val isDefault: Boolean) {
+data class ComplicationColors(
+    val leftColor: ComplicationColor,
+    val middleColor: ComplicationColor,
+    val rightColor: ComplicationColor,
+    val bottomColor: ComplicationColor
+)
 
-    constructor(@ColorInt color: Int, label: String) : this(color, color, color, color, label,false)
+data class ComplicationColor(
+    @ColorInt val color: Int,
+    val label: String,
+    val isDefault: Boolean
+) : Parcelable {
+    constructor(parcel: Parcel) : this(
+        parcel.readInt(),
+        parcel.readString()!!,
+        parcel.readByte() != 0.toByte()
+    )
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as ComplicationColors
-
-        if (leftColor != other.leftColor) return false
-        if (middleColor != other.middleColor) return false
-        if (rightColor != other.rightColor) return false
-        if (bottomColor != other.bottomColor) return false
-
-        return true
+    override fun writeToParcel(parcel: Parcel, flags: Int) {
+        parcel.writeInt(color)
+        parcel.writeString(label)
+        parcel.writeByte(if (isDefault) 1 else 0)
     }
 
-    override fun hashCode(): Int {
-        var result = leftColor
-        result = 31 * result + middleColor
-        result = 31 * result + rightColor
-        result = 31 * result + bottomColor
-        return result
+    override fun describeContents(): Int {
+        return 0
+    }
+
+    companion object CREATOR : Parcelable.Creator<ComplicationColor> {
+        override fun createFromParcel(parcel: Parcel): ComplicationColor {
+            return ComplicationColor(parcel)
+        }
+
+        override fun newArray(size: Int): Array<ComplicationColor?> {
+            return arrayOfNulls(size)
+        }
     }
 
 }

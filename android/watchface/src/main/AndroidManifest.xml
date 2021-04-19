@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-   Copyright 2020 Benoit LETONDOR
+   Copyright 2021 Benoit LETONDOR
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -47,6 +47,20 @@
                 <category android:name="android.intent.category.DEFAULT"/>
             </intent-filter>
         </activity>
+
+        <activity android:name=".settings.WidgetConfigurationActivity" />
+
+        <activity
+            android:name=".settings.phonebattery.PhoneBatteryConfigurationActivity"
+            android:theme="@style/Theme.AppCompat.NoActionBar"/>
+
+        <activity
+            android:name=".settings.phonebattery.troubleshoot.PhoneBatterySyncTroubleshootActivity"
+            android:label="@string/phone_battery_configuration_troubleshoot_title"/>
+
+        <activity
+            android:name=".FeatureDrop2021Activity"
+            android:label="@string/feature_drop_2021_notification_title"/>
 
         <activity android:name="android.support.wearable.complications.ComplicationHelperActivity"/>
 
