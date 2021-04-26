@@ -18,7 +18,7 @@ package com.benoitletondor.pixelminimalwatchfacecompanion.injection
 import com.benoitletondor.pixelminimalwatchfacecompanion.view.donation.DonationViewModel
 import com.benoitletondor.pixelminimalwatchfacecompanion.view.main.MainViewModel
 import com.benoitletondor.pixelminimalwatchfacecompanion.view.onboarding.OnboardingViewModel
-import org.koin.android.viewmodel.dsl.viewModel
+import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
 
 val viewModelModule = module {

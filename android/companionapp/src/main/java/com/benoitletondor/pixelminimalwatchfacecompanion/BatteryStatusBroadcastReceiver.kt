@@ -24,11 +24,13 @@ import android.util.Log
 import com.benoitletondor.pixelminimalwatchfacecompanion.sync.Sync
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import org.koin.java.KoinJavaComponent.get
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import java.lang.IllegalArgumentException
 
-class BatteryStatusBroadcastReceiver : BroadcastReceiver() {
-    private val sync = get(Sync::class.java)
+class BatteryStatusBroadcastReceiver : BroadcastReceiver(), KoinComponent {
+    private val sync: Sync by inject()
+
     private var lastBatteryLevelPercentSent: Int? = null
 
     override fun onReceive(context: Context, intent: Intent) {

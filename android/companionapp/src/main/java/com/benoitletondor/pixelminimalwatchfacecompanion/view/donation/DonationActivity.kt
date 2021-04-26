@@ -25,8 +25,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.benoitletondor.pixelminimalwatchfacecompanion.R
 import com.benoitletondor.pixelminimalwatchfacecompanion.helper.startSupportEmailActivity
-import org.koin.android.viewmodel.ext.android.viewModel
 import kotlinx.android.synthetic.main.activity_donation.*
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class DonationActivity : AppCompatActivity() {
     private val viewModel: DonationViewModel by viewModel()

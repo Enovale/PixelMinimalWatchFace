@@ -90,9 +90,8 @@ dependencies {
     implementation 'com.google.firebase:firebase-crashlytics:17.4.1'
     implementation 'com.google.firebase:firebase-config:20.0.4'
 
-    implementation 'org.koin:koin-core:2.2.2'
-    implementation 'org.koin:koin-android:2.2.2'
-    implementation 'org.koin:koin-android-viewmodel:2.2.2'
+    implementation 'io.insert-koin:koin-core:3.0.1'
+    implementation 'io.insert-koin:koin-android:3.0.1'
 
     implementation 'com.google.android.gms:play-services-wearable:17.0.0'
     implementation 'com.google.android.support:wearable:2.8.1'

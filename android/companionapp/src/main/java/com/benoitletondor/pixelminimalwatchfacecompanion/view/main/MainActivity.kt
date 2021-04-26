@@ -33,7 +33,7 @@ import com.benoitletondor.pixelminimalwatchfacecompanion.sync.Sync
 import com.benoitletondor.pixelminimalwatchfacecompanion.view.donation.DonationActivity
 import com.benoitletondor.pixelminimalwatchfacecompanion.view.onboarding.OnboardingActivity
 import kotlinx.android.synthetic.main.activity_main.*
-import org.koin.android.viewmodel.ext.android.viewModel
+import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.net.URLEncoder
 
 class MainActivity : AppCompatActivity() {
