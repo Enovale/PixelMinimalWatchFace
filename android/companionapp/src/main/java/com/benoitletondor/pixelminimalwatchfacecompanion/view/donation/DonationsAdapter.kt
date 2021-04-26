@@ -58,7 +58,7 @@ class DonationsAdapter(
                 else -> null
             })
 
-            titleTextView.text = skuDetails.title.replace("(Pixel Minimal Watch Face)", "")
+            titleTextView.text = skuDetails.title.replace("(Pixel Minimal Watch Face - Watch Faces for WearOS)", "")
             descriptionTextView.text = skuDetails.description
 
             cta.text = skuDetails.price
