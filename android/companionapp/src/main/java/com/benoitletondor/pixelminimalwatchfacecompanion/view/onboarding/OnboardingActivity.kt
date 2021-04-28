@@ -19,10 +19,9 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import com.benoitletondor.pixelminimalwatchfacecompanion.R
 import kotlinx.android.synthetic.main.activity_onboarding.*
-import org.koin.android.viewmodel.ext.android.viewModel
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class OnboardingActivity : AppCompatActivity() {
-
     private val viewModel: OnboardingViewModel by viewModel()
 
     override fun onCreate(savedInstanceState: Bundle?) {

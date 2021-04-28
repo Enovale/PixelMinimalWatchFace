@@ -655,11 +655,18 @@ class WatchFaceDrawerImpl : WatchFaceDrawer {
         val weatherIconBitmap = if ( cachedWeatherIcon != null && cachedWeatherBitmap != null && weatherIcon.sameAs(cachedWeatherIcon) ) {
             cachedWeatherBitmap
         } else {
-            val bitmap = weatherIcon.loadDrawable(context).toBitmap(weatherIconRect.right - weatherIconRect.left, weatherIconRect.bottom - weatherIconRect.top)
-            currentWeatherBitmap = bitmap
-            currentWeatherIcon = weatherIcon
+            try {
+                val bitmap = weatherIcon.loadDrawable(context).toBitmap(weatherIconRect.right - weatherIconRect.left, weatherIconRect.bottom - weatherIconRect.top)
 
-            bitmap
+                currentWeatherBitmap = bitmap
+                currentWeatherIcon = weatherIcon
+
+                bitmap
+            } catch (t: Throwable) {
+                currentWeatherBitmap = null
+                currentWeatherIcon = null
+                null
+            }
         }
 
         val weatherTextX = dateXOffset + dateTextLength + weatherIconSize + spaceBeforeWeather * 2
@@ -670,12 +677,15 @@ class WatchFaceDrawerImpl : WatchFaceDrawer {
             dateYOffset,
             datePaint
         )
-        canvas.drawBitmap(
-            weatherIconBitmap,
-            null,
-            weatherIconRect,
-            weatherIconPaint
-        )
+
+        if( weatherIconBitmap != null ) {
+            canvas.drawBitmap(
+                weatherIconBitmap,
+                null,
+                weatherIconRect,
+                weatherIconPaint
+            )
+        }
 
         weatherTextEndX = weatherTextX + weatherTextLength
 

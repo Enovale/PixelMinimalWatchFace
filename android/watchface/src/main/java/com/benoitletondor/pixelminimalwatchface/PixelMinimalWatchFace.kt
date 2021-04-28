@@ -355,7 +355,8 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
             }
 
             // Updates correct ComplicationDrawable with updated data.
-            val complicationDrawable = complicationDrawableSparseArray.get(watchFaceComplicationId)
+            val complicationDrawable = complicationDrawableSparseArray.get(watchFaceComplicationId) ?: return
+
             complicationDrawable.setComplicationData(data)
 
             complicationDataSparseArray.put(watchFaceComplicationId, data)

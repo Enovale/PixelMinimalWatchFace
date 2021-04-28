@@ -19,10 +19,11 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import com.benoitletondor.pixelminimalwatchfacecompanion.storage.Storage
-import org.koin.java.KoinJavaComponent.get
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
-class BootCompleteBroadcastReceiver : BroadcastReceiver() {
-    private val storage: Storage = get(Storage:: class.java)
+class BootCompleteBroadcastReceiver : BroadcastReceiver(), KoinComponent {
+    private val storage: Storage by inject()
 
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action == Intent.ACTION_BOOT_COMPLETED || intent.action == "android.intent.action.QUICKBOOT_POWERON") {
