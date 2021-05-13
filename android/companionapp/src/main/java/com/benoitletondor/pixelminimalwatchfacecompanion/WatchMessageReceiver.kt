@@ -23,12 +23,14 @@ import com.google.android.gms.wearable.CapabilityInfo
 import com.google.android.gms.wearable.MessageEvent
 import com.google.android.gms.wearable.Node
 import com.google.android.gms.wearable.WearableListenerService
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.*
-import org.koin.android.ext.android.inject
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class WatchMessageReceiver : WearableListenerService(), CoroutineScope by CoroutineScope(SupervisorJob() + Dispatchers.Default) {
-    private val sync: Sync by inject()
-    private val storage: Storage by inject()
+    @Inject lateinit var sync: Sync
+    @Inject lateinit var storage: Storage
 
     override fun onDestroy() {
         cancel()

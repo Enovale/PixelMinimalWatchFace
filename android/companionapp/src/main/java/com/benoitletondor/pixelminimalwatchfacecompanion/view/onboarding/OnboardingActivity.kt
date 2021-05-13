@@ -17,12 +17,14 @@ package com.benoitletondor.pixelminimalwatchfacecompanion.view.onboarding
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.activity.viewModels
 import com.benoitletondor.pixelminimalwatchfacecompanion.R
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.activity_onboarding.*
-import org.koin.androidx.viewmodel.ext.android.viewModel
 
+@AndroidEntryPoint
 class OnboardingActivity : AppCompatActivity() {
-    private val viewModel: OnboardingViewModel by viewModel()
+    private val viewModel: OnboardingViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

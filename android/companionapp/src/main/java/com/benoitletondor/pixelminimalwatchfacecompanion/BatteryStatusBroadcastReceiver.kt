@@ -22,14 +22,15 @@ import android.content.IntentFilter
 import android.os.BatteryManager
 import android.util.Log
 import com.benoitletondor.pixelminimalwatchfacecompanion.sync.Sync
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 import java.lang.IllegalArgumentException
+import javax.inject.Inject
 
-class BatteryStatusBroadcastReceiver : BroadcastReceiver(), KoinComponent {
-    private val sync: Sync by inject()
+@AndroidEntryPoint
+class BatteryStatusBroadcastReceiver : BroadcastReceiver() {
+    @Inject lateinit var sync: Sync
 
     private var lastBatteryLevelPercentSent: Int? = null
 
