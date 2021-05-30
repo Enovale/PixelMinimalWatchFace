@@ -24,6 +24,7 @@ Part of this project is inspired by [Cole Gerdemann](https://github.com/Corvette
 ### Contributors
 
 - [Jimmy Xiao](https://github.com/jimmyjxiao): seconds ring for round watches
+- [Márton Maráz](https://github.com/marazmarci): ranged complication layout optimization
 
 ### Contact
 
