@@ -22,9 +22,12 @@ import androidx.lifecycle.ViewModel
 import com.android.billingclient.api.SkuDetails
 import com.benoitletondor.pixelminimalwatchfacecompanion.SingleLiveEvent
 import com.benoitletondor.pixelminimalwatchfacecompanion.billing.Billing
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
+import javax.inject.Inject
 
-class DonationViewModel(private val billing: Billing) : ViewModel(), CoroutineScope by MainScope() {
+@HiltViewModel
+class DonationViewModel @Inject constructor(private val billing: Billing) : ViewModel(), CoroutineScope by MainScope() {
     val errorPayingEvent = SingleLiveEvent<Throwable>()
     val donationSuccessEvent = SingleLiveEvent<SkuDetails>()
     val stateEventStream = MutableLiveData<State>(State.Loading)

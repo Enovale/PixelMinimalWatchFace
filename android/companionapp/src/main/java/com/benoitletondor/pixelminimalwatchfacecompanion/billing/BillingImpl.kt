@@ -22,9 +22,11 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.android.billingclient.api.*
 import com.benoitletondor.pixelminimalwatchfacecompanion.storage.Storage
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.suspendCancellableCoroutine
 import java.io.IOException
 import java.util.*
+import javax.inject.Inject
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.suspendCoroutine
 
@@ -42,9 +44,10 @@ const val SKU_DONATION_TIER_3 = "donation_tier_3"
 const val SKU_DONATION_TIER_4 = "donation_tier_4"
 const val SKU_DONATION_TIER_5 = "donation_tier_5"
 
-class BillingImpl(context: Context,
-                  private val storage: Storage) : Billing, PurchasesUpdatedListener, BillingClientStateListener,
-    PurchaseHistoryResponseListener, AcknowledgePurchaseResponseListener {
+class BillingImpl @Inject constructor(
+    @ApplicationContext context: Context,
+    private val storage: Storage
+) : Billing, PurchasesUpdatedListener, BillingClientStateListener, PurchaseHistoryResponseListener, AcknowledgePurchaseResponseListener {
 
     private val appContext = context.applicationContext
     private val billingClient = BillingClient.newBuilder(appContext)

@@ -18,8 +18,11 @@ package com.benoitletondor.pixelminimalwatchfacecompanion.view.onboarding
 import androidx.lifecycle.ViewModel
 import com.benoitletondor.pixelminimalwatchfacecompanion.SingleLiveEvent
 import com.benoitletondor.pixelminimalwatchfacecompanion.storage.Storage
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
-class OnboardingViewModel(private val storage: Storage) : ViewModel() {
+@HiltViewModel
+class OnboardingViewModel @Inject constructor(private val storage: Storage) : ViewModel() {
     val finishEventStream = SingleLiveEvent<Unit>()
 
     fun onOnboardingFinishButtonPressed() {

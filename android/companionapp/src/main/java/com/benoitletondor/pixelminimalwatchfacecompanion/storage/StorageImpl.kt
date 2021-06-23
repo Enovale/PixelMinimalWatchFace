@@ -17,6 +17,8 @@ package com.benoitletondor.pixelminimalwatchfacecompanion.storage
 
 import android.content.Context
 import androidx.core.content.edit
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
 
 private const val SHARED_PREFERENCES_FILE_NAME = "sharedPref"
 
@@ -24,7 +26,7 @@ private const val PREMIUM_KEY = "premium"
 private const val ONBOARDING_FINISHED_KEY = "onboarding_finished"
 private const val BATTERY_SYNC_ACTIVATED = "onboarding_finished"
 
-class StorageImpl(context: Context) : Storage {
+class StorageImpl @Inject constructor(@ApplicationContext context: Context) : Storage {
     private val sharedPreferences = context.getSharedPreferences(SHARED_PREFERENCES_FILE_NAME, Context.MODE_PRIVATE)
 
     override fun isUserPremium(): Boolean

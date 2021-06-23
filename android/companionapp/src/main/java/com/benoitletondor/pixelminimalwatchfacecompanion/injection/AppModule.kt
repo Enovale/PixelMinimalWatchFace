@@ -26,16 +26,44 @@ import com.benoitletondor.pixelminimalwatchfacecompanion.sync.Sync
 import com.benoitletondor.pixelminimalwatchfacecompanion.sync.SyncImpl
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings
-import org.koin.dsl.module
+import dagger.Binds
+import dagger.Module
+import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
 import java.util.concurrent.TimeUnit
+import javax.inject.Singleton
 
 private const val REMOTE_CONFIG_FETCH_THROTTLE_DEFAULT_VALUE_HOURS = 1L
 
-val appModule = module {
-    single<Billing> { BillingImpl(get(), get()) }
-    single<Sync> { SyncImpl(get()) }
-    single<Storage> { StorageImpl(get()) }
-    single<Config> {
+@Module
+@InstallIn(SingletonComponent::class)
+abstract class SingletonBindingModule {
+    @Binds
+    @Singleton
+    abstract fun bindBilling(
+        billingImpl: BillingImpl
+    ): Billing
+
+    @Binds
+    @Singleton
+    abstract fun bindSync(
+        syncImpl: SyncImpl
+    ): Sync
+
+    @Binds
+    @Singleton
+    abstract fun bindStorage(
+        storageImpl: StorageImpl
+    ): Storage
+}
+
+@Module
+@InstallIn(SingletonComponent::class)
+object SingletonModule {
+    @Provides
+    @Singleton
+    fun provideConfig(): Config {
         val configSettings = FirebaseRemoteConfigSettings.Builder()
             .setMinimumFetchIntervalInSeconds(if( BuildConfig.DEBUG ) {
                 0L
@@ -47,6 +75,6 @@ val appModule = module {
         val firebaseRemoteConfig = FirebaseRemoteConfig.getInstance()
         firebaseRemoteConfig.setConfigSettingsAsync(configSettings)
 
-        return@single ConfigImpl(firebaseRemoteConfig)
+        return ConfigImpl(firebaseRemoteConfig)
     }
 }
