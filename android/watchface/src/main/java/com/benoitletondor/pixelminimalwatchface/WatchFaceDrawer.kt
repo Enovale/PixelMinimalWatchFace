@@ -34,6 +34,7 @@ import com.benoitletondor.pixelminimalwatchface.PixelMinimalWatchFace.Companion.
 import com.benoitletondor.pixelminimalwatchface.PixelMinimalWatchFace.Companion.LEFT_COMPLICATION_ID
 import com.benoitletondor.pixelminimalwatchface.PixelMinimalWatchFace.Companion.MIDDLE_COMPLICATION_ID
 import com.benoitletondor.pixelminimalwatchface.PixelMinimalWatchFace.Companion.RIGHT_COMPLICATION_ID
+import com.benoitletondor.pixelminimalwatchface.helper.capitalize
 import com.benoitletondor.pixelminimalwatchface.helper.sameAs
 import com.benoitletondor.pixelminimalwatchface.helper.timeSizeToScaleFactor
 import com.benoitletondor.pixelminimalwatchface.helper.toBitmap
@@ -478,7 +479,7 @@ class WatchFaceDrawerImpl : WatchFaceDrawer {
                 FORMAT_SHOW_DATE or FORMAT_SHOW_WEEKDAY or FORMAT_ABBREV_WEEKDAY
             }
 
-            val dateText = formatDateTime(context, calendar.timeInMillis, dateFormat).capitalize(Locale.getDefault())
+            val dateText = formatDateTime(context, calendar.timeInMillis, dateFormat).capitalize()
             val dateTextLength = datePaint.measureText(dateText)
             val dateXOffset = if( isUserPremium && weatherComplicationData != null ) {
                 val weatherText = weatherComplicationData.shortText

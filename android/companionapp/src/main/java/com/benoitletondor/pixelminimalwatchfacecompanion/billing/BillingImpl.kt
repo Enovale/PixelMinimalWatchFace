@@ -18,11 +18,11 @@ package com.benoitletondor.pixelminimalwatchfacecompanion.billing
 import android.app.Activity
 import android.content.Context
 import android.util.Log
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import com.android.billingclient.api.*
 import com.benoitletondor.pixelminimalwatchfacecompanion.storage.Storage
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.suspendCancellableCoroutine
 import java.io.IOException
 import java.util.*
@@ -63,10 +63,10 @@ class BillingImpl @Inject constructor(
     private var premiumFlowContinuation: Continuation<PremiumPurchaseFlowResult>? = null
     private var donationFlowContinuation: Continuation<Boolean>? = null
 
-    override val userPremiumEventStream: LiveData<PremiumCheckStatus>
+    override val userPremiumEventStream: Flow<PremiumCheckStatus>
         get() = userPremiumEventSteamInternal
 
-    private val userPremiumEventSteamInternal = MutableLiveData<PremiumCheckStatus>()
+    private val userPremiumEventSteamInternal = MutableStateFlow<PremiumCheckStatus>(PremiumCheckStatus.Initializing)
 
     init {
         startBillingClient()
@@ -97,11 +97,11 @@ class BillingImpl @Inject constructor(
 
         // Case if a voucher has been redeemed
         if( status == PremiumCheckStatus.NotPremium && storage.isUserPremium() ) {
-            userPremiumEventSteamInternal.postValue(PremiumCheckStatus.Premium)
+            userPremiumEventSteamInternal.value = PremiumCheckStatus.Premium
             return
         }
 
-        userPremiumEventSteamInternal.postValue(status)
+        userPremiumEventSteamInternal.value = status
     }
 
     /**
@@ -249,7 +249,7 @@ class BillingImpl @Inject constructor(
         var premium = false
         if (purchaseHistoryRecordList != null) {
             for (purchase in purchaseHistoryRecordList) {
-                if (SKU_PREMIUM == purchase.sku) {
+                if (purchase.skus.contains(SKU_PREMIUM)) {
                     premium = true
                 }
             }
@@ -290,7 +290,7 @@ class BillingImpl @Inject constructor(
             Log.d("BillingImpl", "Purchase successful.")
 
             for (purchase in purchases) {
-                if (SKU_PREMIUM == purchase.sku) {
+                if (purchase.skus.contains(SKU_PREMIUM)) {
                     billingClient.acknowledgePurchase(AcknowledgePurchaseParams.newBuilder().setPurchaseToken(purchase.purchaseToken).build(), this)
                     return
                 }
@@ -329,7 +329,7 @@ class BillingImpl @Inject constructor(
                             .setPurchaseToken(purchase.purchaseToken)
                             .build()
 
-                    billingClient.consumeAsync(consumeParams) { consumeBillingResult, outToken ->
+                    billingClient.consumeAsync(consumeParams) { consumeBillingResult, _ ->
                         Log.d("BillingImpl", "Consume donation finished with result: ${consumeBillingResult.debugMessage}")
                         if (consumeBillingResult.responseCode == BillingClient.BillingResponseCode.OK) {
                             donationFlowContinuation?.resumeWith(Result.success(true))

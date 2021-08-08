@@ -30,17 +30,20 @@ import com.benoitletondor.pixelminimalwatchface.PixelMinimalWatchFace
 import com.benoitletondor.pixelminimalwatchface.PixelMinimalWatchFace.Companion.getComplicationId
 import com.benoitletondor.pixelminimalwatchface.PixelMinimalWatchFace.Companion.getSupportedComplicationTypes
 import com.benoitletondor.pixelminimalwatchface.R
+import com.benoitletondor.pixelminimalwatchface.databinding.ActivityWidgetConfigBinding
 import com.benoitletondor.pixelminimalwatchface.model.ComplicationColor
 import com.benoitletondor.pixelminimalwatchface.model.ComplicationColorsProvider
-import kotlinx.android.synthetic.main.activity_widget_config.*
 
 class WidgetConfigurationActivity : Activity() {
     private lateinit var adapter: WidgetConfigRecyclerViewAdapter
     private lateinit var complicationLocation: ComplicationLocation
 
+    private lateinit var binding: ActivityWidgetConfigBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_widget_config)
+        binding = ActivityWidgetConfigBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         complicationLocation = intent.getParcelableExtra(EXTRA_COMPLICATION_LOCATION)!!
         title = when(complicationLocation) {
@@ -77,10 +80,12 @@ class WidgetConfigurationActivity : Activity() {
             }
         )
 
-        widget_config_recycler_view.isEdgeItemsCenteringEnabled = true
-        widget_config_recycler_view.layoutManager = WearableLinearLayoutManager(this)
-        widget_config_recycler_view.setHasFixedSize(true)
-        widget_config_recycler_view.adapter = adapter
+        binding.widgetConfigRecyclerView.apply {
+            isEdgeItemsCenteringEnabled = true
+            WearableLinearLayoutManager(this@WidgetConfigurationActivity)
+            setHasFixedSize(true)
+            adapter = this@WidgetConfigurationActivity.adapter
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

@@ -16,7 +16,7 @@
 <resources>
     <string name="app_name">Pixel Minimal Watch Face</string>
 
-    <string name="loading_premium_status">Loading…</string>
+    <string name="loading_status">Loading…</string>
     <string name="premium_status">You\'re premium!</string>
     <string name="premium_status_not_installed">To continue, please install the Watch Face on your watch by clicking on the install button below.\n\nWhen installed and launched on your Watch, use the Sync button bellow to sync your premium status and enable widgets and weather display.\n\nIf you have any issue, please contact me using the menu.</string>
     <string name="premium_status_installed">You can setup widgets and weather display on your watch, using the Watch Face settings!\n\nUse the Sync button bellow to sync your premium status to your watch if needed.\n\nIf you have any issue, please contact me using the menu.</string>

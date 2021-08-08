@@ -83,8 +83,11 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
         return Engine(this, storage)
     }
 
-    private class ComplicationTimeDependentUpdateHandler(private val engine: WeakReference<Engine>,
-                                                         private var hasUpdateScheduled: Boolean = false) : Handler() {
+    private class ComplicationTimeDependentUpdateHandler(
+        private val engine: WeakReference<Engine>,
+        private var hasUpdateScheduled: Boolean = false
+    ) : Handler() {
+
         override fun handleMessage(msg: Message) {
             super.handleMessage(msg)
 

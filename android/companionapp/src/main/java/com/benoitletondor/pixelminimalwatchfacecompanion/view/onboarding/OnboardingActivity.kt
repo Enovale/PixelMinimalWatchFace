@@ -17,10 +17,10 @@ package com.benoitletondor.pixelminimalwatchfacecompanion.view.onboarding
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.widget.Button
 import androidx.activity.viewModels
 import com.benoitletondor.pixelminimalwatchfacecompanion.R
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.android.synthetic.main.activity_onboarding.*
 
 @AndroidEntryPoint
 class OnboardingActivity : AppCompatActivity() {
@@ -34,7 +34,7 @@ class OnboardingActivity : AppCompatActivity() {
             finish()
         })
 
-        onboarding_finish_cta.setOnClickListener {
+        findViewById<Button>(R.id.onboarding_finish_cta).setOnClickListener {
             viewModel.onOnboardingFinishButtonPressed()
         }
     }

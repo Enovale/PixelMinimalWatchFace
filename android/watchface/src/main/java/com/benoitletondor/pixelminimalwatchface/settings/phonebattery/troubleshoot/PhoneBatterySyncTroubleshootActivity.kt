@@ -23,18 +23,22 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.benoitletondor.pixelminimalwatchface.R
-import kotlinx.android.synthetic.main.activity_phone_battery_troubleshoot.*
+import com.benoitletondor.pixelminimalwatchface.databinding.ActivityPhoneBatteryTroubleshootBinding
 
 class PhoneBatterySyncTroubleshootActivity : Activity() {
+    private lateinit var binding: ActivityPhoneBatteryTroubleshootBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_phone_battery_troubleshoot)
+        binding = ActivityPhoneBatteryTroubleshootBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        wearable_recycler_view.isEdgeItemsCenteringEnabled = true
-        wearable_recycler_view.layoutManager = LinearLayoutManager(this)
-        wearable_recycler_view.setHasFixedSize(true)
-        wearable_recycler_view.adapter = ContentAdapter()
+        binding.wearableRecyclerView.apply {
+            isEdgeItemsCenteringEnabled = true
+            LinearLayoutManager(this@PhoneBatterySyncTroubleshootActivity)
+            setHasFixedSize(true)
+            adapter = ContentAdapter()
+        }
     }
 }
 

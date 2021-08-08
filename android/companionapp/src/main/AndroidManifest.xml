@@ -57,24 +57,11 @@
                 <data
                     android:scheme="pixelminimalwatchface"
                     android:host="open" />
-            </intent-filter>
-        </activity>
-
-        <activity
-            android:name=".view.donation.DonationActivity"
-            android:screenOrientation="sensorPortrait"
-            android:label="@string/donation_title">
-
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
 
                 <data
                     android:scheme="pixelminimalwatchface"
                     android:host="donate" />
             </intent-filter>
-
         </activity>
 
         <receiver

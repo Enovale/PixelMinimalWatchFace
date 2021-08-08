@@ -48,27 +48,19 @@ class WatchMessageReceiver : WearableListenerService(), CoroutineScope by Corout
         }
     }
 
-    override fun onCapabilityChanged(capabilityInfo: CapabilityInfo?) {
+    override fun onCapabilityChanged(capabilityInfo: CapabilityInfo) {
         super.onCapabilityChanged(capabilityInfo)
-
-        if (capabilityInfo == null) {
-            return
-        }
 
         if (capabilityInfo.name != WATCH_CAPABILITY) {
             return
         }
 
-        val watchNode = capabilityInfo.nodes?.firstOrNull { it.isNearby } ?: capabilityInfo.nodes?.firstOrNull()
+        val watchNode = capabilityInfo.nodes.firstOrNull { it.isNearby } ?: capabilityInfo.nodes.firstOrNull()
         if (watchNode != null) {
             if (storage.isBatterySyncActivated()) {
                 activateSync()
             }
         }
-    }
-
-    override fun onConnectedNodes(p0: MutableList<Node>?) {
-        super.onConnectedNodes(p0)
     }
 
     private fun sendSyncStatus(watchData: ByteArray) {

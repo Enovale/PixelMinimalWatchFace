@@ -29,20 +29,23 @@ import com.benoitletondor.pixelminimalwatchface.BuildConfig
 import com.benoitletondor.pixelminimalwatchface.BuildConfig.COMPANION_APP_PLAYSTORE_URL
 import com.benoitletondor.pixelminimalwatchface.Injection
 import com.benoitletondor.pixelminimalwatchface.R
+import com.benoitletondor.pixelminimalwatchface.databinding.ActivityComplicationConfigBinding
 import com.benoitletondor.pixelminimalwatchface.model.ComplicationColor
 import com.benoitletondor.pixelminimalwatchface.model.Storage
 import com.benoitletondor.pixelminimalwatchface.rating.FeedbackActivity
 import com.benoitletondor.pixelminimalwatchface.settings.phonebattery.PhoneBatteryConfigurationActivity
 import com.google.android.wearable.intent.RemoteIntent
-import kotlinx.android.synthetic.main.activity_complication_config.*
 
 class ComplicationConfigActivity : Activity() {
     private lateinit var adapter: ComplicationConfigRecyclerViewAdapter
     private lateinit var storage: Storage
 
+    private lateinit var binding: ActivityComplicationConfigBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_complication_config)
+        binding = ActivityComplicationConfigBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         storage = Injection.storage(this)
         adapter = ComplicationConfigRecyclerViewAdapter(this, storage, {
@@ -95,10 +98,12 @@ class ComplicationConfigActivity : Activity() {
             )
         })
 
-        wearable_recycler_view.isEdgeItemsCenteringEnabled = true
-        wearable_recycler_view.layoutManager = LinearLayoutManager(this)
-        wearable_recycler_view.setHasFixedSize(true)
-        wearable_recycler_view.adapter = adapter
+        binding.wearableRecyclerView.apply {
+            isEdgeItemsCenteringEnabled = true
+            LinearLayoutManager(this@ComplicationConfigActivity)
+            setHasFixedSize(true)
+            adapter = this@ComplicationConfigActivity.adapter
+        }
     }
 
     override fun onDestroy() {
