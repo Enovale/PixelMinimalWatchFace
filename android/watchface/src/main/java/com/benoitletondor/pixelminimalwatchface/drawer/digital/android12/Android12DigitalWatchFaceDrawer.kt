@@ -200,9 +200,9 @@ class Android12DigitalWatchFaceDrawer(
         val drawingState = drawingState as? Android12DrawingState.CacheAvailable ?: return false
 
         val centerRect = Rect(
-            (drawingState.screenWidth * 0.25f).toInt(),
+            (drawingState.screenWidth * 0.33f).toInt(),
             (drawingState.screenHeight * 0.25f).toInt(),
-            (drawingState.screenWidth * 0.75f).toInt(),
+            (drawingState.screenWidth * 0.66f).toInt(),
             (drawingState.screenHeight * 0.75f).toInt()
         )
 
