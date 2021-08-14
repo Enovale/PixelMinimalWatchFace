@@ -79,6 +79,7 @@ class RegularDigitalWatchFaceDrawer(
     private var currentTimeSize = storage.getTimeSize()
     private var currentDateAndBatterySize = storage.getDateAndBatterySize()
     private val spaceBeforeWeather = context.dpToPx(5)
+    private val topAndBottomMargins = context.getTopAndBottomMargins().toInt()
     private val weatherAndBatteryIconColorFilterDimmed: ColorFilter = PorterDuffColorFilter(dateAndBatteryColorDimmed, PorterDuff.Mode.SRC_IN)
 
     private val complicationDrawableSparseArray: SparseArray<ComplicationDrawable> = SparseArray(ACTIVE_COMPLICATIONS.size)
@@ -256,8 +257,6 @@ class RegularDigitalWatchFaceDrawer(
         val dateAndBatterySize = storage.getDateAndBatterySize()
         setScaledSizes(timeSize, dateAndBatterySize)
 
-        val topAndBottomMargins = context.resources.getDimension(R.dimen.screen_top_and_bottom_margin).toInt()
-
         val timeText = "22:13"
         val timeTextBounds = Rect().apply {
             timePaint.getTextBounds(timeText, 0, timeText.length, this)
@@ -273,7 +272,6 @@ class RegularDigitalWatchFaceDrawer(
         val complicationsDrawingCache = buildComplicationDrawingCache(
             timeYOffset - timeTextBounds.height() - context.dpToPx(6),
             dateYOffset + dateTextHeight / 2,
-            topAndBottomMargins
         )
 
         currentTimeSize = timeSize
@@ -300,7 +298,6 @@ class RegularDigitalWatchFaceDrawer(
     private fun RegularDrawerDrawingState.NoCacheAvailable.buildComplicationDrawingCache(
         topBottom: Float,
         bottomTop: Float,
-        topAndBottomMargins: Int,
     ): ComplicationsDrawingCache {
         val wearOsImage = wearOSLogo
 

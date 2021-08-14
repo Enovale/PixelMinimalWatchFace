@@ -36,6 +36,7 @@ import com.benoitletondor.pixelminimalwatchface.model.Storage
 import com.benoitletondor.pixelminimalwatchface.model.getPrimaryColorForComplicationId
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.math.abs
 import kotlin.math.max
 
 class Android12DigitalWatchFaceDrawer(
@@ -88,6 +89,7 @@ class Android12DigitalWatchFaceDrawer(
     private val timeOffsetX = context.dpToPx(-2)
     private val timeCharPaddingX = context.dpToPx(1)
     private val timePaddingY = context.dpToPx(-5)
+    private val topAndBottomMargins = context.getTopAndBottomMargins()
 
     private val complicationDrawableSparseArray: SparseArray<ComplicationDrawable> = SparseArray(ACTIVE_COMPLICATIONS.size)
 
@@ -309,8 +311,6 @@ class Android12DigitalWatchFaceDrawer(
         val dateAndBatterySize = storage.getDateAndBatterySize()
         setScaledSizes(timeSize, dateAndBatterySize)
 
-        val topAndBottomMargins = context.resources.getDimension(R.dimen.screen_top_and_bottom_margin).toInt()
-
         val timeText = "0"
         val timeTextBounds = Rect().apply {
             timePaint.getTextBounds(timeText, 0, timeText.length, this)
@@ -320,7 +320,7 @@ class Android12DigitalWatchFaceDrawer(
 
         val timeX = centerX - timeWidth / 2f + timeOffsetX
 
-        val batteryBottomY = screenHeight - chinSize - topAndBottomMargins
+        val batteryBottomY = screenHeight - chinSize - topAndBottomMargins.toInt()
         val batteryHeight = Rect().apply {
             batteryLevelPaint.getTextBounds("22%", 0, 3, this)
         }.height()
@@ -331,13 +331,14 @@ class Android12DigitalWatchFaceDrawer(
             datePaint.getTextBounds(dateText, 0, dateText.length, this)
         }.height()
         val timeBottomY = (centerY + timeHeight + distanceBetweenHourAndMin + timePaddingY)
-        val dateYOffset = timeBottomY + (batteryTopY - timeBottomY) / 2 + dateTextHeight / 2 - context.dpToPx(2)
+        val dateBottomY = timeBottomY + (batteryTopY - timeBottomY) / 2 + dateTextHeight / 2
 
         val complicationsDrawingCache = buildComplicationDrawingCache(
             timeX = timeX,
             timeHeight = timeHeight,
-            topAndBottomMargins = topAndBottomMargins,
-            batteryHeight = batteryHeight,
+            timeBottomY = timeBottomY,
+            dateBottomY = dateBottomY,
+            dateHeight = dateTextHeight,
         )
 
         currentTimeSize = timeSize
@@ -349,7 +350,7 @@ class Android12DigitalWatchFaceDrawer(
             batteryBottomY,
             batteryBottomY + context.dpToPx(1),
             dateTextHeight,
-            dateYOffset,
+            dateBottomY,
             screenWidth,
             screenHeight,
             centerX,
@@ -368,8 +369,9 @@ class Android12DigitalWatchFaceDrawer(
     private fun Android12DrawingState.NoCacheAvailable.buildComplicationDrawingCache(
         timeX: Float,
         timeHeight: Int,
-        topAndBottomMargins: Int,
-        batteryHeight: Int,
+        timeBottomY: Float,
+        dateBottomY: Float,
+        dateHeight: Int,
     ): ComplicationsDrawingCache {
         val wearOsImage = wearOSLogo
 
@@ -391,10 +393,12 @@ class Android12DigitalWatchFaceDrawer(
         complicationDrawableSparseArray[PixelMinimalWatchFace.ANDROID_12_BOTTOM_RIGHT_COMPLICATION_ID]
             ?.setBounds(rightX, bottomY, rightX + complicationSize, bottomY + complicationSize)
 
+        val timeTopY = centerY - timeHeight + timePaddingY - distanceBetweenHourAndMin
+
         return ComplicationsDrawingCache(
             wearOSLogoY = max(
-                topAndBottomMargins.toFloat(),
-                (centerY - timeHeight - distanceBetweenHourAndMin + timePaddingY) / 2f - wearOSLogoHeight / 2f + batteryHeight
+                timeTopY - abs(timeBottomY - (dateBottomY - dateHeight)) - wearOSLogoHeight,
+                topAndBottomMargins,
             ),
             wearOSLogoX = centerX - wearOSLogoWidth / 2f,
         )
