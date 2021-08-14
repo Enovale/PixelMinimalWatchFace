@@ -261,6 +261,7 @@ class ComplicationConfigRecyclerViewAdapter(
                     } else {
                         showBatteryListener(false)
                         regularComplicationsViewHolder?.showBottomComplication(!storage.shouldShowPhoneBattery())
+                        notifyDataSetChanged()
                     }
                 }
                 this.showBatteryViewHolder = showBatteryViewHolder
@@ -546,7 +547,6 @@ class ComplicationConfigRecyclerViewAdapter(
             list.add(TYPE_SHOW_BATTERY)
             list.add(TYPE_SHOW_PHONE_BATTERY)
             list.add(TYPE_BATTERY_INDICATOR_COLOR)
-            list.add(TYPE_SHOW_BATTERY_IN_AMBIENT)
         }
 
         // TYPE_SECTION_DATE_AND_TIME
@@ -569,6 +569,9 @@ class ComplicationConfigRecyclerViewAdapter(
         list.add(TYPE_SHOW_FILLED_TIME_AMBIENT)
         if (isUserPremium) {
             list.add(TYPE_SHOW_COMPLICATIONS_AMBIENT)
+        }
+        if (isUserPremium && (storage.shouldShowBattery() || storage.shouldShowPhoneBattery())) {
+            list.add(TYPE_SHOW_BATTERY_IN_AMBIENT)
         }
 
         // TYPE_SECTION_SUPPORT
@@ -610,7 +613,8 @@ class ComplicationConfigRecyclerViewAdapter(
         val granted = context.isPermissionGranted("com.google.android.wearable.permission.RECEIVE_COMPLICATION_DATA")
 
         showBatteryViewHolder?.setShowBatteryViewSwitchChecked(granted)
-        regularComplicationsViewHolder?.showBottomComplication(false)
+        regularComplicationsViewHolder?.showBottomComplication(!granted)
         showBatteryListener(granted)
+        notifyDataSetChanged()
     }
 }
