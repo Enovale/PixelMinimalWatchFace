@@ -24,7 +24,7 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.benoitletondor.pixelminimalwatchface.BuildConfig
 import com.benoitletondor.pixelminimalwatchface.R
-import com.benoitletondor.pixelminimalwatchface.helper.timeSizeToHumanReadableString
+import com.benoitletondor.pixelminimalwatchface.helper.fontDisplaySizeToHumanReadableString
 import com.benoitletondor.pixelminimalwatchface.model.ComplicationColors
 import com.benoitletondor.pixelminimalwatchface.model.ComplicationLocation
 
@@ -436,7 +436,7 @@ class TimeSizeViewHolder(
     private fun setText(size: Int) {
         timeSizeText.text = itemView.context.getString(
             R.string.config_time_size,
-            itemView.context.timeSizeToHumanReadableString(size)
+            itemView.context.fontDisplaySizeToHumanReadableString(size)
         )
     }
 }
@@ -473,7 +473,7 @@ class DateAndBatterySizeViewHolder(
     private fun setText(size: Int) {
         dateAndBatterySizeText.text = itemView.context.getString(
             R.string.config_date_and_battery_size,
-            itemView.context.timeSizeToHumanReadableString(size)
+            itemView.context.fontDisplaySizeToHumanReadableString(size)
         )
     }
 }

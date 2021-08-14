@@ -20,7 +20,7 @@ import com.benoitletondor.pixelminimalwatchface.R
 
 const val DEFAULT_TIME_SIZE = 50
 
-fun timeSizeToScaleFactor(timeSize: Int): Float {
+fun fontDisplaySizeToScaleFactor(timeSize: Int): Float {
     return when(timeSize) {
         0 -> 0.80f
         25 -> 0.90f
@@ -31,7 +31,7 @@ fun timeSizeToScaleFactor(timeSize: Int): Float {
     }
 }
 
-fun Context.timeSizeToHumanReadableString(timeSize: Int): String {
+fun Context.fontDisplaySizeToHumanReadableString(timeSize: Int): String {
     return when(timeSize) {
         0 -> getString(R.string.time_size_0)
         25 -> getString(R.string.time_size_25)

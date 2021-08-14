@@ -405,8 +405,8 @@ class Android12DigitalWatchFaceDrawer(
     }
 
     private fun setScaledSizes(timeSize: Int, dateAndBatterySize: Int) {
-        val scaleFactor = timeSizeToScaleFactor(timeSize)
-        val dateAndBatteryScaleFactor = timeSizeToScaleFactor(dateAndBatterySize)
+        val scaleFactor = fontDisplaySizeToScaleFactor(timeSize)
+        val dateAndBatteryScaleFactor = fontDisplaySizeToScaleFactor(dateAndBatterySize)
 
         timePaint.textSize = context.resources.getDimension(R.dimen.android_12_time_text_size) * scaleFactor
         val dateSize = context.resources.getDimension(R.dimen.android_12_date_text_size) * dateAndBatteryScaleFactor
