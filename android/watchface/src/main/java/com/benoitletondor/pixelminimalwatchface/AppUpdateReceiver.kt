@@ -80,7 +80,7 @@ class AppUpdateReceiver : BroadcastReceiver() {
                     context,
                     0,
                     activityIntent,
-                    PendingIntent.FLAG_CANCEL_CURRENT
+                    PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_CANCEL_CURRENT
                 )
 
                 val notification = NotificationCompat.Builder(context, MISC_NOTIFICATION_CHANNEL_ID)

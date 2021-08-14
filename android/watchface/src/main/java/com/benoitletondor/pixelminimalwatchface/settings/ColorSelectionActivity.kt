@@ -20,7 +20,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.wear.widget.WearableLinearLayoutManager
-import com.benoitletondor.pixelminimalwatchface.R
 import com.benoitletondor.pixelminimalwatchface.databinding.ActivityColorSelectionConfigBinding
 import com.benoitletondor.pixelminimalwatchface.model.ComplicationColor
 import com.benoitletondor.pixelminimalwatchface.model.ComplicationColorsProvider
@@ -36,19 +35,18 @@ class ColorSelectionActivity : Activity() {
         val defaultColor = intent.getParcelableExtra<ComplicationColor>(EXTRA_DEFAULT_COLOR)!!
 
         val availableColors = ComplicationColorsProvider.getAllComplicationColors(this)
-        val adapter = ColorSelectionRecyclerViewAdapter(listOf(defaultColor).plus(availableColors)) { selectedColor ->
-            setResult(RESULT_OK, Intent().apply {
-                putExtra(RESULT_SELECTED_COLOR, selectedColor)
-            })
-
-            finish()
-        }
 
         binding.colorsRecyclerView.apply {
             isEdgeItemsCenteringEnabled = true
-            WearableLinearLayoutManager(this@ColorSelectionActivity)
+            layoutManager = WearableLinearLayoutManager(this@ColorSelectionActivity)
             setHasFixedSize(true)
-            setAdapter(adapter)
+            adapter = ColorSelectionRecyclerViewAdapter(listOf(defaultColor).plus(availableColors)) { selectedColor ->
+                setResult(RESULT_OK, Intent().apply {
+                    putExtra(RESULT_SELECTED_COLOR, selectedColor)
+                })
+
+                finish()
+            }
         }
     }
 

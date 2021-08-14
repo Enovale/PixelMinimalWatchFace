@@ -10,7 +10,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.benoitletondor.pixelminimalwatchface.databinding.ActivityFeatureDrop2021Binding
-import com.benoitletondor.pixelminimalwatchface.settings.ComplicationConfigActivity
+import com.benoitletondor.pixelminimalwatchface.settings.SettingsActivity
 
 class FeatureDrop2021Activity : Activity() {
     private lateinit var binding: ActivityFeatureDrop2021Binding
@@ -45,7 +45,7 @@ class FeatureDrop2021Activity : Activity() {
                     if( position == 2) {
                         holder.itemView.findViewById<View>(R.id.feature_drop_go_to_settings_button)?.setOnClickListener {
                             finish()
-                            applicationContext.startActivity(Intent(this@FeatureDrop2021Activity, ComplicationConfigActivity::class.java).apply {
+                            applicationContext.startActivity(Intent(this@FeatureDrop2021Activity, SettingsActivity::class.java).apply {
                                 flags = FLAG_ACTIVITY_NEW_TASK
                             })
                         }

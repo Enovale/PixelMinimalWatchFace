@@ -48,6 +48,7 @@ class App : Application(), LifecycleObserver, CoroutineScope by CoroutineScope(S
     }
 
     @OnLifecycleEvent(Lifecycle.Event.ON_START)
+    @Suppress("UNUSED")
     private fun onAppForeground() {
         billing.updatePremiumStatusIfNeeded()
 
@@ -58,10 +59,5 @@ class App : Application(), LifecycleObserver, CoroutineScope by CoroutineScope(S
                 Log.e("App", "Error syncing config", t)
             }
         }
-    }
-
-    @OnLifecycleEvent(Lifecycle.Event.ON_STOP)
-    private fun onAppBackground() {
-
     }
 }

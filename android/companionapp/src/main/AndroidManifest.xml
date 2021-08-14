@@ -43,7 +43,8 @@
             android:screenOrientation="sensorPortrait"/>
         <activity
             android:name=".view.main.MainActivity"
-            android:screenOrientation="sensorPortrait">
+            android:screenOrientation="sensorPortrait"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

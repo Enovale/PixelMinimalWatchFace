@@ -79,7 +79,7 @@ class DonationViewModel @Inject constructor(
     }
 
     fun onDonateButtonClicked(sku: String, activity: Activity) {
-        val loadedState = state as State.Loaded ?: return
+        val loadedState = state as? State.Loaded ?: return
         val skuDetails = loadedState.SKUs.firstOrNull { it.sku == sku } ?: return
 
         viewModelScope.launch {

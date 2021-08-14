@@ -14,25 +14,11 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 -->
-<androidx.constraintlayout.widget.ConstraintLayout
+<Switch
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:orientation="vertical"
+    android:id="@+id/config_list_show_battery_ambient_switch"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:paddingBottom="12dp">
-
-    <TextView
-        android:id="@+id/app_title_text_view"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/app_name"
-        android:textSize="16sp"
-        android:textColor="@android:color/white"
-        android:gravity="center"
-        android:fontFamily="@font/product_sans_regular"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+    style="@style/ButtonConfigurationStyle"
+    android:text="@string/config_show_battery_in_ambient"
+    android:drawableStart="@drawable/ic_settings_power"/>

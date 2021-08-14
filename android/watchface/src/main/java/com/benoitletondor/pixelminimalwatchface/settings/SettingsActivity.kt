@@ -36,7 +36,7 @@ import com.benoitletondor.pixelminimalwatchface.rating.FeedbackActivity
 import com.benoitletondor.pixelminimalwatchface.settings.phonebattery.PhoneBatteryConfigurationActivity
 import com.google.android.wearable.intent.RemoteIntent
 
-class ComplicationConfigActivity : Activity() {
+class SettingsActivity : Activity() {
     private lateinit var adapter: ComplicationConfigRecyclerViewAdapter
     private lateinit var storage: Storage
 
@@ -63,12 +63,16 @@ class ComplicationConfigActivity : Activity() {
             storage.setShouldShowFilledTimeInAmbientMode(showFilledTimeAmbient)
         }, { timeSize ->
             storage.setTimeSize(timeSize)
+        }, { dateAndBatterySize ->
+            storage.setDateAndBatterySize(dateAndBatterySize)
         }, { showSecondsRing ->
             storage.setShouldShowSecondsRing(showSecondsRing)
         }, { showWeather ->
             storage.setShouldShowWeather(showWeather)
         }, { showBattery ->
             storage.setShouldShowBattery(showBattery)
+        }, { showBatteryInAmbient ->
+            storage.setShouldHideBatteryInAmbient(!showBatteryInAmbient)
         }, { useShortDateFormat ->
             storage.setUseShortDateFormat(useShortDateFormat)
         }, { showDateAmbient ->
@@ -96,13 +100,15 @@ class ComplicationConfigActivity : Activity() {
                 ),
                 BATTERY_COLOR_REQUEST_CODE
             )
+        }, { useAndroid12Style ->
+            storage.setUseAndroid12Style(useAndroid12Style)
         })
 
         binding.wearableRecyclerView.apply {
             isEdgeItemsCenteringEnabled = true
-            LinearLayoutManager(this@ComplicationConfigActivity)
+            layoutManager = LinearLayoutManager(this@SettingsActivity)
             setHasFixedSize(true)
-            adapter = this@ComplicationConfigActivity.adapter
+            adapter = this@SettingsActivity.adapter
         }
     }
 
@@ -118,9 +124,17 @@ class ComplicationConfigActivity : Activity() {
         } else if( requestCode == COMPLICATION_BATTERY_PERMISSION_REQUEST_CODE ) {
             adapter.batteryComplicationPermissionFinished()
         } else if ( requestCode == COMPLICATION_CONFIG_REQUEST_CODE && resultCode == RESULT_OK ) {
-            adapter.updateComplications()
+            if (storage.useAndroid12Style()) {
+                adapter.updateAndroid12Complications()
+            } else {
+                adapter.updateRegularComplications()
+            }
         } else if ( requestCode == COMPLICATION_PHONE_BATTERY_SETUP_REQUEST_CODE ) {
-            adapter.updateComplications()
+            if (storage.useAndroid12Style()) {
+                adapter.updateAndroid12Complications()
+            } else {
+                adapter.updateRegularComplications()
+            }
         } else if ( requestCode == TIME_AND_DATE_COLOR_REQUEST_CODE && resultCode == RESULT_OK ) {
             val color = data?.getParcelableExtra<ComplicationColor>(ColorSelectionActivity.RESULT_SELECTED_COLOR)
             if (color != null) {
@@ -155,7 +169,7 @@ class ComplicationConfigActivity : Activity() {
                                 .setType(ConfirmationOverlay.OPEN_ON_PHONE_ANIMATION)
                                 .setDuration(3000)
                                 .setMessage(getString(R.string.open_phone_url_android_device))
-                                .showOn(this@ComplicationConfigActivity)
+                                .showOn(this@SettingsActivity)
                         } else {
                             openAppInStoreOnPhone()
                         }
@@ -187,7 +201,7 @@ class ComplicationConfigActivity : Activity() {
                                 .setType(ConfirmationOverlay.OPEN_ON_PHONE_ANIMATION)
                                 .setDuration(3000)
                                 .setMessage(getString(R.string.open_phone_url_android_device))
-                                .showOn(this@ComplicationConfigActivity)
+                                .showOn(this@SettingsActivity)
                         } else {
                             openAppInStoreOnPhone(finish = false)
                         }
@@ -224,23 +238,23 @@ class ComplicationConfigActivity : Activity() {
                                     .setType(ConfirmationOverlay.OPEN_ON_PHONE_ANIMATION)
                                     .setDuration(3000)
                                     .setMessage(getString(R.string.open_phone_url_android_device))
-                                    .showOn(this@ComplicationConfigActivity)
+                                    .showOn(this@SettingsActivity)
                             } else if (resultCode == RemoteIntent.RESULT_FAILED) {
                                 ConfirmationOverlay()
                                     .setType(ConfirmationOverlay.OPEN_ON_PHONE_ANIMATION)
                                     .setDuration(3000)
                                     .setMessage(getString(R.string.open_phone_url_android_device_failure))
-                                    .showOn(this@ComplicationConfigActivity)
+                                    .showOn(this@SettingsActivity)
                             }
                         }
                     }
                 )
             }
             PhoneDeviceType.DEVICE_TYPE_IOS -> {
-                Toast.makeText(this@ComplicationConfigActivity, R.string.open_phone_url_ios_device, Toast.LENGTH_LONG).show()
+                Toast.makeText(this@SettingsActivity, R.string.open_phone_url_ios_device, Toast.LENGTH_LONG).show()
             }
             PhoneDeviceType.DEVICE_TYPE_ERROR_UNKNOWN -> {
-                Toast.makeText(this@ComplicationConfigActivity, R.string.open_phone_url_android_device_failure, Toast.LENGTH_LONG).show()
+                Toast.makeText(this@SettingsActivity, R.string.open_phone_url_android_device_failure, Toast.LENGTH_LONG).show()
             }
         }
     }

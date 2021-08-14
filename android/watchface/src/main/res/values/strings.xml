@@ -21,6 +21,10 @@
     <string name="config_middle_complication">Middle widget settings</string>
     <string name="config_right_complication">Right widget settings</string>
     <string name="config_bottom_complication">Bottom large widget settings</string>
+    <string name="config_android_12_top_left_complication">Top left widget settings</string>
+    <string name="config_android_12_top_right_complication">Top right widget settings</string>
+    <string name="config_android_12_bottom_left_complication">Bottom left widget settings</string>
+    <string name="config_android_12_bottom_right_complication">Bottom right widget settings</string>
     <string name="config_complication_widget">Widget</string>
     <string name="config_complication_color">Accent color</string>
     <string name="config_color_tap_to_change">Tap to change</string>
@@ -39,10 +43,12 @@
     <string name="config_show_filled_time_ambient">Use thin time in ambient mode</string>
     <string name="config_show_wear_os_logo_premium">WearOS logo as middle widget</string>
     <string name="config_show_complications_ambient">Widgets in ambient mode</string>
-    <string name="config_time_size">Size of time and date: %s</string>
+    <string name="config_time_size">Size of time: %s</string>
+    <string name="config_date_and_battery_size">Size of date &amp; battery: %s</string>
     <string name="config_show_seconds_ring">Show seconds ring</string>
     <string name="config_show_battery">Watch battery indicator</string>
     <string name="config_show_phone_battery">(Beta) Phone battery indicator setup</string>
+    <string name="config_show_battery_in_ambient">Show battery indicators in ambient mode</string>
     <string name="config_donate">Donate to support development</string>
     <string name="config_section_ambient">Ambient mode</string>
     <string name="config_section_date_and_time">Time and date</string>
@@ -52,6 +58,7 @@
     <string name="config_battery_section_header">Activating any battery indicator replaces the bottom widget</string>
     <string name="config_time_and_date_color">Time and date color (doesn\'t affect ambient mode)</string>
     <string name="config_battery_indicator_color">Battery indicators color (doesn\'t affect ambient mode)</string>
+    <string name="config_use_android_12_style">Android 12 layout</string>
 
     <string name="premium_confirmation">Configure widgets in Watch Face settings</string>
     <string name="premium_error">An error occurred, send me an email for assistance</string>

@@ -66,7 +66,7 @@ class PhoneBatteryConfigurationActivity : AppCompatActivity(), CapabilityClient.
 
         binding.wearableRecyclerView.apply {
             isEdgeItemsCenteringEnabled = true
-            LinearLayoutManager(this@PhoneBatteryConfigurationActivity)
+            layoutManager = LinearLayoutManager(this@PhoneBatteryConfigurationActivity)
             setHasFixedSize(true)
             adapter = this@PhoneBatteryConfigurationActivity.adapter
         }

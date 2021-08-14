@@ -34,6 +34,10 @@ object ComplicationColorsProvider {
             ComplicationColor(middleColor, context.getString(R.string.color_default), true),
             ComplicationColor(rightColor, context.getString(R.string.color_default), true),
             ComplicationColor(bottomColor, context.getString(R.string.color_default), true),
+            ComplicationColor(leftColor, context.getString(R.string.color_default), true),
+            ComplicationColor(rightColor, context.getString(R.string.color_default), true),
+            ComplicationColor(middleColor, context.getString(R.string.color_default), true),
+            ComplicationColor(bottomColor, context.getString(R.string.color_default), true),
         )
     }
 

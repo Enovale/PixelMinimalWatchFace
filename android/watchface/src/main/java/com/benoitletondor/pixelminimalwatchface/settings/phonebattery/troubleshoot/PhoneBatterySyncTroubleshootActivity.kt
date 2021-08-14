@@ -35,7 +35,7 @@ class PhoneBatterySyncTroubleshootActivity : Activity() {
 
         binding.wearableRecyclerView.apply {
             isEdgeItemsCenteringEnabled = true
-            LinearLayoutManager(this@PhoneBatterySyncTroubleshootActivity)
+            layoutManager = LinearLayoutManager(this@PhoneBatterySyncTroubleshootActivity)
             setHasFixedSize(true)
             adapter = ContentAdapter()
         }

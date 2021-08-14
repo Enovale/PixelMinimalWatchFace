@@ -38,8 +38,9 @@
         <activity android:name=".settings.ColorSelectionActivity" />
 
         <activity
-            android:name=".settings.ComplicationConfigActivity"
-            android:label="@string/complication_config">
+            android:name=".settings.SettingsActivity"
+            android:label="@string/complication_config"
+            android:exported="true">
             <intent-filter>
                 <action android:name="com.benoitletondor.pixelminimalwatchface.CONFIG_COMPLICATION_SIMPLE"/>
 
@@ -75,7 +76,8 @@
         <service
             android:name=".PixelMinimalWatchFace"
             android:label="@string/app_name"
-            android:permission="android.permission.BIND_WALLPAPER">
+            android:permission="android.permission.BIND_WALLPAPER"
+            android:exported="true">
 
             <meta-data
                 android:name="android.service.wallpaper"
@@ -99,7 +101,8 @@
         </service>
 
         <receiver
-            android:name=".AppUpdateReceiver">
+            android:name=".AppUpdateReceiver"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
