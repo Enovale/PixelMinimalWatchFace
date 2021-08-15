@@ -51,7 +51,7 @@ private const val KEY_SECONDS_RING = "secondsRing"
 private const val KEY_SHOW_WEATHER = "showWeather"
 private const val KEY_SHOW_BATTERY = "showBattery"
 private const val KEY_SHOW_PHONE_BATTERY = "showPhoneBattery"
-private const val KEY_FEATURE_DROP_2021_NOTIFICATION = "featureDrop2021Notification_2"
+private const val KEY_FEATURE_DROP_2021_NOTIFICATION = "featureDrop2021Notification_3"
 private const val KEY_USE_SHORT_DATE_FORMAT = "useShortDateFormat"
 private const val KEY_SHOW_DATE_AMBIENT = "showDateAmbient"
 private const val KEY_TIME_AND_DATE_COLOR = "timeAndDateColor"
@@ -87,8 +87,8 @@ interface Storage {
     fun setShouldShowWeather(show: Boolean)
     fun shouldShowBattery(): Boolean
     fun setShouldShowBattery(show: Boolean)
-    fun hasFeatureDrop2021NotificationBeenShown(): Boolean
-    fun setFeatureDrop2021NotificationShown()
+    fun hasFeatureDropSummer2021NotificationBeenShown(): Boolean
+    fun setFeatureDropSummer2021NotificationShown()
     fun getUseShortDateFormat(): Boolean
     fun setUseShortDateFormat(useShortDateFormat: Boolean)
     fun setShowDateInAmbient(showDateInAmbient: Boolean)
@@ -540,11 +540,11 @@ class StorageImpl : Storage {
         sharedPreferences.edit().putBoolean(KEY_HIDE_BATTERY_IN_AMBIENT, hide).apply()
     }
 
-    override fun hasFeatureDrop2021NotificationBeenShown(): Boolean {
+    override fun hasFeatureDropSummer2021NotificationBeenShown(): Boolean {
         return sharedPreferences.getBoolean(KEY_FEATURE_DROP_2021_NOTIFICATION, false)
     }
 
-    override fun setFeatureDrop2021NotificationShown() {
+    override fun setFeatureDropSummer2021NotificationShown() {
         sharedPreferences.edit().putBoolean(KEY_FEATURE_DROP_2021_NOTIFICATION, true).apply()
     }
 

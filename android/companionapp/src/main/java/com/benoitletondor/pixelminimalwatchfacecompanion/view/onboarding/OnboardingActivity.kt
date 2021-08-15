@@ -19,8 +19,11 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Button
 import androidx.activity.viewModels
+import androidx.lifecycle.lifecycleScope
 import com.benoitletondor.pixelminimalwatchfacecompanion.R
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class OnboardingActivity : AppCompatActivity() {
@@ -30,9 +33,11 @@ class OnboardingActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_onboarding)
 
-        viewModel.finishEventStream.observe(this, {
-            finish()
-        })
+        lifecycleScope.launch {
+            viewModel.finishEventFlow.collect {
+                finish()
+            }
+        }
 
         findViewById<Button>(R.id.onboarding_finish_cta).setOnClickListener {
             viewModel.onOnboardingFinishButtonPressed()

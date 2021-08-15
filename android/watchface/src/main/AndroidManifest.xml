@@ -60,7 +60,7 @@
             android:label="@string/phone_battery_configuration_troubleshoot_title"/>
 
         <activity
-            android:name=".FeatureDrop2021Activity"
+            android:name=".FeatureDropActivity"
             android:label="@string/feature_drop_2021_notification_title"/>
 
         <activity android:name="android.support.wearable.complications.ComplicationHelperActivity"/>

@@ -59,6 +59,14 @@
         android:textSize="15sp"
         android:textColor="@color/white"
         android:text="@string/feature_drop_2021_feature_4"
+        android:layout_marginBottom="4dp"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="15sp"
+        android:textColor="@color/white"
+        android:text="@string/feature_drop_2021_feature_5"
         android:layout_marginBottom="16dp"/>
 
 </LinearLayout>
