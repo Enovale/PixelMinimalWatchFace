@@ -134,6 +134,19 @@
                 app:layout_constraintEnd_toEndOf="parent"/>
 
             <TextView
+                android:id="@+id/main_activity_premium_galaxy_watch_warning"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:textColor="@color/red_a200"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:text="@string/galaxy_watch_4_warning"
+                app:layout_constraintTop_toBottomOf="@+id/main_activity_premium_view_sync_button"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
+
+            <TextView
                 android:id="@+id/main_activity_premium_view_premium_text_3"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -142,7 +155,7 @@
                 android:textSize="16sp"
                 android:layout_marginTop="40dp"
                 android:textColor="@android:color/white"
-                app:layout_constraintTop_toBottomOf="@+id/main_activity_premium_view_sync_button"
+                app:layout_constraintTop_toBottomOf="@+id/main_activity_premium_galaxy_watch_warning"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"/>
 
