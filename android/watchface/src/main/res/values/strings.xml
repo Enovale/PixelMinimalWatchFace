@@ -96,7 +96,7 @@
     <string name="feature_drop_2021_feature_2">- Oppo Watch users: you can now show Weather after date and the layout should be better!</string>
     <string name="feature_drop_2021_feature_3">- Adjust size of the time and the date separately, there are now 2 different settings</string>
     <string name="feature_drop_2021_feature_4">- You can now hide battery percentages in ambient mode</string>
-    <string name="feature_drop_2021_feature_5">- Bug fixes and optimisations (and preparation for WearOS 3!)</string>
+    <string name="feature_drop_2021_feature_5">- Bug fixes and optimisations</string>
     <string name="feature_drop_2021_go_to_settings_cta">To setup those new options, tap this button to go to the watch face settings:</string>
     <string name="feature_drop_2021_activate_cta">To setup those new options, use Pixel Minimal Watch Face as your watch face and long press on the time to access the settings.</string>
     <string name="feature_drop_2021_conclusion">Thank you for using Pixel Minimal Watch Face :)</string>
