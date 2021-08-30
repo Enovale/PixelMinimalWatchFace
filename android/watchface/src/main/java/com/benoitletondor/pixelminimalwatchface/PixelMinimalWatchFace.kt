@@ -43,9 +43,8 @@ import android.view.WindowInsets
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import com.benoitletondor.pixelminimalwatchface.helper.FullBrightnessActivity
-import com.benoitletondor.pixelminimalwatchface.helper.await
-import com.benoitletondor.pixelminimalwatchface.helper.openActivity
+import androidx.core.util.forEach
+import com.benoitletondor.pixelminimalwatchface.helper.*
 import com.benoitletondor.pixelminimalwatchface.model.ComplicationColors
 import com.benoitletondor.pixelminimalwatchface.model.DEFAULT_APP_VERSION
 import com.benoitletondor.pixelminimalwatchface.model.Storage
@@ -326,12 +325,12 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
             watchFaceDrawer.onSurfaceChanged(width, height)
         }
 
-        override fun onComplicationDataUpdate(watchFaceComplicationId: Int, data: ComplicationData) {
-            super.onComplicationDataUpdate(watchFaceComplicationId, data)
+        override fun onComplicationDataUpdate(watchFaceComplicationId: Int, complicationData: ComplicationData) {
+            super.onComplicationDataUpdate(watchFaceComplicationId, complicationData)
 
             if( watchFaceComplicationId == WEATHER_COMPLICATION_ID ) {
-                weatherComplicationData = if( data.type == ComplicationData.TYPE_SHORT_TEXT ) {
-                    data
+                weatherComplicationData = if( complicationData.type == ComplicationData.TYPE_SHORT_TEXT ) {
+                    complicationData
                 } else {
                     null
                 }
@@ -341,8 +340,8 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
             }
 
             if( watchFaceComplicationId == BATTERY_COMPLICATION_ID ) {
-                batteryComplicationData = if( data.type == ComplicationData.TYPE_SHORT_TEXT ) {
-                    data
+                batteryComplicationData = if( complicationData.type == ComplicationData.TYPE_SHORT_TEXT ) {
+                    complicationData
                 } else {
                     null
                 }
@@ -350,6 +349,8 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
                 invalidate()
                 return
             }
+
+            val data = complicationData.sanitize(this@PixelMinimalWatchFace)
 
             // Updates correct ComplicationDrawable with updated data.
             val complicationDrawable = complicationDrawableSparseArray.get(watchFaceComplicationId) ?: return
