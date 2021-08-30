@@ -37,7 +37,6 @@ import com.benoitletondor.pixelminimalwatchface.PixelMinimalWatchFace.Companion.
 import com.benoitletondor.pixelminimalwatchface.PixelMinimalWatchFace.Companion.getComplicationIds
 import com.benoitletondor.pixelminimalwatchface.helper.isPermissionGranted
 import com.benoitletondor.pixelminimalwatchface.helper.isScreenRound
-import com.benoitletondor.pixelminimalwatchface.helper.isServiceAvailable
 import com.benoitletondor.pixelminimalwatchface.helper.timeSizeToHumanReadableString
 import com.benoitletondor.pixelminimalwatchface.model.ComplicationColors
 import com.benoitletondor.pixelminimalwatchface.model.Storage
@@ -433,7 +432,7 @@ class ComplicationConfigRecyclerViewAdapter(
         // TYPE_SECTION_DATE_AND_TIME
         list.add(TYPE_SECTION_DATE_AND_TIME)
         list.add(TYPE_DATE_FORMAT)
-        if( isUserPremium && context.isServiceAvailable(WEAR_OS_APP_PACKAGE, WEATHER_PROVIDER_SERVICE) ) {
+        if( isUserPremium && context.getWeatherProviderInfo() != null ) {
             list.add(TYPE_SHOW_WEATHER)
         }
         list.add(TYPE_HOUR_FORMAT)

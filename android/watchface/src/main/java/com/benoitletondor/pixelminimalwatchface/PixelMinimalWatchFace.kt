@@ -66,10 +66,6 @@ private const val THREE_DAYS_MS: Long = 1000 * 60 * 60 * 24 * 3
 private const val THIRTY_MINS_MS: Long = 1000 * 60 * 30
 private const val MINIMUM_COMPLICATION_UPDATE_INTERVAL_MS = 1000L
 
-const val WEAR_OS_APP_PACKAGE = "com.google.android.wearable.app"
-const val WEATHER_PROVIDER_SERVICE = "com.google.android.clockwork.home.weather.WeatherProviderService"
-const val WEATHER_ACTIVITY_NAME = "com.google.android.clockwork.home.weather.WeatherActivity"
-
 class PixelMinimalWatchFace : CanvasWatchFaceService() {
 
     override fun onCreateEngine(): Engine {
@@ -213,9 +209,10 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
         }
 
         private fun subscribeToWeatherComplicationData() {
+            val weatherProviderInfo = getWeatherProviderInfo() ?: return
             setDefaultComplicationProvider(
                 WEATHER_COMPLICATION_ID,
-                ComponentName(WEAR_OS_APP_PACKAGE, WEATHER_PROVIDER_SERVICE),
+                ComponentName(weatherProviderInfo.appPackage, weatherProviderInfo.weatherProviderService),
                 ComplicationData.TYPE_SHORT_TEXT
             )
         }
@@ -390,7 +387,8 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
                         }
                     }
                     if( watchFaceDrawer.tapIsOnWeather(x, y) ) {
-                        openActivity(WEAR_OS_APP_PACKAGE, WEATHER_ACTIVITY_NAME)
+                        val weatherProviderInfo = getWeatherProviderInfo() ?: return
+                        openActivity(weatherProviderInfo.appPackage, weatherProviderInfo.weatherActivityName)
                         lastTapEventTimestamp = 0
                         return
                     }
