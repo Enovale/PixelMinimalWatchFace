@@ -81,9 +81,9 @@
     <string name="rating_feedback_email" translatable="false">pixelwatchface@benoitletondor.com</string>
     <string name="rating_feedback_send_subject" translatable="false">Pixel Watch Face - Feedback</string>
     <string name="rating_feedback_send_text"></string>
-    <string name="feature_drop_2021_notification_title">Galaxy Watch 4 support</string>
-    <string name="feature_drop_2021_notification_message">Complete support for the Galaxy Watch 4 in Pixel Minimal Watch Face!</string>
-    <string name="feature_drop_2021_notification_cta">Discover what\'s new</string>
+    <string name="feature_drop_2021_notification_title">Pixel Minimal Watch Face</string>
+    <string name="feature_drop_2021_notification_message">Better support for the Galaxy Watch 4 in Pixel Minimal Watch Face!</string>
+    <string name="feature_drop_2021_notification_cta">See what\'s new</string>
     <string name="feature_drop_2021_title">Galaxy Watch 4 support update</string>
     <string name="feature_drop_2021_welcome">New update for Pixel Minimal Watch Face that fully support the Galaxy watch 4:</string>
     <string name="feature_drop_2021_feature_1">- Heart rate widget will now work properly</string>
