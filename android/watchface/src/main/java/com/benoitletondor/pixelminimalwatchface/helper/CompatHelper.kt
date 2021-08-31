@@ -12,10 +12,6 @@ import org.json.JSONObject
 import kotlin.math.roundToInt
 
 fun Context.getTopAndBottomMargins(): Float {
-    if (Device.isOppoWatch) {
-        return dpToPx(5).toFloat()
-    }
-
     if (Device.isSamsungGalaxy) {
         return dpToPx(25).toFloat()
     }
