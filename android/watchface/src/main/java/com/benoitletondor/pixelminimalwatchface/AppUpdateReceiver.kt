@@ -46,7 +46,7 @@ class AppUpdateReceiver : BroadcastReceiver() {
 
     @Suppress("SameParameterValue", "UNUSED_PARAMETER")
     private fun onAppUpgrade(context: Context, oldVersion: Int, newVersion: Int) {
-        if( oldVersion < 51 ) {
+        if( oldVersion < 52 ) {
             val storage = Injection.storage(context)
 
             if( Device.isSamsungGalaxy && !storage.hasSamsungGalaxyWatchUpdateNotificationBeenShown() ) {
