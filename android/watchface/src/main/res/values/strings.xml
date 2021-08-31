@@ -52,6 +52,7 @@
     <string name="config_battery_section_header">Activating any battery indicator replaces the bottom widget</string>
     <string name="config_time_and_date_color">Time and date color (doesn\'t affect ambient mode)</string>
     <string name="config_battery_indicator_color">Battery indicators color (doesn\'t affect ambient mode)</string>
+    <string name="config_open_weather_app">Open Weather app for setup</string>
 
     <string name="premium_confirmation">Configure widgets in Watch Face settings</string>
     <string name="premium_error">An error occurred, send me an email for assistance</string>
@@ -80,17 +81,16 @@
     <string name="rating_feedback_email" translatable="false">pixelwatchface@benoitletondor.com</string>
     <string name="rating_feedback_send_subject" translatable="false">Pixel Watch Face - Feedback</string>
     <string name="rating_feedback_send_text"></string>
-    <string name="feature_drop_2021_notification_title">New feature drop</string>
-    <string name="feature_drop_2021_notification_message">New features are available for Pixel Minimal Watch Face!</string>
+    <string name="feature_drop_2021_notification_title">Galaxy Watch 4 support</string>
+    <string name="feature_drop_2021_notification_message">Complete support for the Galaxy Watch 4 in Pixel Minimal Watch Face!</string>
     <string name="feature_drop_2021_notification_cta">Discover what\'s new</string>
-    <string name="feature_drop_2021_title">Spring 21 feature drop</string>
-    <string name="feature_drop_2021_welcome">New update for Pixel Minimal Watch Face with new features:</string>
-    <string name="feature_drop_2021_feature_1">- Premium users: Display of phone battery as bottom widget, available in beta.\n(Make sure you have the app installed on your phone to activate it!)</string>
-    <string name="feature_drop_2021_feature_2">- Change the color of time and date and also of battery indicators</string>
-    <string name="feature_drop_2021_feature_3">- Better layout for square watches, especially the Oppo watch</string>
-    <string name="feature_drop_2021_feature_4">- Bug fixes and optimisations</string>
+    <string name="feature_drop_2021_title">Galaxy Watch 4 support update</string>
+    <string name="feature_drop_2021_welcome">New update for Pixel Minimal Watch Face that fully support the Galaxy watch 4:</string>
+    <string name="feature_drop_2021_feature_1">- Heart rate widget will now work properly</string>
+    <string name="feature_drop_2021_feature_2">- Support for displaying Weather after date has been added\n(Make sure you setup it in Weather app on your Watch)</string>
+    <string name="feature_drop_2021_feature_3">- Better layout that doesn\'t overlap with system indicators (like charge or media playing indicators)</string>
     <string name="feature_drop_2021_go_to_settings_cta">To setup those new options, tap this button to go to the watch face settings:</string>
-    <string name="feature_drop_2021_activate_cta">To setup those new options, use Pixel Minimal Watch Face as your watch face and long press on the time to access the settings.</string>
+    <string name="feature_drop_2021_activate_cta">To setup those new options, use Pixel Minimal Watch Face as your watch face and long press on the time to access the Configure button".</string>
     <string name="feature_drop_2021_conclusion">Thank you for using Pixel Minimal Watch Face :)</string>
 
     <string name="color_default">Default</string>

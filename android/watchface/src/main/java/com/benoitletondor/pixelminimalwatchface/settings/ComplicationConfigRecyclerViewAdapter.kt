@@ -31,6 +31,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.benoitletondor.pixelminimalwatchface.*
 import com.benoitletondor.pixelminimalwatchface.PixelMinimalWatchFace.Companion.getComplicationId
@@ -82,6 +83,7 @@ class ComplicationConfigRecyclerViewAdapter(
     private val timeSizeChangedListener: (Int) -> Unit,
     private val showSecondsRingListener: (Boolean) -> Unit,
     private val showWeatherListener: (Boolean) -> Unit,
+    private val openWeatherAppListener: () -> Unit,
     private val showBatteryListener: (Boolean) -> Unit,
     private val dateFormatSelectionListener: (Boolean) -> Unit,
     private val showDateAmbientListener: (Boolean) -> Unit,
@@ -201,20 +203,23 @@ class ComplicationConfigRecyclerViewAdapter(
                         R.layout.config_list_show_weather,
                         parent,
                         false
-                    )
-                ) { showWeather ->
-                    if( showWeather ) {
-                        (context as Activity).startActivityForResult(
-                            ComplicationHelperActivity.createPermissionRequestHelperIntent(
-                                context,
-                                watchFaceComponentName
-                            ),
-                            ComplicationConfigActivity.COMPLICATION_WEATHER_PERMISSION_REQUEST_CODE
-                        )
-                    } else {
-                        showWeatherListener(false)
-                    }
-                }
+                    ),
+                    { showWeather ->
+                        if( showWeather ) {
+                            (context as Activity).startActivityForResult(
+                                ComplicationHelperActivity.createPermissionRequestHelperIntent(
+                                    context,
+                                    watchFaceComponentName
+                                ),
+                                ComplicationConfigActivity.COMPLICATION_WEATHER_PERMISSION_REQUEST_CODE
+                            )
+                        } else {
+                            showWeatherListener(false)
+                            updateWeatherButton()
+                        }
+                    },
+                    openWeatherAppListener,
+                )
                 this.showWeatherViewHolder = showWeatherViewHolder
                 return showWeatherViewHolder
             }
@@ -483,6 +488,13 @@ class ComplicationConfigRecyclerViewAdapter(
 
         showWeatherViewHolder?.setShowWeatherViewSwitchChecked(granted)
         showWeatherListener(granted)
+        updateWeatherButton()
+    }
+
+    private fun updateWeatherButton() {
+        generateSettingsList(context, storage).indexOf(TYPE_SHOW_WEATHER).takeIf { it > 0 }?.let { index ->
+            notifyItemChanged(index)
+        }
     }
 
     fun batteryComplicationPermissionFinished() {
@@ -799,18 +811,27 @@ class ShowSecondsRingViewHolder(view: View,
     }
 }
 
-class ShowWeatherViewHolder(view: View,
-                            showWeatherViewHolderClickListener: (Boolean) -> Unit) : RecyclerView.ViewHolder(view) {
-    private val showWeatherViewSwitch: Switch = view as Switch
+class ShowWeatherViewHolder(
+    view: View,
+    showWeatherViewHolderClickListener: (Boolean) -> Unit,
+    openWeatherAppClickListener: () -> Unit,
+) : RecyclerView.ViewHolder(view) {
+    private val showWeatherViewSwitch: Switch = view.findViewById(R.id.config_list_show_weather_switch)
+    private val goToWeatherAppButton: Button = view.findViewById(R.id.config_list_open_weather_app_button)
 
     init {
         showWeatherViewSwitch.setOnCheckedChangeListener { _, checked ->
             showWeatherViewHolderClickListener(checked)
         }
+
+        goToWeatherAppButton.setOnClickListener {
+            openWeatherAppClickListener()
+        }
     }
 
     fun setShowWeatherViewSwitchChecked(checked: Boolean) {
         showWeatherViewSwitch.isChecked = checked
+        goToWeatherAppButton.isVisible = checked
     }
 }
 
