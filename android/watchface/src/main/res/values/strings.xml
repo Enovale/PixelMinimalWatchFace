@@ -87,8 +87,8 @@
     <string name="feature_drop_2021_title">Galaxy Watch 4 support update</string>
     <string name="feature_drop_2021_welcome">New update for Pixel Minimal Watch Face that fully support the Galaxy watch 4:</string>
     <string name="feature_drop_2021_feature_1">- Heart rate widget will now work properly</string>
-    <string name="feature_drop_2021_feature_2">- Support for displaying Weather after date has been added\n(Make sure you setup it in Weather app on your Watch)</string>
-    <string name="feature_drop_2021_feature_3">- Better layout that doesn\'t overlap with system indicators (like charge or media playing indicators)</string>
+    <string name="feature_drop_2021_feature_2">- Support for displaying Weather after date added\n(Make sure you set it up in Weather app)</string>
+    <string name="feature_drop_2021_feature_3">- Better layout that doesn\'t overlap with system indicators (like charge or media indicators)</string>
     <string name="feature_drop_2021_go_to_settings_cta">To setup those new options, tap this button to go to the watch face settings:</string>
     <string name="feature_drop_2021_activate_cta">To setup those new options, use Pixel Minimal Watch Face as your watch face and long press on the time to access the Configure button".</string>
     <string name="feature_drop_2021_conclusion">Thank you for using Pixel Minimal Watch Face :)</string>
