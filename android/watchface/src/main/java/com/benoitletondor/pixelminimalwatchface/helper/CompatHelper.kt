@@ -13,7 +13,7 @@ import kotlin.math.roundToInt
 
 fun Context.getTopAndBottomMargins(): Float {
     if (Device.isSamsungGalaxy) {
-        return dpToPx(25).toFloat()
+        return dpToPx(23).toFloat()
     }
 
     return resources.getDimension(R.dimen.screen_top_and_bottom_margin)
