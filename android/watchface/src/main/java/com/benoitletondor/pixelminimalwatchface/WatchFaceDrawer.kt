@@ -34,6 +34,7 @@ import com.benoitletondor.pixelminimalwatchface.PixelMinimalWatchFace.Companion.
 import com.benoitletondor.pixelminimalwatchface.PixelMinimalWatchFace.Companion.LEFT_COMPLICATION_ID
 import com.benoitletondor.pixelminimalwatchface.PixelMinimalWatchFace.Companion.MIDDLE_COMPLICATION_ID
 import com.benoitletondor.pixelminimalwatchface.PixelMinimalWatchFace.Companion.RIGHT_COMPLICATION_ID
+import com.benoitletondor.pixelminimalwatchface.helper.getTopAndBottomMargins
 import com.benoitletondor.pixelminimalwatchface.helper.sameAs
 import com.benoitletondor.pixelminimalwatchface.helper.timeSizeToScaleFactor
 import com.benoitletondor.pixelminimalwatchface.helper.toBitmap
@@ -111,6 +112,7 @@ class WatchFaceDrawerImpl : WatchFaceDrawer {
     private lateinit var timeFormatter12H: SimpleDateFormat
     private var currentTimeSize = 0
     private var spaceBeforeWeather = 0
+    private var topAndBottomMargins = 0
 
     override fun onCreate(context: Context, storage: Storage) {
         this.context = context
@@ -150,6 +152,7 @@ class WatchFaceDrawerImpl : WatchFaceDrawer {
             strokeWidth = 10F
             isAntiAlias = true
         }
+        topAndBottomMargins = context.getTopAndBottomMargins().toInt()
     }
 
     override fun onApplyWindowInsets(insets: WindowInsets) {
@@ -331,13 +334,13 @@ class WatchFaceDrawerImpl : WatchFaceDrawer {
         val dateYOffset = timeYOffset + (timeTextBounds.height() / 2) - (dateTextHeight / 2.0f ) + context.dpToPx(8)
 
         val complicationsDrawingCache = buildComplicationDrawingCache(
-            timeYOffset - timeTextBounds.height() - context.dpToPx(6),
+            timeYOffset - timeTextBounds.height(),
             dateYOffset + dateTextHeight / 2
         )
 
         currentTimeSize = timeSize
 
-        val batteryBottomY = screenHeight - chinSize - context.dpToPx(20)
+        val batteryBottomY = screenHeight - chinSize - topAndBottomMargins
 
         return DrawingState.CacheAvailable(
             screenWidth,
@@ -368,10 +371,9 @@ class WatchFaceDrawerImpl : WatchFaceDrawer {
     private fun DrawingState.NoCacheAvailable.buildComplicationDrawingCache(topBottom: Float, bottomTop: Float): ComplicationsDrawingCache {
         val wearOsImage = wearOSLogo
 
-        val topAndBottomMargins = context.dpToPx(15)
         val sizeOfComplication = if( isRound ) { (screenWidth / 4.5).toInt() } else { min(topBottom.toInt() - topAndBottomMargins - context.dpToPx(2), (screenWidth / 3.5).toInt()) }
         // If watch is round, align top widgets with the top of the time, otherwise center them in the top space
-        val verticalOffset = if ( isRound ) { topBottom.toInt() - sizeOfComplication } else { topBottom.toInt() / 2 - (sizeOfComplication / 2) + topAndBottomMargins }
+        val verticalOffset = if ( isRound ) { topBottom.toInt() - sizeOfComplication - context.dpToPx(6) } else { topAndBottomMargins + ((topBottom.toInt() - topAndBottomMargins) / 2) - (sizeOfComplication / 2) }
         val distanceBetweenComplications = context.dpToPx(3)
 
         val maxWidth = max(sizeOfComplication, wearOsImage.width)

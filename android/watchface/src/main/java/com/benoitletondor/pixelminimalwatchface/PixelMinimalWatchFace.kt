@@ -43,9 +43,8 @@ import android.view.WindowInsets
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import com.benoitletondor.pixelminimalwatchface.helper.FullBrightnessActivity
-import com.benoitletondor.pixelminimalwatchface.helper.await
-import com.benoitletondor.pixelminimalwatchface.helper.openActivity
+import androidx.core.util.forEach
+import com.benoitletondor.pixelminimalwatchface.helper.*
 import com.benoitletondor.pixelminimalwatchface.model.ComplicationColors
 import com.benoitletondor.pixelminimalwatchface.model.DEFAULT_APP_VERSION
 import com.benoitletondor.pixelminimalwatchface.model.Storage
@@ -65,10 +64,6 @@ private const val DATA_KEY_BATTERY_STATUS_PERCENT = "/batterySync/batteryStatus"
 private const val THREE_DAYS_MS: Long = 1000 * 60 * 60 * 24 * 3
 private const val THIRTY_MINS_MS: Long = 1000 * 60 * 30
 private const val MINIMUM_COMPLICATION_UPDATE_INTERVAL_MS = 1000L
-
-const val WEAR_OS_APP_PACKAGE = "com.google.android.wearable.app"
-const val WEATHER_PROVIDER_SERVICE = "com.google.android.clockwork.home.weather.WeatherProviderService"
-const val WEATHER_ACTIVITY_NAME = "com.google.android.clockwork.home.weather.WeatherActivity"
 
 class PixelMinimalWatchFace : CanvasWatchFaceService() {
 
@@ -213,9 +208,10 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
         }
 
         private fun subscribeToWeatherComplicationData() {
+            val weatherProviderInfo = getWeatherProviderInfo() ?: return
             setDefaultComplicationProvider(
                 WEATHER_COMPLICATION_ID,
-                ComponentName(WEAR_OS_APP_PACKAGE, WEATHER_PROVIDER_SERVICE),
+                ComponentName(weatherProviderInfo.appPackage, weatherProviderInfo.weatherProviderService),
                 ComplicationData.TYPE_SHORT_TEXT
             )
         }
@@ -329,12 +325,12 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
             watchFaceDrawer.onSurfaceChanged(width, height)
         }
 
-        override fun onComplicationDataUpdate(watchFaceComplicationId: Int, data: ComplicationData) {
-            super.onComplicationDataUpdate(watchFaceComplicationId, data)
+        override fun onComplicationDataUpdate(watchFaceComplicationId: Int, complicationData: ComplicationData) {
+            super.onComplicationDataUpdate(watchFaceComplicationId, complicationData)
 
             if( watchFaceComplicationId == WEATHER_COMPLICATION_ID ) {
-                weatherComplicationData = if( data.type == ComplicationData.TYPE_SHORT_TEXT ) {
-                    data
+                weatherComplicationData = if( complicationData.type == ComplicationData.TYPE_SHORT_TEXT ) {
+                    complicationData
                 } else {
                     null
                 }
@@ -344,8 +340,8 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
             }
 
             if( watchFaceComplicationId == BATTERY_COMPLICATION_ID ) {
-                batteryComplicationData = if( data.type == ComplicationData.TYPE_SHORT_TEXT ) {
-                    data
+                batteryComplicationData = if( complicationData.type == ComplicationData.TYPE_SHORT_TEXT ) {
+                    complicationData
                 } else {
                     null
                 }
@@ -353,6 +349,8 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
                 invalidate()
                 return
             }
+
+            val data = complicationData.sanitize(this@PixelMinimalWatchFace)
 
             // Updates correct ComplicationDrawable with updated data.
             val complicationDrawable = complicationDrawableSparseArray.get(watchFaceComplicationId) ?: return
@@ -390,7 +388,8 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
                         }
                     }
                     if( watchFaceDrawer.tapIsOnWeather(x, y) ) {
-                        openActivity(WEAR_OS_APP_PACKAGE, WEATHER_ACTIVITY_NAME)
+                        val weatherProviderInfo = getWeatherProviderInfo() ?: return
+                        openActivity(weatherProviderInfo.appPackage, weatherProviderInfo.weatherActivityName)
                         lastTapEventTimestamp = 0
                         return
                     }

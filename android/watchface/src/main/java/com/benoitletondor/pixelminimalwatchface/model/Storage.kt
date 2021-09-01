@@ -46,7 +46,7 @@ private const val KEY_SECONDS_RING = "secondsRing"
 private const val KEY_SHOW_WEATHER = "showWeather"
 private const val KEY_SHOW_BATTERY = "showBattery"
 private const val KEY_SHOW_PHONE_BATTERY = "showPhoneBattery"
-private const val KEY_FEATURE_DROP_2021_NOTIFICATION = "featureDrop2021Notification_2"
+private const val KEY_SAMSUNG_UPDATE_NOTIFICATION_SHOWN = "samsungUpdateNotificationShown_3"
 private const val KEY_USE_SHORT_DATE_FORMAT = "useShortDateFormat"
 private const val KEY_SHOW_DATE_AMBIENT = "showDateAmbient"
 private const val KEY_TIME_AND_DATE_COLOR = "timeAndDateColor"
@@ -78,8 +78,8 @@ interface Storage {
     fun setShouldShowWeather(show: Boolean)
     fun shouldShowBattery(): Boolean
     fun setShouldShowBattery(show: Boolean)
-    fun hasFeatureDrop2021NotificationBeenShown(): Boolean
-    fun setFeatureDrop2021NotificationShown()
+    fun hasSamsungGalaxyWatchUpdateNotificationBeenShown(): Boolean
+    fun setSamsungGalaxyWatchUpdateNotificationShown()
     fun getUseShortDateFormat(): Boolean
     fun setUseShortDateFormat(useShortDateFormat: Boolean)
     fun setShowDateInAmbient(showDateInAmbient: Boolean)
@@ -449,12 +449,12 @@ class StorageImpl : Storage {
         sharedPreferences.edit().putInt(KEY_BATTERY_COLOR, color).apply()
     }
 
-    override fun hasFeatureDrop2021NotificationBeenShown(): Boolean {
-        return sharedPreferences.getBoolean(KEY_FEATURE_DROP_2021_NOTIFICATION, false)
+    override fun hasSamsungGalaxyWatchUpdateNotificationBeenShown(): Boolean {
+        return sharedPreferences.getBoolean(KEY_SAMSUNG_UPDATE_NOTIFICATION_SHOWN, false)
     }
 
-    override fun setFeatureDrop2021NotificationShown() {
-        sharedPreferences.edit().putBoolean(KEY_FEATURE_DROP_2021_NOTIFICATION, true).apply()
+    override fun setSamsungGalaxyWatchUpdateNotificationShown() {
+        sharedPreferences.edit().putBoolean(KEY_SAMSUNG_UPDATE_NOTIFICATION_SHOWN, true).apply()
     }
 
     override fun getUseShortDateFormat(): Boolean {
