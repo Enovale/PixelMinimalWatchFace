@@ -30,6 +30,8 @@ import com.benoitletondor.pixelminimalwatchface.BuildConfig.COMPANION_APP_PLAYST
 import com.benoitletondor.pixelminimalwatchface.Injection
 import com.benoitletondor.pixelminimalwatchface.R
 import com.benoitletondor.pixelminimalwatchface.databinding.ActivityComplicationConfigBinding
+import com.benoitletondor.pixelminimalwatchface.getWeatherProviderInfo
+import com.benoitletondor.pixelminimalwatchface.helper.openActivity
 import com.benoitletondor.pixelminimalwatchface.model.ComplicationColor
 import com.benoitletondor.pixelminimalwatchface.model.Storage
 import com.benoitletondor.pixelminimalwatchface.rating.FeedbackActivity
@@ -69,6 +71,10 @@ class SettingsActivity : Activity() {
             storage.setShouldShowSecondsRing(showSecondsRing)
         }, { showWeather ->
             storage.setShouldShowWeather(showWeather)
+        }, {
+            getWeatherProviderInfo()?.let { weatherProviderInfo ->
+                openActivity(weatherProviderInfo.appPackage, weatherProviderInfo.weatherActivityName)
+            }
         }, { showBattery ->
             storage.setShouldShowBattery(showBattery)
         }, { showBatteryInAmbient ->

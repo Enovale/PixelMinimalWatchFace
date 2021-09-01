@@ -278,12 +278,12 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
             watchFaceDrawer.onSurfaceChanged(width, height)
         }
 
-        override fun onComplicationDataUpdate(watchFaceComplicationId: Int, data: ComplicationData) {
-            super.onComplicationDataUpdate(watchFaceComplicationId, data)
+        override fun onComplicationDataUpdate(watchFaceComplicationId: Int, complicationData: ComplicationData) {
+            super.onComplicationDataUpdate(watchFaceComplicationId, complicationData)
 
             if( watchFaceComplicationId == WEATHER_COMPLICATION_ID ) {
-                weatherComplicationData = if( data.type == ComplicationData.TYPE_SHORT_TEXT ) {
-                    data
+                weatherComplicationData = if( complicationData.type == ComplicationData.TYPE_SHORT_TEXT ) {
+                    complicationData
                 } else {
                     null
                 }
@@ -293,8 +293,8 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
             }
 
             if( watchFaceComplicationId == BATTERY_COMPLICATION_ID ) {
-                batteryComplicationData = if( data.type == ComplicationData.TYPE_SHORT_TEXT ) {
-                    data
+                batteryComplicationData = if( complicationData.type == ComplicationData.TYPE_SHORT_TEXT ) {
+                    complicationData
                 } else {
                     null
                 }
@@ -302,6 +302,8 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
                 invalidate()
                 return
             }
+
+            val data = complicationData.sanitize(this@PixelMinimalWatchFace)
 
             complicationDataSparseArray.put(watchFaceComplicationId, data)
             watchFaceDrawer.onComplicationDataUpdate(watchFaceComplicationId, data, complicationsColors)

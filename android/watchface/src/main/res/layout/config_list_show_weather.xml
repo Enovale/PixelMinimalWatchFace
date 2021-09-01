@@ -14,11 +14,26 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 -->
-<Switch
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/config_list_show_weather_switch"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    style="@style/ButtonConfigurationStyle"
-    android:text="@string/config_show_weather"
-    android:drawableStart="@drawable/ic_weather_partly_cloudy"/>
+    android:orientation="vertical">
+
+    <Switch
+        android:id="@+id/config_list_show_weather_switch"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="@style/ButtonConfigurationStyle"
+        android:text="@string/config_show_weather"
+        android:drawableStart="@drawable/ic_weather_partly_cloudy"/>
+
+    <Button
+        android:id="@+id/config_list_open_weather_app_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/config_open_weather_app"
+        style="@android:style/Widget.Material.Button.Small"
+        android:textAllCaps="false"
+        android:layout_marginStart="35dp"/>
+</LinearLayout>

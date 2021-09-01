@@ -69,5 +69,4 @@
     <string name="donation_loading_error">Unable to contact the PlayStore for donation details (%s).\n\nPlease try again later or contact me using the menu.</string>
     <string name="donation_loaded_subtitle">I\'m an indie developer, making Pixel Minimal Watch Face on my free time, open source, doing my best to provide a great experience.</string>
     <string name="donation_loaded_subtitle_2">By being premium you\'re already supporting a lot but if you feel like donating a bit more, it would really help!</string>
-    <string name="galaxy_watch_4_warning">Galaxy Watch 4 users:\n- An update that supports weather display after date is coming early September\n- Some widgets provided by Samsung are not displaying the right data (heart rate &amp; others). I\'ve contacted Samsung about it as the issue is on their side.\n\nThank you for your understanding!</string>
 </resources>
