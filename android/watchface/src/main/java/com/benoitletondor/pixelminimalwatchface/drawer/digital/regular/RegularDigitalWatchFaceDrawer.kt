@@ -270,7 +270,7 @@ class RegularDigitalWatchFaceDrawer(
         val dateYOffset = timeYOffset + (timeTextBounds.height() / 2) - (dateTextHeight / 2.0f ) + context.dpToPx(8)
 
         val complicationsDrawingCache = buildComplicationDrawingCache(
-            timeYOffset - timeTextBounds.height() - context.dpToPx(6),
+            timeYOffset - timeTextBounds.height(),
             dateYOffset + dateTextHeight / 2,
         )
 
@@ -303,7 +303,7 @@ class RegularDigitalWatchFaceDrawer(
 
         val sizeOfComplication = if( isRound ) { (screenWidth / 4.5).toInt() } else { min(topBottom.toInt() - topAndBottomMargins - context.dpToPx(2), (screenWidth / 3.5).toInt()) }
         // If watch is round, align top widgets with the top of the time, otherwise center them in the top space
-        val verticalOffset = if ( isRound ) { topBottom.toInt() - sizeOfComplication } else { topBottom.toInt() / 2 - (sizeOfComplication / 2) + topAndBottomMargins }
+        val verticalOffset = if ( isRound ) { topBottom.toInt() - sizeOfComplication - context.dpToPx(6) } else { topAndBottomMargins + ((topBottom.toInt() - topAndBottomMargins) / 2) - (sizeOfComplication / 2) }
         val distanceBetweenComplications = context.dpToPx(3)
 
         val maxWidth = max(sizeOfComplication, wearOsImage.width)

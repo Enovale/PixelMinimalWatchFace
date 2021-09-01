@@ -21,6 +21,7 @@ import android.support.wearable.complications.ComplicationProviderInfo
 import android.view.View
 import android.widget.*
 import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.benoitletondor.pixelminimalwatchface.BuildConfig
 import com.benoitletondor.pixelminimalwatchface.R
@@ -498,17 +499,24 @@ class ShowSecondsRingViewHolder(
 class ShowWeatherViewHolder(
     view: View,
     showWeatherViewHolderClickListener: (Boolean) -> Unit,
+    openWeatherAppClickListener: () -> Unit,
 ) : RecyclerView.ViewHolder(view) {
-    private val showWeatherViewSwitch: Switch = view as Switch
+    private val showWeatherViewSwitch: Switch = view.findViewById(R.id.config_list_show_weather_switch)
+    private val goToWeatherAppButton: Button = view.findViewById(R.id.config_list_open_weather_app_button)
 
     init {
         showWeatherViewSwitch.setOnCheckedChangeListener { _, checked ->
             showWeatherViewHolderClickListener(checked)
         }
+
+        goToWeatherAppButton.setOnClickListener {
+            openWeatherAppClickListener()
+        }
     }
 
     fun setShowWeatherViewSwitchChecked(checked: Boolean) {
         showWeatherViewSwitch.isChecked = checked
+        goToWeatherAppButton.isVisible = checked
     }
 }
 

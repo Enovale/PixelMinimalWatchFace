@@ -80,6 +80,7 @@ class ComplicationConfigRecyclerViewAdapter(
     private val dateAndBatterySizeChangedListener: (Int) -> Unit,
     private val showSecondsRingListener: (Boolean) -> Unit,
     private val showWeatherListener: (Boolean) -> Unit,
+    private val openWeatherAppListener: () -> Unit,
     private val showBatteryListener: (Boolean) -> Unit,
     private val showBatteryInAmbientListener: (Boolean) -> Unit,
     private val dateFormatSelectionListener: (Boolean) -> Unit,
@@ -224,20 +225,23 @@ class ComplicationConfigRecyclerViewAdapter(
                         R.layout.config_list_show_weather,
                         parent,
                         false
-                    )
-                ) { showWeather ->
-                    if( showWeather ) {
-                        (context as Activity).startActivityForResult(
-                            ComplicationHelperActivity.createPermissionRequestHelperIntent(
-                                context,
-                                watchFaceComponentName
-                            ),
-                            SettingsActivity.COMPLICATION_WEATHER_PERMISSION_REQUEST_CODE
-                        )
-                    } else {
-                        showWeatherListener(false)
-                    }
-                }
+                    ),
+                    { showWeather ->
+                        if( showWeather ) {
+                            (context as Activity).startActivityForResult(
+                                ComplicationHelperActivity.createPermissionRequestHelperIntent(
+                                    context,
+                                    watchFaceComponentName
+                                ),
+                                SettingsActivity.COMPLICATION_WEATHER_PERMISSION_REQUEST_CODE
+                            )
+                        } else {
+                            showWeatherListener(false)
+                            updateWeatherButton()
+                        }
+                    },
+                    openWeatherAppListener,
+                )
                 this.showWeatherViewHolder = showWeatherViewHolder
                 return showWeatherViewHolder
             }
@@ -606,6 +610,13 @@ class ComplicationConfigRecyclerViewAdapter(
 
         showWeatherViewHolder?.setShowWeatherViewSwitchChecked(granted)
         showWeatherListener(granted)
+        updateWeatherButton()
+    }
+
+    private fun updateWeatherButton() {
+        generateSettingsList(context, storage).indexOf(TYPE_SHOW_WEATHER).takeIf { it > 0 }?.let { index ->
+            notifyItemChanged(index)
+        }
     }
 
     fun batteryComplicationPermissionFinished() {

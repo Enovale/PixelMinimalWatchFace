@@ -42,10 +42,7 @@ import androidx.core.app.NotificationManagerCompat
 import com.benoitletondor.pixelminimalwatchface.drawer.digital.android12.Android12DigitalWatchFaceDrawer
 import com.benoitletondor.pixelminimalwatchface.drawer.WatchFaceDrawer
 import com.benoitletondor.pixelminimalwatchface.drawer.digital.regular.RegularDigitalWatchFaceDrawer
-import com.benoitletondor.pixelminimalwatchface.helper.ComplicationTimeDependentUpdateHandler
-import com.benoitletondor.pixelminimalwatchface.helper.FullBrightnessActivity
-import com.benoitletondor.pixelminimalwatchface.helper.await
-import com.benoitletondor.pixelminimalwatchface.helper.openActivity
+import com.benoitletondor.pixelminimalwatchface.helper.*
 import com.benoitletondor.pixelminimalwatchface.model.ComplicationColors
 import com.benoitletondor.pixelminimalwatchface.model.DEFAULT_APP_VERSION
 import com.benoitletondor.pixelminimalwatchface.model.Storage
