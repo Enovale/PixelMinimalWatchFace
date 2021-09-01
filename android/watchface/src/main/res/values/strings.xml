@@ -90,7 +90,7 @@
     <string name="rating_feedback_send_text"></string>
     <string name="feature_drop_2021_notification_title">New feature drop</string>
     <string name="feature_drop_2021_notification_message">New features are available for Pixel Minimal Watch Face!</string>
-    <string name="feature_drop_2021_notification_cta">Discover what\'s new</string>
+    <string name="feature_drop_2021_notification_cta">See what\'s new</string>
     <string name="feature_drop_2021_title">September feature drop</string>
     <string name="feature_drop_2021_welcome">Let\'s celebrate the launch of Android 12 with Pixel Minimal Watch Face new features:</string>
     <string name="feature_drop_2021_feature_1">- New Android 12 inspired layout, you can try it in the settings</string>
