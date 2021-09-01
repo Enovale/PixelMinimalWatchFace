@@ -139,6 +139,8 @@ class Android12DigitalWatchFaceDrawer(
             complicationDrawable.setTitleTypefaceActive(productSansRegularFont)
             complicationDrawable.setTextTypefaceAmbient(productSansRegularFont)
             complicationDrawable.setTitleTypefaceAmbient(productSansRegularFont)
+            complicationDrawable.setBorderColorActive(ContextCompat.getColor(context, R.color.transparent))
+            complicationDrawable.setBorderColorAmbient(ContextCompat.getColor(context, R.color.transparent))
 
             onComplicationDataUpdate(complicationId, complicationsData[complicationId], complicationColors)
         }
