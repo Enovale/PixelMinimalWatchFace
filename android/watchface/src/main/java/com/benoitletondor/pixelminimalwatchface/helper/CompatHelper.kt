@@ -12,11 +12,11 @@ import org.json.JSONObject
 import kotlin.math.roundToInt
 
 fun Context.getTopAndBottomMargins(): Float {
-    if (Device.isSamsungGalaxy) {
-        return dpToPx(23).toFloat()
+    return when {
+        Device.isSamsungGalaxyWatch4BigScreen(this) -> dpToPx(26).toFloat()
+        Device.isSamsungGalaxy -> dpToPx(23).toFloat()
+        else -> resources.getDimension(R.dimen.screen_top_and_bottom_margin)
     }
-
-    return resources.getDimension(R.dimen.screen_top_and_bottom_margin)
 }
 
 fun ComplicationData.sanitize(context: Context): ComplicationData {
