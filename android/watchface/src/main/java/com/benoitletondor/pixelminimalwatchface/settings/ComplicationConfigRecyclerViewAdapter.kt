@@ -492,9 +492,7 @@ class ComplicationConfigRecyclerViewAdapter(
     }
 
     private fun updateWeatherButton() {
-        generateSettingsList(context, storage).indexOf(TYPE_SHOW_WEATHER).takeIf { it > 0 }?.let { index ->
-            notifyItemChanged(index)
-        }
+        notifyDataSetChanged()
     }
 
     fun batteryComplicationPermissionFinished() {
