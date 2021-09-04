@@ -28,6 +28,11 @@
     <!-- Read data from samsung health -->
     <uses-permission android:name="com.samsung.android.wear.shealth.healthdataprovider.permission.READ" />
 
+    <!-- For API 30+, we need to query packages to display icons from them in complications -->
+    <uses-permission
+        android:name="android.permission.QUERY_ALL_PACKAGES"
+        tools:ignore="QueryAllPackagesPermission" />
+
     <uses-feature android:name="android.hardware.type.watch" />
 
     <application
