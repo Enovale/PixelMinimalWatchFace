@@ -50,12 +50,11 @@ class Android12DigitalWatchFaceDrawer(
     private val minFormatter = SimpleDateFormat("mm", Locale.getDefault())
 
     private val productSansRegularFont: Typeface = ResourcesCompat.getFont(context, R.font.product_sans_regular)!!
-    private val productSansLightFont: Typeface = ResourcesCompat.getFont(context, R.font.product_sans_light)!!
     private val productSansThinFont: Typeface = ResourcesCompat.getFont(context, R.font.product_sans_thin)!!
 
     private val wearOSLogoPaint = Paint()
     private val timePaint = Paint().apply {
-        typeface = productSansLightFont
+        typeface = productSansRegularFont
     }
     private val datePaint = Paint().apply {
         typeface = productSansRegularFont
@@ -270,9 +269,7 @@ class Android12DigitalWatchFaceDrawer(
         timePaint.apply {
             isAntiAlias = !(ambient && lowBitAmbient)
             color = if( ambient ) { timeColorDimmed } else { storage.getTimeAndDateColor() }
-            typeface = if( ambient && !storage.shouldShowFilledTimeInAmbientMode() ) { productSansThinFont } else { productSansLightFont }
-            strokeWidth = 1.3f
-            style = if( ambient ) { Paint.Style.FILL } else { Paint.Style.FILL_AND_STROKE }
+            typeface = if( ambient && !storage.shouldShowFilledTimeInAmbientMode() ) { productSansThinFont } else { productSansRegularFont }
         }
 
         datePaint.apply {
@@ -407,8 +404,8 @@ class Android12DigitalWatchFaceDrawer(
     }
 
     private fun setScaledSizes(timeSize: Int, dateAndBatterySize: Int) {
-        val scaleFactor = fontDisplaySizeToScaleFactor(timeSize)
-        val dateAndBatteryScaleFactor = fontDisplaySizeToScaleFactor(dateAndBatterySize)
+        val scaleFactor = fontDisplaySizeToScaleFactor(timeSize, android12Layout = true)
+        val dateAndBatteryScaleFactor = fontDisplaySizeToScaleFactor(dateAndBatterySize, android12Layout = true)
 
         timePaint.textSize = context.resources.getDimension(R.dimen.android_12_time_text_size) * scaleFactor
         val dateSize = context.resources.getDimension(R.dimen.android_12_date_text_size) * dateAndBatteryScaleFactor

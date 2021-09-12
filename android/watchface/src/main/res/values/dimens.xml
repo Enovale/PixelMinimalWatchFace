@@ -17,7 +17,7 @@
 <resources>
     <dimen name="time_text_size">59dp</dimen>
     <dimen name="time_text_size_round">62dp</dimen>
-    <dimen name="android_12_time_text_size">57dp</dimen>
+    <dimen name="android_12_time_text_size">52dp</dimen>
     <dimen name="date_text_size">14dp</dimen>
     <dimen name="date_text_size_round">14dp</dimen>
     <dimen name="android_12_date_text_size">13dp</dimen>

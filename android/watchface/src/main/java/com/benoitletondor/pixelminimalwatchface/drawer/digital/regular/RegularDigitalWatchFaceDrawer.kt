@@ -511,8 +511,8 @@ class RegularDigitalWatchFaceDrawer(
     }
 
     private fun setScaledSizes(timeSize: Int, dateAndBatterySize: Int) {
-        val timeScaleFactor = fontDisplaySizeToScaleFactor(timeSize)
-        val dateAndBatteryScaleFactor = fontDisplaySizeToScaleFactor(dateAndBatterySize)
+        val timeScaleFactor = fontDisplaySizeToScaleFactor(timeSize, android12Layout = false)
+        val dateAndBatteryScaleFactor = fontDisplaySizeToScaleFactor(dateAndBatterySize, android12Layout = false)
 
         timePaint.textSize = context.resources.getDimension(
             if( isRound ) {

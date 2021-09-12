@@ -20,13 +20,13 @@ import com.benoitletondor.pixelminimalwatchface.R
 
 const val DEFAULT_TIME_SIZE = 50
 
-fun fontDisplaySizeToScaleFactor(timeSize: Int): Float {
+fun fontDisplaySizeToScaleFactor(timeSize: Int, android12Layout: Boolean): Float {
     return when(timeSize) {
-        0 -> 0.80f
-        25 -> 0.90f
+        0 -> if ( android12Layout ) 0.70f else 0.80f
+        25 -> if ( android12Layout ) 0.80f else 0.90f
         50 -> 1f
-        75 -> 1.10f
-        100 -> 1.20f
+        75 -> if ( android12Layout ) 1.20f else 1.10f
+        100 -> if ( android12Layout ) 1.40f else 1.20f
         else -> 1f
     }
 }
