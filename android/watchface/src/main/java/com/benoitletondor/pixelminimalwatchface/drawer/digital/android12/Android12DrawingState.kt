@@ -16,6 +16,8 @@
 package com.benoitletondor.pixelminimalwatchface.drawer.digital.android12
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.Rect
 import com.benoitletondor.pixelminimalwatchface.drawer.digital.*
 
 sealed class Android12DrawingState {
@@ -48,6 +50,7 @@ sealed class Android12DrawingState {
 }
 
 data class ComplicationsDrawingCache(
-    val wearOSLogoY: Float,
-    val wearOSLogoX: Float,
+    val wearOSLogoAmbient: Bitmap,
+    val wearOSLogo: Bitmap,
+    val wearOSLogoRect: Rect,
 )

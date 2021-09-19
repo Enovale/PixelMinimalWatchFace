@@ -36,8 +36,7 @@ import com.benoitletondor.pixelminimalwatchface.model.Storage
 import com.benoitletondor.pixelminimalwatchface.model.getPrimaryColorForComplicationId
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.math.abs
-import kotlin.math.max
+import kotlin.math.min
 
 class Android12DigitalWatchFaceDrawer(
     private val context: Context,
@@ -68,8 +67,6 @@ class Android12DigitalWatchFaceDrawer(
     private val dateAndBatteryColorDimmed: Int = ContextCompat.getColor(context, R.color.face_date_dimmed)
     @ColorInt
     private val complicationTitleColor: Int = ContextCompat.getColor(context, R.color.complication_title_color)
-    private val wearOSLogo: Bitmap = ContextCompat.getDrawable(context, R.drawable.ic_wear_os_logo)!!.toBitmap()
-    private val wearOSLogoAmbient: Bitmap = ContextCompat.getDrawable(context, R.drawable.ic_wear_os_logo_ambient)!!.toBitmap()
     private val batteryIconPaint: Paint = Paint()
     private var batteryIconSize = 0
     private val batteryLevelPaint = Paint().apply {
@@ -83,12 +80,12 @@ class Android12DigitalWatchFaceDrawer(
     private var isRound: Boolean = false
     private var currentTimeSize = storage.getTimeSize()
     private var currentDateAndBatterySize = storage.getDateAndBatterySize()
-    private val spaceBeforeWeather = context.dpToPx(5)
     private val weatherAndBatteryIconColorFilterDimmed: ColorFilter = PorterDuffColorFilter(dateAndBatteryColorDimmed, PorterDuff.Mode.SRC_IN)
     private val timeOffsetX = context.dpToPx(-2)
     private val timeCharPaddingX = context.dpToPx(1)
     private val timePaddingY = context.dpToPx(-5)
     private val topAndBottomMargins = context.getTopAndBottomMargins()
+    private val verticalPaddingBetweenElements = context.dpToPx(7)
 
     private val complicationDrawableSparseArray: SparseArray<ComplicationDrawable> = SparseArray(ACTIVE_COMPLICATIONS.size)
 
@@ -329,15 +326,15 @@ class Android12DigitalWatchFaceDrawer(
         val dateTextHeight = Rect().apply {
             datePaint.getTextBounds(dateText, 0, dateText.length, this)
         }.height()
+        val timeTopY = (centerY - timeHeight - distanceBetweenHourAndMin + timePaddingY)
         val timeBottomY = (centerY + timeHeight + distanceBetweenHourAndMin + timePaddingY)
-        val dateBottomY = timeBottomY + (batteryTopY - timeBottomY) / 2 + dateTextHeight / 2
+        val dateBottomY = timeTopY - verticalPaddingBetweenElements
 
         val complicationsDrawingCache = buildComplicationDrawingCache(
             timeX = timeX,
             timeHeight = timeHeight,
             timeBottomY = timeBottomY,
-            dateBottomY = dateBottomY,
-            dateHeight = dateTextHeight,
+            batteryTopY = batteryTopY,
         )
 
         currentTimeSize = timeSize
@@ -369,17 +366,16 @@ class Android12DigitalWatchFaceDrawer(
         timeX: Float,
         timeHeight: Int,
         timeBottomY: Float,
-        dateBottomY: Float,
-        dateHeight: Int,
+        batteryTopY: Int,
     ): ComplicationsDrawingCache {
-        val wearOsImage = wearOSLogo
+        val wearOsImage = ContextCompat.getDrawable(context, R.drawable.ic_wear_os_logo)!!.toBitmap()
 
         val complicationSize = ((screenWidth - timeX) * 0.35f).toInt()
         val wearOSLogoWidth = wearOsImage.width.toFloat()
         val wearOSLogoHeight = wearOsImage.height.toFloat()
 
-        val leftX = (timeX / 2f - complicationSize / 2f).toInt()
-        val rightX = (screenWidth - timeX / 2f - complicationSize / 2f).toInt()
+        val leftX = (timeX / (if (isRound) 1.7f else 2f) - complicationSize / 2f).toInt()
+        val rightX = (screenWidth - timeX / (if (isRound) 1.7f else 2f) - complicationSize / 2f).toInt()
         val topY = (centerY - distanceBetweenHourAndMin - timeHeight / 2f - complicationSize / 2f).toInt() + timePaddingY
         val bottomY = (centerY + distanceBetweenHourAndMin + timeHeight / 2f - complicationSize / 2f).toInt() + timePaddingY
 
@@ -392,14 +388,25 @@ class Android12DigitalWatchFaceDrawer(
         complicationDrawableSparseArray[PixelMinimalWatchFace.ANDROID_12_BOTTOM_RIGHT_COMPLICATION_ID]
             ?.setBounds(rightX, bottomY, rightX + complicationSize, bottomY + complicationSize)
 
-        val timeTopY = centerY - timeHeight + timePaddingY - distanceBetweenHourAndMin
+        val targetWearOSLogoHeight = min(wearOSLogoHeight, (batteryTopY - verticalPaddingBetweenElements) - (timeBottomY + verticalPaddingBetweenElements))
+        val targetWearOSLogoWidth = if( targetWearOSLogoHeight < wearOSLogoHeight ) {
+            wearOSLogoWidth * (targetWearOSLogoHeight / wearOSLogoHeight)
+        } else {
+            wearOSLogoWidth
+        }
+
+        val wearOSLogo: Bitmap = ContextCompat.getDrawable(context, R.drawable.ic_wear_os_logo)!!.toBitmap(targetWearOSLogoWidth.toInt(), targetWearOSLogoHeight.toInt())
+        val wearOSLogoAmbient: Bitmap = ContextCompat.getDrawable(context, R.drawable.ic_wear_os_logo_ambient)!!.toBitmap(targetWearOSLogoWidth.toInt(), targetWearOSLogoHeight.toInt())
 
         return ComplicationsDrawingCache(
-            wearOSLogoY = max(
-                timeTopY - abs(timeBottomY - (dateBottomY - dateHeight)) - wearOSLogoHeight,
-                topAndBottomMargins,
-            ),
-            wearOSLogoX = centerX - wearOSLogoWidth / 2f,
+            wearOSLogo = wearOSLogo,
+            wearOSLogoAmbient = wearOSLogoAmbient,
+            wearOSLogoRect = Rect(
+                (centerX - targetWearOSLogoWidth / 2f).toInt(),
+                (timeBottomY + verticalPaddingBetweenElements).toInt(),
+                (centerX + targetWearOSLogoWidth / 2f).toInt(),
+                (timeBottomY + verticalPaddingBetweenElements + targetWearOSLogoHeight).toInt(),
+            )
         )
     }
 
@@ -473,7 +480,6 @@ class Android12DigitalWatchFaceDrawer(
                 isUserPremium,
                 calendar,
                 datePaint,
-                spaceBeforeWeather,
                 weatherIconPaint,
             )
         }
@@ -512,7 +518,7 @@ class Android12DigitalWatchFaceDrawer(
 
         if( storage.shouldShowWearOSLogo() ) {
             val wearOsImage = if( ambient ) { wearOSLogoAmbient } else { wearOSLogo }
-            canvas.drawBitmap(wearOsImage, wearOSLogoX, wearOSLogoY, wearOSLogoPaint)
+            canvas.drawBitmap(wearOsImage, null, wearOSLogoRect, wearOSLogoPaint)
         }
     }
 

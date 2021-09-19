@@ -13,7 +13,7 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  */
-package com.benoitletondor.pixelminimalwatchface.drawer.digital
+package com.benoitletondor.pixelminimalwatchface.drawer.digital.android12
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -25,6 +25,7 @@ import android.support.wearable.complications.ComplicationData
 import android.support.wearable.complications.ComplicationText
 import android.text.format.DateUtils
 import com.benoitletondor.pixelminimalwatchface.helper.capitalize
+import com.benoitletondor.pixelminimalwatchface.helper.dpToPx
 import com.benoitletondor.pixelminimalwatchface.helper.sameAs
 import com.benoitletondor.pixelminimalwatchface.helper.toBitmap
 import java.util.*
@@ -37,7 +38,6 @@ interface DateAndWeatherDrawer {
         isUserPremium: Boolean,
         calendar: Calendar,
         datePaint: Paint,
-        spaceBeforeWeather: Int,
         weatherIconPaint: Paint,
     )
 
@@ -76,7 +76,6 @@ class DateAndWeatherDrawerImpl(
         isUserPremium: Boolean,
         calendar: Calendar,
         datePaint: Paint,
-        spaceBeforeWeather: Int,
         weatherIconPaint: Paint,
     ) {
         val dateFormat = if( useShortDateFormat ) {
@@ -87,51 +86,45 @@ class DateAndWeatherDrawerImpl(
 
         val dateText = DateUtils.formatDateTime(context, calendar.timeInMillis, dateFormat).capitalize()
         val dateTextLength = datePaint.measureText(dateText)
-        val dateXOffset = if( isUserPremium && weatherComplicationData != null ) {
+        if( isUserPremium && weatherComplicationData != null ) {
             val weatherText = weatherComplicationData.shortText
             val weatherIcon = weatherComplicationData.icon
 
             if( weatherText != null && weatherIcon != null ) {
-                drawWeatherAndComputeDateXOffset(weatherText, weatherIcon, calendar, dateTextLength, canvas, spaceBeforeWeather, datePaint, weatherIconPaint)
+                drawWeather(weatherText, weatherIcon, calendar, canvas, datePaint, weatherIconPaint)
             } else {
                 currentWeatherBitmap = null
                 currentWeatherIcon = null
                 weatherTextEndX = null
-
-                centerX - (dateTextLength / 2f)
             }
         } else {
             currentWeatherBitmap = null
             currentWeatherIcon = null
             weatherTextEndX = null
-
-            centerX - (dateTextLength / 2f)
         }
 
-        canvas.drawText(dateText, dateXOffset, dateYOffset, datePaint)
+        canvas.drawText(dateText, centerX - (dateTextLength / 2f), dateYOffset, datePaint)
     }
 
-    private fun drawWeatherAndComputeDateXOffset(
+    private fun drawWeather(
         weatherText: ComplicationText,
         weatherIcon: Icon,
         calendar: Calendar,
-        dateTextLength: Float,
         canvas: Canvas,
-        spaceBeforeWeather: Int,
         datePaint: Paint,
         weatherIconPaint: Paint,
-    ): Float {
+    ) {
         val weatherIconSize = dateHeight
         val weatherTextString = weatherText.getText(context, calendar.timeInMillis).toString()
         val weatherTextLength = datePaint.measureText(weatherTextString)
         val dateFontMetrics = datePaint.fontMetrics
 
-        val dateXOffset = centerX - (dateTextLength / 2f) - weatherTextLength / 2f - weatherIconSize / 2f - spaceBeforeWeather - dateFontMetrics.descent / 4f
+        val weatherBottom = dateYOffset - weatherIconSize - context.dpToPx(2)
 
-        weatherIconRect.left = (dateXOffset + dateTextLength + spaceBeforeWeather).toInt()
-        weatherIconRect.top = (dateYOffset - weatherIconSize + dateFontMetrics.descent / 2f).toInt()
-        weatherIconRect.right = (dateXOffset + dateTextLength + weatherIconSize + spaceBeforeWeather + dateFontMetrics.descent / 2f).toInt()
-        weatherIconRect.bottom = (dateYOffset + dateFontMetrics.descent).toInt()
+        weatherIconRect.left = (centerX - weatherTextLength / 2f - weatherIconSize / 2f).toInt()
+        weatherIconRect.top = (weatherBottom - weatherIconSize + dateFontMetrics.descent / 2f).toInt()
+        weatherIconRect.right = (centerX - weatherTextLength / 2f + weatherIconSize / 2f).toInt()
+        weatherIconRect.bottom = (weatherBottom + dateFontMetrics.descent / 2f).toInt()
 
         val cachedWeatherIcon = this.currentWeatherIcon
         val cachedWeatherBitmap = this.currentWeatherBitmap
@@ -152,12 +145,12 @@ class DateAndWeatherDrawerImpl(
             }
         }
 
-        val weatherTextX = dateXOffset + dateTextLength + weatherIconSize + spaceBeforeWeather * 2
+        val weatherTextX = centerX - weatherTextLength / 2f + weatherIconSize / 2f
 
         canvas.drawText(
             weatherTextString,
             weatherTextX,
-            dateYOffset,
+            weatherBottom,
             datePaint
         )
 
@@ -171,7 +164,5 @@ class DateAndWeatherDrawerImpl(
         }
 
         weatherTextEndX = weatherTextX + weatherTextLength
-
-        return dateXOffset
     }
 }
