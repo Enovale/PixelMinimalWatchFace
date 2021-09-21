@@ -658,3 +658,14 @@ class UseAndroid12StyleViewHolder(
         useAndroid12StyleSwitch.isChecked = checked
     }
 }
+
+class SecondsRingColorViewHolder(
+    view: View,
+    onChangeSecondsRingColorPressed: () -> Unit,
+) : RecyclerView.ViewHolder(view) {
+    init {
+        view.setOnClickListener {
+            onChangeSecondsRingColorPressed()
+        }
+    }
+}

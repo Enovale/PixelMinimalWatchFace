@@ -58,6 +58,7 @@
     <string name="config_battery_section_header">Activating any battery indicator replaces the bottom widget</string>
     <string name="config_time_and_date_color">Time and date color (doesn\'t affect ambient mode)</string>
     <string name="config_battery_indicator_color">Battery indicators color (doesn\'t affect ambient mode)</string>
+    <string name="config_second_ring_color">Seconds ring color</string>
     <string name="config_open_weather_app">Open Weather app for setup</string>
     <string name="config_use_android_12_style">Android 12 layout</string>
 

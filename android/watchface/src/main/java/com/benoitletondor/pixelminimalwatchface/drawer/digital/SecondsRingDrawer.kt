@@ -24,6 +24,7 @@ interface SecondsRingDrawer {
     fun drawSecondRing(
         canvas: Canvas,
         calendar: Calendar,
+        paint: Paint,
     )
 }
 
@@ -31,18 +32,12 @@ class SecondRingDrawerImpl(
     private val screenWidth: Int,
     private val screenHeight: Int,
 ) : SecondsRingDrawer {
-    private val secondsRingPaint = Paint().apply {
-        style = Paint.Style.STROKE
-        color = Color.WHITE
-        strokeWidth = 10F
-        isAntiAlias = true
-    }
-
     override fun drawSecondRing(
         canvas: Canvas,
         calendar: Calendar,
+        paint: Paint,
     ) {
         val endAngle = (calendar.get(Calendar.SECOND) * 6).toFloat()
-        canvas.drawArc(0F, 0F, screenWidth.toFloat(), screenHeight.toFloat(), 270F, endAngle, false, secondsRingPaint)
+        canvas.drawArc(0F, 0F, screenWidth.toFloat(), screenHeight.toFloat(), 270F, endAngle, false, paint)
     }
 }

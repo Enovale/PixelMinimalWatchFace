@@ -69,6 +69,11 @@ class RegularDigitalWatchFaceDrawer(
     private val batteryLevelPaint = Paint().apply {
         typeface = productSansRegularFont
     }
+    private val secondsRingPaint = Paint().apply {
+        style = Paint.Style.STROKE
+        strokeWidth = 10F
+        isAntiAlias = true
+    }
     private val distanceBetweenPhoneAndWatchBattery: Int = context.dpToPx(3)
     private val titleSize: Int = context.resources.getDimensionPixelSize(R.dimen.complication_title_size)
     private val textSize: Int = context.resources.getDimensionPixelSize(R.dimen.complication_text_size)
@@ -411,7 +416,7 @@ class RegularDigitalWatchFaceDrawer(
         }
 
         if( drawSecondsRing && !ambient ) {
-            drawSecondRing(canvas, calendar)
+            drawSecondRing(canvas, calendar, secondsRingPaint)
         }
 
         if( isUserPremium && (drawBattery || drawPhoneBattery) && (!ambient || !storage.shouldHideBatteryInAmbient()) ) {
@@ -495,6 +500,10 @@ class RegularDigitalWatchFaceDrawer(
         batteryIconPaint.apply {
             isAntiAlias = !(ambient && lowBitAmbient)
             colorFilter = if( ambient ) { weatherAndBatteryIconColorFilterDimmed } else { storage.getBatteryIndicatorColorFilter() }
+        }
+
+        secondsRingPaint.apply {
+            colorFilter = storage.getSecondRingColor()
         }
 
         ACTIVE_COMPLICATIONS.forEach {

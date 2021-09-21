@@ -66,6 +66,7 @@ private const val TYPE_ANDROID_12_STYLE = 26
 private const val TYPE_DATE_AND_BATTERY_SIZE = 27
 private const val TYPE_ANDROID_12_COMPLICATIONS_CONFIG = 28
 private const val TYPE_SHOW_BATTERY_IN_AMBIENT = 29
+private const val TYPE_SECONDS_RING_COLOR = 30
 
 class ComplicationConfigRecyclerViewAdapter(
     private val context: Context,
@@ -90,6 +91,7 @@ class ComplicationConfigRecyclerViewAdapter(
     private val changeTimeAndDateColorButtonPressed: () -> Unit,
     private val changeBatteryIndicatorColorButtonPressed: () -> Unit,
     private val useAndroid12StyleCheckedListener: (Boolean) -> Unit,
+    private val changeSecondsRingColorButtonPressed: () -> Unit,
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private var selectedComplicationLocation: ComplicationLocation? = null
@@ -216,9 +218,12 @@ class ComplicationConfigRecyclerViewAdapter(
                     R.layout.config_list_show_seconds_ring,
                     parent,
                     false
-                ),
-                showSecondsRingListener
-            )
+                )) { showSecondsRing ->
+                    if (showSecondsRing != storage.shouldShowSecondsRing()) {
+                        showSecondsRingListener(showSecondsRing)
+                        notifyDataSetChanged()
+                    }
+                }
             TYPE_SHOW_WEATHER -> {
                 val showWeatherViewHolder = ShowWeatherViewHolder(
                     LayoutInflater.from(parent.context).inflate(
@@ -351,6 +356,14 @@ class ComplicationConfigRecyclerViewAdapter(
                     false,
                 ),
                 showBatteryInAmbientListener,
+            )
+            TYPE_SECONDS_RING_COLOR -> return SecondsRingColorViewHolder(
+                LayoutInflater.from(parent.context).inflate(
+                    R.layout.config_list_second_ring_color,
+                    parent,
+                    false,
+                ),
+                changeSecondsRingColorButtonPressed
             )
         }
         throw IllegalStateException("Unknown option type: $viewType")
@@ -564,6 +577,9 @@ class ComplicationConfigRecyclerViewAdapter(
         list.add(TYPE_TIME_AND_DATE_COLOR)
         if( isScreenRound ) {
             list.add(TYPE_SHOW_SECONDS_RING)
+            if (storage.shouldShowSecondsRing()) {
+                list.add(TYPE_SECONDS_RING_COLOR)
+            }
         }
 
         // TYPE_SECTION_AMBIENT

@@ -108,6 +108,14 @@ class SettingsActivity : Activity() {
             )
         }, { useAndroid12Style ->
             storage.setUseAndroid12Style(useAndroid12Style)
+        }, {
+            startActivityForResult(
+                ColorSelectionActivity.createIntent(
+                    this,
+                    ComplicationColor(getColor(R.color.white), getString(R.string.color_default), true)
+                ),
+                SECONDS_RING_COLOR_REQUEST_CODE
+            )
         })
 
         binding.wearableRecyclerView.apply {
@@ -151,6 +159,11 @@ class SettingsActivity : Activity() {
             val color = data?.getParcelableExtra<ComplicationColor>(ColorSelectionActivity.RESULT_SELECTED_COLOR)
             if (color != null) {
                 storage.setBatteryIndicatorColor(color.color)
+            }
+        } else if (requestCode == SECONDS_RING_COLOR_REQUEST_CODE && resultCode == RESULT_OK) {
+            val color = data?.getParcelableExtra<ComplicationColor>(ColorSelectionActivity.RESULT_SELECTED_COLOR)
+            if (color != null) {
+                storage.setSecondRingColor(color.color)
             }
         }
     }
@@ -273,5 +286,6 @@ class SettingsActivity : Activity() {
         const val COMPLICATION_PHONE_BATTERY_SETUP_REQUEST_CODE = 1006
         const val TIME_AND_DATE_COLOR_REQUEST_CODE = 1007
         const val BATTERY_COLOR_REQUEST_CODE = 1008
+        const val SECONDS_RING_COLOR_REQUEST_CODE = 1009
     }
 }

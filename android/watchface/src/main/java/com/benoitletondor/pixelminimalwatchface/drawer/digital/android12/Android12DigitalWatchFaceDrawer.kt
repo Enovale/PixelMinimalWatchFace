@@ -72,6 +72,11 @@ class Android12DigitalWatchFaceDrawer(
     private val batteryLevelPaint = Paint().apply {
         typeface = productSansRegularFont
     }
+    private val secondsRingPaint = Paint().apply {
+        style = Paint.Style.STROKE
+        strokeWidth = 10F
+        isAntiAlias = true
+    }
     private val distanceBetweenPhoneAndWatchBattery: Int = context.dpToPx(3)
     private val distanceBetweenHourAndMin: Int = context.dpToPx(4)
     private val titleSize: Int = context.resources.getDimensionPixelSize(R.dimen.complication_title_size)
@@ -294,6 +299,10 @@ class Android12DigitalWatchFaceDrawer(
             colorFilter = if( ambient ) { weatherAndBatteryIconColorFilterDimmed } else { storage.getBatteryIndicatorColorFilter() }
         }
 
+        secondsRingPaint.apply {
+            colorFilter = storage.getSecondRingColor()
+        }
+
         ACTIVE_COMPLICATIONS.forEach {
             complicationDrawableSparseArray[it].setLowBitAmbient(lowBitAmbient)
         }
@@ -496,7 +505,7 @@ class Android12DigitalWatchFaceDrawer(
         }
 
         if( drawSecondsRing && !ambient ) {
-            drawSecondRing(canvas, calendar)
+            drawSecondRing(canvas, calendar, secondsRingPaint)
         }
 
         if( isUserPremium && (drawBattery || drawPhoneBattery) && (!ambient || !storage.shouldHideBatteryInAmbient()) ) {

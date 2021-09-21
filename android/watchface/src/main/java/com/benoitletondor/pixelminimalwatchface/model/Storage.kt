@@ -58,6 +58,7 @@ private const val KEY_TIME_AND_DATE_COLOR = "timeAndDateColor"
 private const val KEY_BATTERY_COLOR = "batteryColor"
 private const val KEY_USE_ANDROID_12_STYLE = "useAndroid12Style"
 private const val KEY_HIDE_BATTERY_IN_AMBIENT = "hideBatteryInAmbient"
+private const val KEY_SECONDS_RING_COLOR = "secondsRingColor"
 
 interface Storage {
     fun getComplicationColors(): ComplicationColors
@@ -105,6 +106,8 @@ interface Storage {
     fun setUseAndroid12Style(useAndroid12Style: Boolean)
     fun shouldHideBatteryInAmbient(): Boolean
     fun setShouldHideBatteryInAmbient(hide: Boolean)
+    fun getSecondRingColor(): PorterDuffColorFilter
+    fun setSecondRingColor(@ColorInt color: Int)
 }
 
 class StorageImpl : Storage {
@@ -150,6 +153,9 @@ class StorageImpl : Storage {
     private var useAndroid12StyleCached = false
     private var cacheHideBatteryInAmbient = false
     private var hideBatteryInAmbientCached = false
+    private var secondRingColorCached = false
+    private var cacheSecondRingColor = 0
+    private var cacheSecondRingPorterDuffColorFilter = PorterDuffColorFilter(0, PorterDuff.Mode.SRC_IN)
 
     fun init(context: Context): Storage {
         if( !initialized ) {
@@ -538,6 +544,24 @@ class StorageImpl : Storage {
         hideBatteryInAmbientCached = true
 
         sharedPreferences.edit().putBoolean(KEY_HIDE_BATTERY_IN_AMBIENT, hide).apply()
+    }
+
+    override fun getSecondRingColor(): PorterDuffColorFilter {
+        if( !secondRingColorCached ) {
+            cacheSecondRingColor = sharedPreferences.getInt(KEY_SECONDS_RING_COLOR, appContext.getColor(R.color.white))
+            cacheSecondRingPorterDuffColorFilter = PorterDuffColorFilter(cacheTimeAndDateColor, PorterDuff.Mode.SRC_IN)
+            secondRingColorCached = true
+        }
+
+        return cacheSecondRingPorterDuffColorFilter
+    }
+
+    override fun setSecondRingColor(@ColorInt color: Int) {
+        cacheSecondRingColor = color
+        cacheSecondRingPorterDuffColorFilter = PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN)
+        secondRingColorCached = true
+
+        sharedPreferences.edit().putInt(KEY_SECONDS_RING_COLOR, color).apply()
     }
 
     override fun hasFeatureDropSummer2021NotificationBeenShown(): Boolean {
