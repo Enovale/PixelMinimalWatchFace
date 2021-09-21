@@ -96,10 +96,12 @@
     <string name="feature_drop_2021_title">September feature drop</string>
     <string name="feature_drop_2021_welcome">Let\'s celebrate the launch of Android 12 with Pixel Minimal Watch Face new features:</string>
     <string name="feature_drop_2021_feature_1">- New Android 12 inspired layout, you can try it in the settings</string>
-    <string name="feature_drop_2021_feature_2">- Oppo Watch users: you can now show Weather after date and the layout should be better!</string>
-    <string name="feature_drop_2021_feature_3">- Adjust size of the time and the date separately, there are now 2 different settings</string>
-    <string name="feature_drop_2021_feature_4">- Option to hide battery percentages in ambient mode</string>
-    <string name="feature_drop_2021_feature_5">- Bug fixes and optimisations</string>
+    <string name="feature_drop_2021_feature_2">- Adjust widgets size</string>
+    <string name="feature_drop_2021_feature_3">- Change seconds ring color</string>
+    <string name="feature_drop_2021_feature_4">- Adjust size of the time and the date separately</string>
+    <string name="feature_drop_2021_feature_5">- Oppo Watch users: you can now show Weather after date and the layout should be better!</string>
+    <string name="feature_drop_2021_feature_6">- Option to hide battery indicators in ambient mode</string>
+    <string name="feature_drop_2021_feature_7">- Bug fixes and optimisations</string>
     <string name="feature_drop_2021_go_to_settings_cta">To setup those new options, tap this button to go to the watch face settings:</string>
     <string name="feature_drop_2021_activate_cta">To setup those new options, use Pixel Minimal Watch Face as your watch face and long press on the time to access the Configure button".</string>
     <string name="feature_drop_2021_conclusion">Thank you for using Pixel Minimal Watch Face :)</string>
