@@ -669,3 +669,40 @@ class SecondsRingColorViewHolder(
         }
     }
 }
+
+class WidgetsSizeViewHolder(
+    view: View,
+    widgetsSizeChanged: (Int) -> Unit,
+) : RecyclerView.ViewHolder(view) {
+    private val widgetsSizeSeekBar: SeekBar = view.findViewById(R.id.widgets_size_seek_bar)
+    private val widgetsSizeText: TextView = view.findViewById(R.id.widgets_size_text)
+    private val stepSize = 25
+
+    init {
+        widgetsSizeSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
+                val convertedProgress = (progress / stepSize) * stepSize
+                seekBar.progress = convertedProgress
+                setText(convertedProgress)
+
+                widgetsSizeChanged(convertedProgress)
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+        })
+    }
+
+    fun setWidgetsSize(size: Int) {
+        widgetsSizeSeekBar.setProgress(size, false)
+        setText(size)
+    }
+
+    private fun setText(size: Int) {
+        widgetsSizeText.text = itemView.context.getString(
+            R.string.config_widgets_size,
+            itemView.context.fontDisplaySizeToHumanReadableString(size)
+        )
+    }
+}

@@ -116,6 +116,8 @@ class SettingsActivity : Activity() {
                 ),
                 SECONDS_RING_COLOR_REQUEST_CODE
             )
+        }, { widgetsSize ->
+            storage.setWidgetsSize(widgetsSize)
         })
 
         binding.wearableRecyclerView.apply {

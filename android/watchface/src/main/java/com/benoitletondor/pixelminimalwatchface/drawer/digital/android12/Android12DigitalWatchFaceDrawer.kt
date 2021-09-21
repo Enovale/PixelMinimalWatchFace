@@ -85,6 +85,7 @@ class Android12DigitalWatchFaceDrawer(
     private var isRound: Boolean = false
     private var currentTimeSize = storage.getTimeSize()
     private var currentDateAndBatterySize = storage.getDateAndBatterySize()
+    private var currentWidgetsSize = storage.getWidgetsSize()
     private val weatherAndBatteryIconColorFilterDimmed: ColorFilter = PorterDuffColorFilter(dateAndBatteryColorDimmed, PorterDuff.Mode.SRC_IN)
     private val timeOffsetX = context.dpToPx(-2)
     private val timeCharPaddingX = context.dpToPx(1)
@@ -239,7 +240,8 @@ class Android12DigitalWatchFaceDrawer(
         } else if( currentDrawingState is Android12DrawingState.CacheAvailable &&
             (currentTimeSize != storage.getTimeSize() ||
             currentDateAndBatterySize != storage.getDateAndBatterySize() ||
-            (currentShowBatteryIndicator != storage.shouldShowPhoneBattery() || storage.shouldShowBattery())) ) {
+            (currentShowBatteryIndicator != storage.shouldShowPhoneBattery() || storage.shouldShowBattery()) ||
+            currentWidgetsSize != storage.getWidgetsSize()) ) {
 
             currentShowBatteryIndicator = storage.shouldShowPhoneBattery() || storage.shouldShowBattery()
             drawingState = currentDrawingState.buildCache()
@@ -384,7 +386,10 @@ class Android12DigitalWatchFaceDrawer(
     ): ComplicationsDrawingCache {
         val wearOsImage = ContextCompat.getDrawable(context, R.drawable.ic_wear_os_logo)!!.toBitmap()
 
-        val complicationSize = ((screenWidth - timeX) * 0.35f).toInt()
+        currentWidgetsSize = storage.getWidgetsSize()
+        val widgetsScaleFactor = fontDisplaySizeToScaleFactor(currentWidgetsSize, android12Layout = true)
+
+        val complicationSize = (((screenWidth - timeX) * 0.35f) * widgetsScaleFactor).toInt()
         val wearOSLogoWidth = wearOsImage.width.toFloat()
         val wearOSLogoHeight = wearOsImage.height.toFloat()
 

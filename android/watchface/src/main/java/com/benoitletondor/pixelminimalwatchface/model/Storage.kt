@@ -59,6 +59,7 @@ private const val KEY_BATTERY_COLOR = "batteryColor"
 private const val KEY_USE_ANDROID_12_STYLE = "useAndroid12Style"
 private const val KEY_HIDE_BATTERY_IN_AMBIENT = "hideBatteryInAmbient"
 private const val KEY_SECONDS_RING_COLOR = "secondsRingColor"
+private const val KEY_WIDGETS_SIZE = "widgetSize"
 
 interface Storage {
     fun getComplicationColors(): ComplicationColors
@@ -108,6 +109,8 @@ interface Storage {
     fun setShouldHideBatteryInAmbient(hide: Boolean)
     fun getSecondRingColor(): PorterDuffColorFilter
     fun setSecondRingColor(@ColorInt color: Int)
+    fun getWidgetsSize(): Int
+    fun setWidgetsSize(widgetsSize: Int)
 }
 
 class StorageImpl : Storage {
@@ -156,6 +159,8 @@ class StorageImpl : Storage {
     private var secondRingColorCached = false
     private var cacheSecondRingColor = 0
     private var cacheSecondRingPorterDuffColorFilter = PorterDuffColorFilter(0, PorterDuff.Mode.SRC_IN)
+    private var widgetsSizeCached = false
+    private var cacheWidgetsSize = 0
 
     fun init(context: Context): Storage {
         if( !initialized ) {
@@ -562,6 +567,22 @@ class StorageImpl : Storage {
         secondRingColorCached = true
 
         sharedPreferences.edit().putInt(KEY_SECONDS_RING_COLOR, color).apply()
+    }
+
+    override fun getWidgetsSize(): Int {
+        if( !widgetsSizeCached ) {
+            cacheWidgetsSize = sharedPreferences.getInt(KEY_WIDGETS_SIZE, DEFAULT_TIME_SIZE)
+            widgetsSizeCached = true
+        }
+
+        return cacheWidgetsSize
+    }
+
+    override fun setWidgetsSize(widgetsSize: Int) {
+        cacheWidgetsSize = widgetsSize
+        widgetsSizeCached = true
+
+        sharedPreferences.edit().putInt(KEY_WIDGETS_SIZE, widgetsSize).apply()
     }
 
     override fun hasFeatureDropSummer2021NotificationBeenShown(): Boolean {

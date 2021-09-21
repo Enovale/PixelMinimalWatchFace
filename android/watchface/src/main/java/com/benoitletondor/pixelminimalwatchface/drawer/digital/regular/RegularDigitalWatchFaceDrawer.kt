@@ -83,6 +83,7 @@ class RegularDigitalWatchFaceDrawer(
     private val timeFormatter12H = SimpleDateFormat("h:mm", Locale.getDefault())
     private var currentTimeSize = storage.getTimeSize()
     private var currentDateAndBatterySize = storage.getDateAndBatterySize()
+    private var currentWidgetsSize = storage.getWidgetsSize()
     private val spaceBeforeWeather = context.dpToPx(5)
     private val topAndBottomMargins = context.getTopAndBottomMargins().toInt()
     private val weatherAndBatteryIconColorFilterDimmed: ColorFilter = PorterDuffColorFilter(dateAndBatteryColorDimmed, PorterDuff.Mode.SRC_IN)
@@ -232,7 +233,9 @@ class RegularDigitalWatchFaceDrawer(
         if( currentDrawingState is RegularDrawerDrawingState.NoCacheAvailable ) {
             drawingState = currentDrawingState.buildCache()
         } else if( currentDrawingState is RegularDrawerDrawingState.CacheAvailable &&
-            (currentTimeSize != storage.getTimeSize() || currentDateAndBatterySize != storage.getDateAndBatterySize()) ) {
+            (currentTimeSize != storage.getTimeSize() ||
+            currentDateAndBatterySize != storage.getDateAndBatterySize() ||
+            currentWidgetsSize != storage.getWidgetsSize()) ) {
             drawingState = currentDrawingState.buildCache()
         }
 
@@ -303,7 +306,10 @@ class RegularDigitalWatchFaceDrawer(
     ): ComplicationsDrawingCache {
         val wearOsImage = wearOSLogo
 
-        val sizeOfComplication = if( isRound ) { (screenWidth / 4.5).toInt() } else { min(topBottom.toInt() - topAndBottomMargins - context.dpToPx(2), (screenWidth / 3.5).toInt()) }
+        currentWidgetsSize = storage.getWidgetsSize()
+        val widgetsScaleFactor = fontDisplaySizeToScaleFactor(currentWidgetsSize, android12Layout = false)
+
+        val sizeOfComplication = if( isRound ) { ((screenWidth / 4.5) * widgetsScaleFactor).toInt() } else { (min(topBottom.toInt() - topAndBottomMargins - context.dpToPx(2), (screenWidth / 3.5).toInt()) * widgetsScaleFactor).toInt() }
         // If watch is round, align top widgets with the top of the time, otherwise center them in the top space
         val verticalOffset = if ( isRound ) { topBottom.toInt() - sizeOfComplication - context.dpToPx(6) } else { topAndBottomMargins + ((topBottom.toInt() - topAndBottomMargins) / 2) - (sizeOfComplication / 2) }
         val distanceBetweenComplications = context.dpToPx(3)

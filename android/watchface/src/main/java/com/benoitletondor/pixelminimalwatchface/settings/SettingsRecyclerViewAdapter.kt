@@ -67,6 +67,7 @@ private const val TYPE_DATE_AND_BATTERY_SIZE = 27
 private const val TYPE_ANDROID_12_COMPLICATIONS_CONFIG = 28
 private const val TYPE_SHOW_BATTERY_IN_AMBIENT = 29
 private const val TYPE_SECONDS_RING_COLOR = 30
+private const val TYPE_WIDGETS_SIZE = 31
 
 class ComplicationConfigRecyclerViewAdapter(
     private val context: Context,
@@ -92,6 +93,7 @@ class ComplicationConfigRecyclerViewAdapter(
     private val changeBatteryIndicatorColorButtonPressed: () -> Unit,
     private val useAndroid12StyleCheckedListener: (Boolean) -> Unit,
     private val changeSecondsRingColorButtonPressed: () -> Unit,
+    private val widgetsSizeChangedListener: (Int) -> Unit,
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private var selectedComplicationLocation: ComplicationLocation? = null
@@ -365,6 +367,14 @@ class ComplicationConfigRecyclerViewAdapter(
                 ),
                 changeSecondsRingColorButtonPressed
             )
+            TYPE_WIDGETS_SIZE -> return WidgetsSizeViewHolder(
+                LayoutInflater.from(parent.context).inflate(
+                    R.layout.config_list_widgets_size,
+                    parent,
+                    false
+                ),
+                widgetsSizeChangedListener
+            )
         }
         throw IllegalStateException("Unknown option type: $viewType")
     }
@@ -452,6 +462,10 @@ class ComplicationConfigRecyclerViewAdapter(
             TYPE_SHOW_BATTERY_IN_AMBIENT -> {
                 val showBatteryInAmbient = !storage.shouldHideBatteryInAmbient()
                 (viewHolder as ShowBatteryInAmbientViewHolder).setShowBatteryInAmbientSwitchChecked(showBatteryInAmbient)
+            }
+            TYPE_WIDGETS_SIZE -> {
+                val size = storage.getWidgetsSize()
+                (viewHolder as WidgetsSizeViewHolder).setWidgetsSize(size)
             }
         }
     }
@@ -549,6 +563,8 @@ class ComplicationConfigRecyclerViewAdapter(
             } else {
                 list.add(TYPE_REGULAR_COMPLICATIONS_CONFIG)
             }
+
+            list.add(TYPE_WIDGETS_SIZE)
         } else {
             list.add(TYPE_BECOME_PREMIUM)
         }
