@@ -393,7 +393,13 @@ class Android12DigitalWatchFaceDrawer(
         complicationDrawableSparseArray[PixelMinimalWatchFace.ANDROID_12_BOTTOM_RIGHT_COMPLICATION_ID]
             ?.setBounds(rightX, bottomY, rightX + complicationSize, bottomY + complicationSize)
 
-        val targetWearOSLogoHeight = min(wearOSLogoHeight, (batteryTopY - verticalPaddingBetweenElements) - (timeBottomY + verticalPaddingBetweenElements))
+        val paddingBetweenBottomLogoAndBattery = if(storage.shouldShowBattery() || storage.shouldShowPhoneBattery()) {
+            verticalPaddingBetweenElements
+        } else {
+            0
+        }
+
+        val targetWearOSLogoHeight = min(wearOSLogoHeight, (batteryTopY - paddingBetweenBottomLogoAndBattery) - (timeBottomY + verticalPaddingBetweenElements))
         val targetWearOSLogoWidth = if( targetWearOSLogoHeight < wearOSLogoHeight ) {
             wearOSLogoWidth * (targetWearOSLogoHeight / wearOSLogoHeight)
         } else {
