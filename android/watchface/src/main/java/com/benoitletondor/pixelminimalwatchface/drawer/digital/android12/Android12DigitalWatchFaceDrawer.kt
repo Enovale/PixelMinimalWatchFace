@@ -86,6 +86,7 @@ class Android12DigitalWatchFaceDrawer(
     private val timePaddingY = context.dpToPx(-5)
     private val topAndBottomMargins = context.getTopAndBottomMargins()
     private val verticalPaddingBetweenElements = context.dpToPx(7)
+    private var currentShowBatteryIndicator = false
 
     private val complicationDrawableSparseArray: SparseArray<ComplicationDrawable> = SparseArray(ACTIVE_COMPLICATIONS.size)
 
@@ -231,7 +232,11 @@ class Android12DigitalWatchFaceDrawer(
         if( currentDrawingState is Android12DrawingState.NoCacheAvailable ) {
             drawingState = currentDrawingState.buildCache()
         } else if( currentDrawingState is Android12DrawingState.CacheAvailable &&
-            (currentTimeSize != storage.getTimeSize() || currentDateAndBatterySize != storage.getDateAndBatterySize()) ) {
+            (currentTimeSize != storage.getTimeSize() ||
+            currentDateAndBatterySize != storage.getDateAndBatterySize() ||
+            (currentShowBatteryIndicator != storage.shouldShowPhoneBattery() || storage.shouldShowBattery())) ) {
+
+            currentShowBatteryIndicator = storage.shouldShowPhoneBattery() || storage.shouldShowBattery()
             drawingState = currentDrawingState.buildCache()
         }
 
@@ -334,7 +339,7 @@ class Android12DigitalWatchFaceDrawer(
             timeX = timeX,
             timeHeight = timeHeight,
             timeBottomY = timeBottomY,
-            batteryTopY = batteryTopY,
+            batteryTopY = if(storage.shouldShowBattery() || storage.shouldShowPhoneBattery()) { batteryTopY } else { batteryBottomY },
         )
 
         currentTimeSize = timeSize
