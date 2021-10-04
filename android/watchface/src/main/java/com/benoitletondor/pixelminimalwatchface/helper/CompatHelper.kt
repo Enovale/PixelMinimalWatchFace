@@ -1,5 +1,6 @@
 package com.benoitletondor.pixelminimalwatchface.helper
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.drawable.Icon
 import android.net.Uri
@@ -31,7 +32,8 @@ fun ComplicationData.sanitize(context: Context): ComplicationData {
 
         val shortText = context.getSamsungHeartRateData() ?: "?"
 
-        val builder = ComplicationData.Builder(this)
+        val builder = ComplicationData.Builder(ComplicationData.TYPE_SHORT_TEXT)
+            .setTapAction(tapAction)
             .setShortText(ComplicationText.plainText(shortText))
             .setIcon(Icon.createWithResource(context, R.drawable.ic_heart_complication))
         return builder.build()
@@ -39,6 +41,19 @@ fun ComplicationData.sanitize(context: Context): ComplicationData {
         Log.e("PixelWatchFace", "Error while sanitizing complication data", t)
         return this
     }
+}
+
+@SuppressLint("NewApi")
+private fun ComplicationData.isSamsungHeartRateBadComplicationData(context: Context): Boolean {
+    if (shortText != null && samsungHeartRateComplicationShortTextValues.contains(shortText.getText(context, System.currentTimeMillis()))) {
+        return true
+    }
+
+    if (icon != null && icon.resPackage == "com.samsung.android.wear.shealth") {
+        return true
+    }
+
+    return false
 }
 
 private fun Context.getSamsungHeartRateData(): String? {
@@ -139,6 +154,3 @@ private val samsungHeartRateComplicationShortTextValues = setOf(
     "سرعة ضربات القلب",
     "HeartRate",
 )
-
-private fun ComplicationData.isSamsungHeartRateBadComplicationData(context: Context): Boolean
-    = shortText != null && samsungHeartRateComplicationShortTextValues.contains(shortText.getText(context, System.currentTimeMillis()))

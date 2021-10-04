@@ -223,7 +223,7 @@ class StorageImpl : Storage {
 
     override fun isUserPremium(): Boolean {
         if( !isUserPremiumCached ) {
-            cacheIsUserPremium = sharedPreferences.getBoolean(KEY_USER_PREMIUM, false)
+            cacheIsUserPremium = true//sharedPreferences.getBoolean(KEY_USER_PREMIUM, false)
             isUserPremiumCached = true
         }
 
