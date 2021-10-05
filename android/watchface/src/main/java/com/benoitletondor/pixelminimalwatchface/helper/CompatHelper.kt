@@ -2,7 +2,6 @@ package com.benoitletondor.pixelminimalwatchface.helper
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.pm.PackageManager
 import android.graphics.drawable.Icon
 import android.net.Uri
 import android.support.wearable.complications.ComplicationData
