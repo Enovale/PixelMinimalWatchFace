@@ -2,6 +2,7 @@ package com.benoitletondor.pixelminimalwatchface.helper
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.pm.PackageManager
 import android.graphics.drawable.Icon
 import android.net.Uri
 import android.support.wearable.complications.ComplicationData
@@ -49,7 +50,7 @@ private fun ComplicationData.isSamsungHeartRateBadComplicationData(context: Cont
         return true
     }
 
-    if (icon != null && icon.type == Icon.TYPE_RESOURCE && icon.resPackage == "com.samsung.android.wear.shealth") {
+    if (icon != null && icon.type == Icon.TYPE_RESOURCE && icon.resPackage == "com.samsung.android.wear.shealth" && icon.resId == 2131231612) {
         return true
     }
 
