@@ -49,7 +49,7 @@ private fun ComplicationData.isSamsungHeartRateBadComplicationData(context: Cont
         return true
     }
 
-    if (icon != null && icon.type == Icon.TYPE_RESOURCE && icon.resPackage == "com.samsung.android.wear.shealth") {
+    if (icon != null && icon.type == Icon.TYPE_RESOURCE && icon.resPackage == "com.samsung.android.wear.shealth" && icon.resId == 2131231612) {
         return true
     }
 
