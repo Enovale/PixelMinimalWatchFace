@@ -395,13 +395,13 @@ class Android12DigitalWatchFaceDrawer(
 
         val leftX = (timeX / (if (isRound) 1.7f else 2f) - complicationSize / 2f).toInt()
         val rightX = (screenWidth - timeX / (if (isRound) 1.7f else 2f) - complicationSize / 2f).toInt()
-        val topY = (centerY - distanceBetweenHourAndMin - timeHeight / 2f - complicationSize / 2f).toInt() + timePaddingY
-        val bottomY = (centerY + distanceBetweenHourAndMin + timeHeight / 2f - complicationSize / 2f).toInt() + timePaddingY
+        val topY = (centerY - distanceBetweenHourAndMin - timeHeight / 2f + complicationSize / 2f + context.dpToPx(3)).toInt() + timePaddingY
+        val bottomY = (centerY + distanceBetweenHourAndMin + timeHeight / 2f - complicationSize / 2f + context.dpToPx(3)).toInt() + timePaddingY
 
         complicationDrawableSparseArray[PixelMinimalWatchFace.ANDROID_12_TOP_LEFT_COMPLICATION_ID]
-            ?.setBounds(leftX, topY, leftX + complicationSize, topY + complicationSize)
+            ?.setBounds(leftX, topY - complicationSize, leftX + complicationSize, topY)
         complicationDrawableSparseArray[PixelMinimalWatchFace.ANDROID_12_TOP_RIGHT_COMPLICATION_ID]
-            ?.setBounds(rightX, topY, rightX + complicationSize, topY + complicationSize)
+            ?.setBounds(rightX, topY - complicationSize, rightX + complicationSize, topY)
         complicationDrawableSparseArray[PixelMinimalWatchFace.ANDROID_12_BOTTOM_LEFT_COMPLICATION_ID]
             ?.setBounds(leftX, bottomY, leftX + complicationSize, bottomY + complicationSize)
         complicationDrawableSparseArray[PixelMinimalWatchFace.ANDROID_12_BOTTOM_RIGHT_COMPLICATION_ID]
