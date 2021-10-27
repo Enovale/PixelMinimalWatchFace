@@ -144,7 +144,7 @@ class RegularDigitalWatchFaceDrawer(
                                           data: ComplicationData?,
                                           complicationColors: ComplicationColors
     ) {
-        val complicationDrawable = complicationDrawableSparseArray[complicationId]
+        val complicationDrawable = complicationDrawableSparseArray[complicationId] ?: return
         complicationDrawable.setComplicationData(data)
 
         val primaryComplicationColor = complicationColors.getPrimaryColorForComplicationId(complicationId)
