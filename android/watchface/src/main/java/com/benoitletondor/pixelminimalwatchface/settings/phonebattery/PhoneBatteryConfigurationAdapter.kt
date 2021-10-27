@@ -130,7 +130,7 @@ sealed class PhoneBatteryConfigurationViewHolder(view: View) : RecyclerView.View
         }
 
         fun setListener(listener: (Boolean) -> Unit) {
-            syncActivatedSwitch.setOnCheckedChangeListener { compoundButton, isChecked ->
+            syncActivatedSwitch.setOnCheckedChangeListener { _, isChecked ->
                 listener(isChecked)
             }
         }

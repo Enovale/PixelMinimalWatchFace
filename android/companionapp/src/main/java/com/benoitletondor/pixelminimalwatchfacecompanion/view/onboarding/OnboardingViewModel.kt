@@ -16,17 +16,24 @@
 package com.benoitletondor.pixelminimalwatchfacecompanion.view.onboarding
 
 import androidx.lifecycle.ViewModel
-import com.benoitletondor.pixelminimalwatchfacecompanion.SingleLiveEvent
+import androidx.lifecycle.viewModelScope
+import com.benoitletondor.pixelminimalwatchfacecompanion.helper.MutableLiveFlow
 import com.benoitletondor.pixelminimalwatchfacecompanion.storage.Storage
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class OnboardingViewModel @Inject constructor(private val storage: Storage) : ViewModel() {
-    val finishEventStream = SingleLiveEvent<Unit>()
+    private val finishEventMutableFlow = MutableLiveFlow<Unit>()
+    val finishEventFlow: Flow<Unit> = finishEventMutableFlow
 
     fun onOnboardingFinishButtonPressed() {
         storage.setOnboardingFinished(true)
-        finishEventStream.value = Unit
+
+        viewModelScope.launch {
+            finishEventMutableFlow.emit(Unit)
+        }
     }
 }

@@ -26,13 +26,9 @@ import android.graphics.Rect
 import android.graphics.drawable.Drawable
 import android.os.Build
 import android.os.Bundle
-import android.os.Handler
-import android.os.Message
 import android.support.wearable.complications.ComplicationData
 import android.support.wearable.complications.ComplicationText
 import android.support.wearable.complications.SystemProviders
-import android.support.wearable.complications.rendering.ComplicationDrawable
-import android.support.wearable.complications.rendering.CustomComplicationDrawable
 import android.support.wearable.watchface.CanvasWatchFaceService
 import android.support.wearable.watchface.WatchFaceService
 import android.support.wearable.watchface.WatchFaceStyle
@@ -43,13 +39,15 @@ import android.view.WindowInsets
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import androidx.core.util.forEach
+import com.benoitletondor.pixelminimalwatchface.drawer.digital.android12.Android12DigitalWatchFaceDrawer
+import com.benoitletondor.pixelminimalwatchface.drawer.WatchFaceDrawer
+import com.benoitletondor.pixelminimalwatchface.drawer.digital.regular.RegularDigitalWatchFaceDrawer
 import com.benoitletondor.pixelminimalwatchface.helper.*
 import com.benoitletondor.pixelminimalwatchface.model.ComplicationColors
 import com.benoitletondor.pixelminimalwatchface.model.DEFAULT_APP_VERSION
 import com.benoitletondor.pixelminimalwatchface.model.Storage
 import com.benoitletondor.pixelminimalwatchface.rating.FeedbackActivity
-import com.benoitletondor.pixelminimalwatchface.settings.ComplicationLocation
+import com.benoitletondor.pixelminimalwatchface.model.ComplicationLocation
 import com.benoitletondor.pixelminimalwatchface.settings.phonebattery.*
 import com.google.android.gms.wearable.*
 import kotlinx.coroutines.*
@@ -78,59 +76,18 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
         return Engine(this, storage)
     }
 
-    private class ComplicationTimeDependentUpdateHandler(private val engine: WeakReference<Engine>,
-                                                         private var hasUpdateScheduled: Boolean = false) : Handler() {
-        override fun handleMessage(msg: Message) {
-            super.handleMessage(msg)
-
-            val engine = engine.get() ?: return
-
-            hasUpdateScheduled = false
-
-            if( !engine.isAmbientMode() && engine.isVisible ) {
-                engine.invalidate()
-            }
-        }
-
-        fun cancelUpdate() {
-            if( hasUpdateScheduled ) {
-                hasUpdateScheduled = false
-                removeMessages(MSG_UPDATE_TIME)
-            }
-        }
-
-        fun scheduleUpdate(delay: Long) {
-            if( hasUpdateScheduled ) {
-                cancelUpdate()
-            }
-
-            hasUpdateScheduled = true
-            sendEmptyMessageDelayed(MSG_UPDATE_TIME, delay)
-        }
-
-        fun hasUpdateScheduled(): Boolean = hasUpdateScheduled
-
-        companion object {
-            private const val MSG_UPDATE_TIME = 0
-        }
-    }
-
-    inner class Engine(private val service: WatchFaceService,
-                       private val storage: Storage
-    ) : CanvasWatchFaceService.Engine(),
-        DataClient.OnDataChangedListener,
-        MessageClient.OnMessageReceivedListener,
-        Drawable.Callback,
-        CoroutineScope by CoroutineScope(SupervisorJob() + Dispatchers.Default)
-    {
+    inner class Engine(
+        private val service: WatchFaceService,
+        private val storage: Storage,
+    ) : CanvasWatchFaceService.Engine(), DataClient.OnDataChangedListener, MessageClient.OnMessageReceivedListener,
+        Drawable.Callback, CoroutineScope by CoroutineScope(SupervisorJob() + Dispatchers.Default) {
         private lateinit var calendar: Calendar
         private var registeredTimeZoneReceiver = false
 
-        private val watchFaceDrawer = Injection.watchFaceDrawer()
+        private lateinit var watchFaceDrawer: WatchFaceDrawer
 
-        private lateinit var complicationsColors: ComplicationColors
-        private lateinit var complicationDataSparseArray: SparseArray<ComplicationData>
-        private lateinit var complicationDrawableSparseArray: SparseArray<ComplicationDrawable>
+        private var complicationsColors: ComplicationColors = storage.getComplicationColors()
+        private val complicationDataSparseArray: SparseArray<ComplicationData> = SparseArray(COMPLICATION_IDS.size)
 
         private var muteMode = false
         private var ambient = false
@@ -139,6 +96,8 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
 
         private val timeDependentUpdateHandler = ComplicationTimeDependentUpdateHandler(WeakReference(this))
         private val timeDependentTexts = SparseArray<ComplicationText>()
+
+        private var useAndroid12Style = storage.useAndroid12Style()
 
         private var shouldShowWeather = false
         private var shouldShowBattery = false
@@ -149,6 +108,10 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
 
         private var lastPhoneSyncRequestTimestamp: Long? = null
         private var phoneBatteryStatus: PhoneBatteryStatus = PhoneBatteryStatus.Unknown
+
+        private var screenWidth = -1
+        private var screenHeight = -1
+        private var windowInsets: WindowInsets? = null
 
         private val timeZoneReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context, intent: Intent) {
@@ -168,42 +131,37 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
 
             calendar = Calendar.getInstance()
 
-            watchFaceDrawer.onCreate(service, storage)
-            initializeComplications()
+            initWatchFaceDrawer()
 
             Wearable.getDataClient(service).addListener(this)
             Wearable.getMessageClient(service).addListener(this)
             syncPhoneBatteryStatus()
         }
 
+        private fun initWatchFaceDrawer() {
+            watchFaceDrawer = if (storage.useAndroid12Style()) {
+                Android12DigitalWatchFaceDrawer(service, storage)
+            } else {
+                RegularDigitalWatchFaceDrawer(service, storage)
+            }
+
+            initializeComplications()
+
+            val currentWindowInsets = windowInsets
+            if (currentWindowInsets != null) {
+                watchFaceDrawer.onApplyWindowInsets(currentWindowInsets)
+            }
+
+            if (screenWidth > 0 && screenHeight > 0) {
+                watchFaceDrawer.onSurfaceChanged(screenWidth, screenHeight)
+            }
+        }
+
         private fun initializeComplications() {
-            complicationsColors = storage.getComplicationColors()
+            val activeComplicationIds = watchFaceDrawer.initializeComplicationDrawables(this)
 
-            val leftComplicationDrawable = CustomComplicationDrawable(service, false)
-            val middleComplicationDrawable = CustomComplicationDrawable(service, false)
-            val rightComplicationDrawable = CustomComplicationDrawable(service, false)
-            val bottomComplicationDrawable = CustomComplicationDrawable(service, true)
+            setActiveComplications(*activeComplicationIds.plus(WEATHER_COMPLICATION_ID).plus(BATTERY_COMPLICATION_ID))
 
-            complicationDrawableSparseArray = SparseArray(COMPLICATION_IDS.size)
-            complicationDataSparseArray = SparseArray(COMPLICATION_IDS.size)
-
-            complicationDrawableSparseArray.put(LEFT_COMPLICATION_ID, leftComplicationDrawable)
-            complicationDrawableSparseArray.put(MIDDLE_COMPLICATION_ID, middleComplicationDrawable)
-            complicationDrawableSparseArray.put(RIGHT_COMPLICATION_ID, rightComplicationDrawable)
-            complicationDrawableSparseArray.put(BOTTOM_COMPLICATION_ID, bottomComplicationDrawable)
-
-            leftComplicationDrawable.callback = this
-            middleComplicationDrawable.callback = this
-            rightComplicationDrawable.callback = this
-            bottomComplicationDrawable.callback = this
-
-            setActiveComplications(*COMPLICATION_IDS.plus(WEATHER_COMPLICATION_ID).plus(
-                BATTERY_COMPLICATION_ID))
-
-            watchFaceDrawer.setComplicationDrawable(LEFT_COMPLICATION_ID, leftComplicationDrawable)
-            watchFaceDrawer.setComplicationDrawable(MIDDLE_COMPLICATION_ID, middleComplicationDrawable)
-            watchFaceDrawer.setComplicationDrawable(RIGHT_COMPLICATION_ID, rightComplicationDrawable)
-            watchFaceDrawer.setComplicationDrawable(BOTTOM_COMPLICATION_ID, bottomComplicationDrawable)
             watchFaceDrawer.onComplicationColorsUpdate(complicationsColors, complicationDataSparseArray)
         }
 
@@ -260,20 +218,13 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
                 WatchFaceService.PROPERTY_BURN_IN_PROTECTION, false
             )
 
-            COMPLICATION_IDS.forEach {
-                complicationDrawableSparseArray[it].setLowBitAmbient(lowBitAmbient)
-            }
-
-            COMPLICATION_IDS.forEach {
-                complicationDrawableSparseArray[it].setBurnInProtection(burnInProtection)
-            }
-
             invalidate()
         }
 
         override fun onApplyWindowInsets(insets: WindowInsets) {
             super.onApplyWindowInsets(insets)
 
+            windowInsets = insets
             watchFaceDrawer.onApplyWindowInsets(insets)
         }
 
@@ -301,10 +252,6 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
             super.onAmbientModeChanged(inAmbientMode)
             ambient = inAmbientMode
 
-            COMPLICATION_IDS.forEach {
-                complicationDrawableSparseArray[it].setInAmbientMode(ambient)
-            }
-
             invalidate()
         }
 
@@ -321,6 +268,9 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
 
         override fun onSurfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
             super.onSurfaceChanged(holder, format, width, height)
+
+            screenWidth = width
+            screenHeight = height
 
             watchFaceDrawer.onSurfaceChanged(width, height)
         }
@@ -352,14 +302,8 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
 
             val data = complicationData.sanitize(this@PixelMinimalWatchFace)
 
-            // Updates correct ComplicationDrawable with updated data.
-            val complicationDrawable = complicationDrawableSparseArray.get(watchFaceComplicationId) ?: return
-
-            complicationDrawable.setComplicationData(data)
-
             complicationDataSparseArray.put(watchFaceComplicationId, data)
-
-            watchFaceDrawer.onComplicationDataUpdate(watchFaceComplicationId, complicationDrawable, data, complicationsColors)
+            watchFaceDrawer.onComplicationDataUpdate(watchFaceComplicationId, data, complicationsColors)
 
             // Update time dependent complication
             val nextShortTextChangeTime = data.shortText?.getNextChangeTime(System.currentTimeMillis())
@@ -379,13 +323,9 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
         override fun onTapCommand(tapType: Int, x: Int, y: Int, eventTime: Long) {
             when (tapType) {
                 WatchFaceService.TAP_TYPE_TAP -> {
-                    COMPLICATION_IDS.forEach { complicationId ->
-                        val complicationDrawable: ComplicationDrawable = complicationDrawableSparseArray.get(complicationId)
-
-                        if ( complicationDrawable.onTap(x, y) ) {
-                            lastTapEventTimestamp = 0
-                            return
-                        }
+                    if ( watchFaceDrawer.tapIsOnComplication(x, y) ) {
+                        lastTapEventTimestamp = 0
+                        return
                     }
                     if( watchFaceDrawer.tapIsOnWeather(x, y) ) {
                         val weatherProviderInfo = getWeatherProviderInfo() ?: return
@@ -416,6 +356,12 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
         }
 
         override fun onDraw(canvas: Canvas, bounds: Rect) {
+            // Update drawer if needed
+            if ( useAndroid12Style != storage.useAndroid12Style() ) {
+                useAndroid12Style = storage.useAndroid12Style()
+                initWatchFaceDrawer()
+            }
+
             // Update weather subscription if needed
             if( storage.shouldShowWeather() != shouldShowWeather && storage.isUserPremium() ) {
                 shouldShowWeather = storage.shouldShowWeather()
@@ -609,7 +555,12 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
             }
 
             val activityIntent = Intent(service, FeedbackActivity::class.java)
-            val pendingIntent = PendingIntent.getActivity(service, 0, activityIntent, PendingIntent.FLAG_CANCEL_CURRENT)
+            val pendingIntent = PendingIntent.getActivity(
+                service,
+                0,
+                activityIntent,
+                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_CANCEL_CURRENT,
+            )
 
             val notification = NotificationCompat.Builder(service, MISC_NOTIFICATION_CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_notification)
@@ -651,39 +602,34 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
         const val BOTTOM_COMPLICATION_ID = 103
         const val WEATHER_COMPLICATION_ID = 104
         const val BATTERY_COMPLICATION_ID = 105
+        const val ANDROID_12_TOP_LEFT_COMPLICATION_ID = 106
+        const val ANDROID_12_TOP_RIGHT_COMPLICATION_ID = 107
+        const val ANDROID_12_BOTTOM_LEFT_COMPLICATION_ID = 108
+        const val ANDROID_12_BOTTOM_RIGHT_COMPLICATION_ID = 109
 
         private val COMPLICATION_IDS = intArrayOf(
             LEFT_COMPLICATION_ID,
             MIDDLE_COMPLICATION_ID,
             RIGHT_COMPLICATION_ID,
-            BOTTOM_COMPLICATION_ID
+            BOTTOM_COMPLICATION_ID,
+            ANDROID_12_TOP_LEFT_COMPLICATION_ID,
+            ANDROID_12_TOP_RIGHT_COMPLICATION_ID,
+            ANDROID_12_BOTTOM_LEFT_COMPLICATION_ID,
+            ANDROID_12_BOTTOM_RIGHT_COMPLICATION_ID,
         )
 
-        private val COMPLICATION_SUPPORTED_TYPES = arrayOf(
-            intArrayOf(
-                ComplicationData.TYPE_SHORT_TEXT,
-                ComplicationData.TYPE_ICON,
-                ComplicationData.TYPE_RANGED_VALUE,
-                ComplicationData.TYPE_SMALL_IMAGE
-            ),
-            intArrayOf(
-                ComplicationData.TYPE_SHORT_TEXT,
-                ComplicationData.TYPE_ICON,
-                ComplicationData.TYPE_RANGED_VALUE,
-                ComplicationData.TYPE_SMALL_IMAGE
-            ),
-            intArrayOf(
-                ComplicationData.TYPE_SHORT_TEXT,
-                ComplicationData.TYPE_ICON,
-                ComplicationData.TYPE_RANGED_VALUE,
-                ComplicationData.TYPE_SMALL_IMAGE
-            ),
-            intArrayOf(
-                ComplicationData.TYPE_LONG_TEXT,
-                ComplicationData.TYPE_SHORT_TEXT,
-                ComplicationData.TYPE_ICON,
-                ComplicationData.TYPE_SMALL_IMAGE
-            )
+        private val normalComplicationDataTypes = intArrayOf(
+            ComplicationData.TYPE_SHORT_TEXT,
+            ComplicationData.TYPE_ICON,
+            ComplicationData.TYPE_RANGED_VALUE,
+            ComplicationData.TYPE_SMALL_IMAGE
+        )
+
+        private val largeComplicationDataTypes = intArrayOf(
+            ComplicationData.TYPE_LONG_TEXT,
+            ComplicationData.TYPE_SHORT_TEXT,
+            ComplicationData.TYPE_ICON,
+            ComplicationData.TYPE_SMALL_IMAGE
         )
 
         fun getComplicationId(complicationLocation: ComplicationLocation): Int {
@@ -692,42 +638,29 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
                 ComplicationLocation.MIDDLE -> MIDDLE_COMPLICATION_ID
                 ComplicationLocation.RIGHT -> RIGHT_COMPLICATION_ID
                 ComplicationLocation.BOTTOM -> BOTTOM_COMPLICATION_ID
+                ComplicationLocation.ANDROID_12_TOP_LEFT -> ANDROID_12_TOP_LEFT_COMPLICATION_ID
+                ComplicationLocation.ANDROID_12_TOP_RIGHT -> ANDROID_12_TOP_RIGHT_COMPLICATION_ID
+                ComplicationLocation.ANDROID_12_BOTTOM_LEFT -> ANDROID_12_BOTTOM_LEFT_COMPLICATION_ID
+                ComplicationLocation.ANDROID_12_BOTTOM_RIGHT -> ANDROID_12_BOTTOM_RIGHT_COMPLICATION_ID
             }
         }
 
         fun getSupportedComplicationTypes(complicationLocation: ComplicationLocation): IntArray {
             return when (complicationLocation) {
-                ComplicationLocation.LEFT -> COMPLICATION_SUPPORTED_TYPES[0]
-                ComplicationLocation.MIDDLE -> COMPLICATION_SUPPORTED_TYPES[1]
-                ComplicationLocation.RIGHT -> COMPLICATION_SUPPORTED_TYPES[2]
-                ComplicationLocation.BOTTOM -> COMPLICATION_SUPPORTED_TYPES[3]
+                ComplicationLocation.LEFT -> normalComplicationDataTypes
+                ComplicationLocation.MIDDLE -> normalComplicationDataTypes
+                ComplicationLocation.RIGHT -> normalComplicationDataTypes
+                ComplicationLocation.BOTTOM -> largeComplicationDataTypes
+                ComplicationLocation.ANDROID_12_TOP_LEFT -> normalComplicationDataTypes
+                ComplicationLocation.ANDROID_12_TOP_RIGHT -> normalComplicationDataTypes
+                ComplicationLocation.ANDROID_12_BOTTOM_LEFT -> normalComplicationDataTypes
+                ComplicationLocation.ANDROID_12_BOTTOM_RIGHT -> normalComplicationDataTypes
             }
-        }
-
-        fun getComplicationIds(): IntArray {
-            return COMPLICATION_IDS
         }
 
         fun isActive(context: Context): Boolean {
             val wallpaperManager = WallpaperManager.getInstance(context)
             return wallpaperManager.wallpaperInfo?.packageName == context.packageName
-        }
-    }
-}
-
-sealed class PhoneBatteryStatus {
-    abstract fun isStale(currentTimestamp: Long): Boolean
-
-    object Unknown : PhoneBatteryStatus() {
-        override fun isStale(currentTimestamp: Long): Boolean = true
-    }
-    class DataReceived(val batteryPercentage: Int, val timestamp: Long) : PhoneBatteryStatus() {
-        override fun isStale(currentTimestamp: Long): Boolean {
-            return currentTimestamp - timestamp > STALE_PHONE_BATTERY_LIMIT_MS
-        }
-
-        companion object {
-            private const val STALE_PHONE_BATTERY_LIMIT_MS = 1000*60*60 // 1h
         }
     }
 }

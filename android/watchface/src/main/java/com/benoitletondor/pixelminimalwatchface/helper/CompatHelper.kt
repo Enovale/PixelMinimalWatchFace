@@ -14,6 +14,7 @@ import kotlin.math.roundToInt
 
 fun Context.getTopAndBottomMargins(): Float {
     return when {
+        Device.isOppoWatch -> dpToPx(5).toFloat()
         Device.isSamsungGalaxyWatch4BigScreen(this) -> dpToPx(26).toFloat()
         Device.isSamsungGalaxy -> dpToPx(23).toFloat()
         else -> resources.getDimension(R.dimen.screen_top_and_bottom_margin)

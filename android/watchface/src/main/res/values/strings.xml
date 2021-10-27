@@ -21,6 +21,10 @@
     <string name="config_middle_complication">Middle widget settings</string>
     <string name="config_right_complication">Right widget settings</string>
     <string name="config_bottom_complication">Bottom large widget settings</string>
+    <string name="config_android_12_top_left_complication">Top left widget settings</string>
+    <string name="config_android_12_top_right_complication">Top right widget settings</string>
+    <string name="config_android_12_bottom_left_complication">Bottom left widget settings</string>
+    <string name="config_android_12_bottom_right_complication">Bottom right widget settings</string>
     <string name="config_complication_widget">Widget</string>
     <string name="config_complication_color">Accent color</string>
     <string name="config_color_tap_to_change">Tap to change</string>
@@ -39,10 +43,12 @@
     <string name="config_show_filled_time_ambient">Use thin time in ambient mode</string>
     <string name="config_show_wear_os_logo_premium">WearOS logo as middle widget</string>
     <string name="config_show_complications_ambient">Widgets in ambient mode</string>
-    <string name="config_time_size">Size of time and date: %s</string>
+    <string name="config_time_size">Size of time: %s</string>
+    <string name="config_date_and_battery_size">Size of date &amp; battery: %s</string>
     <string name="config_show_seconds_ring">Show seconds ring</string>
     <string name="config_show_battery">Watch battery indicator</string>
     <string name="config_show_phone_battery">(Beta) Phone battery indicator setup</string>
+    <string name="config_show_battery_in_ambient">Show battery indicators in ambient mode</string>
     <string name="config_donate">Donate to support development</string>
     <string name="config_section_ambient">Ambient mode</string>
     <string name="config_section_date_and_time">Time and date</string>
@@ -52,7 +58,10 @@
     <string name="config_battery_section_header">Activating any battery indicator replaces the bottom widget</string>
     <string name="config_time_and_date_color">Time and date color (doesn\'t affect ambient mode)</string>
     <string name="config_battery_indicator_color">Battery indicators color (doesn\'t affect ambient mode)</string>
+    <string name="config_second_ring_color">Seconds ring color</string>
     <string name="config_open_weather_app">Open Weather app for setup</string>
+    <string name="config_use_android_12_style">Android 12 layout</string>
+    <string name="config_widgets_size">Size of widgets: %s</string>
 
     <string name="premium_confirmation">Configure widgets in Watch Face settings</string>
     <string name="premium_error">An error occurred, send me an email for assistance</string>
@@ -81,14 +90,18 @@
     <string name="rating_feedback_email" translatable="false">pixelwatchface@benoitletondor.com</string>
     <string name="rating_feedback_send_subject" translatable="false">Pixel Watch Face - Feedback</string>
     <string name="rating_feedback_send_text"></string>
-    <string name="feature_drop_2021_notification_title">Pixel Minimal Watch Face</string>
-    <string name="feature_drop_2021_notification_message">Better support for the Galaxy Watch 4 in Pixel Minimal Watch Face!</string>
+    <string name="feature_drop_2021_notification_title">New feature drop</string>
+    <string name="feature_drop_2021_notification_message">New features are available for Pixel Minimal Watch Face!</string>
     <string name="feature_drop_2021_notification_cta">See what\'s new</string>
-    <string name="feature_drop_2021_title">Galaxy Watch 4 support update</string>
-    <string name="feature_drop_2021_welcome">New update for Pixel Minimal Watch Face that fully support the Galaxy watch 4:</string>
-    <string name="feature_drop_2021_feature_1">- Heart rate widget will now work properly</string>
-    <string name="feature_drop_2021_feature_2">- Support for displaying Weather after date added\n(Make sure you set it up in Weather app)</string>
-    <string name="feature_drop_2021_feature_3">- Better layout that doesn\'t overlap with system indicators (like charge or media indicators)</string>
+    <string name="feature_drop_2021_title">Fall 21 feature drop</string>
+    <string name="feature_drop_2021_welcome">Let\'s celebrate the launch of Android 12 with Pixel Minimal Watch Face new features:</string>
+    <string name="feature_drop_2021_feature_1">- New Android 12 inspired layout, you can try it in the settings</string>
+    <string name="feature_drop_2021_feature_2">- Adjust widgets size</string>
+    <string name="feature_drop_2021_feature_3">- Change seconds ring color</string>
+    <string name="feature_drop_2021_feature_4">- Adjust size of the time and the date separately</string>
+    <string name="feature_drop_2021_feature_5">- Oppo Watch users: you can now show Weather after date and the layout should be better!</string>
+    <string name="feature_drop_2021_feature_6">- Option to hide battery indicators in ambient mode</string>
+    <string name="feature_drop_2021_feature_7">- Bug fixes and optimisations</string>
     <string name="feature_drop_2021_go_to_settings_cta">To setup those new options, tap this button to go to the watch face settings:</string>
     <string name="feature_drop_2021_activate_cta">To setup those new options, use Pixel Minimal Watch Face as your watch face and long press on the time to access the Configure button".</string>
     <string name="feature_drop_2021_conclusion">Thank you for using Pixel Minimal Watch Face :)</string>

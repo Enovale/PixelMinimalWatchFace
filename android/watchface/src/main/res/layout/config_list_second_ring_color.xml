@@ -14,13 +14,11 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 -->
-<menu
+<Button
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
-
-    <item
-        android:id="@+id/send_feedback_button"
-        android:title="@string/send_feedback_cta"
-        app:showAsAction="never"/>
-
-</menu>
+    android:id="@+id/config_list_second_ring_color"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:text="@string/config_second_ring_color"
+    android:drawableStart="@drawable/ic_palette_24"
+    style="@style/ButtonConfigurationStyle"/>

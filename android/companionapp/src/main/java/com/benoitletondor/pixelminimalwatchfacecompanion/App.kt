@@ -25,12 +25,11 @@ import com.benoitletondor.pixelminimalwatchfacecompanion.billing.Billing
 import com.benoitletondor.pixelminimalwatchfacecompanion.config.Config
 import com.benoitletondor.pixelminimalwatchfacecompanion.storage.Storage
 import dagger.hilt.android.HiltAndroidApp
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
+import kotlinx.coroutines.*
 import javax.inject.Inject
 
 @HiltAndroidApp
-class App : Application(), LifecycleObserver {
+class App : Application(), LifecycleObserver, CoroutineScope by CoroutineScope(SupervisorJob() + Dispatchers.Default) {
     @Inject lateinit var billing: Billing
     @Inject lateinit var config: Config
     @Inject lateinit var storage: Storage
@@ -49,20 +48,16 @@ class App : Application(), LifecycleObserver {
     }
 
     @OnLifecycleEvent(Lifecycle.Event.ON_START)
+    @Suppress("UNUSED")
     private fun onAppForeground() {
         billing.updatePremiumStatusIfNeeded()
 
-        GlobalScope.async {
+        launch {
             try {
                 config.fetch()
             } catch (t: Throwable) {
                 Log.e("App", "Error syncing config", t)
             }
-        }.start()
-    }
-
-    @OnLifecycleEvent(Lifecycle.Event.ON_STOP)
-    private fun onAppBackground() {
-
+        }
     }
 }

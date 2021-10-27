@@ -23,5 +23,4 @@ object Injection {
     private val storage = StorageImpl()
 
     fun storage(context: Context): Storage = storage.init(context)
-    fun watchFaceDrawer(): WatchFaceDrawer = WatchFaceDrawerImpl()
 }

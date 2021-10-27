@@ -33,6 +33,10 @@ private const val KEY_LEFT_COMPLICATION_COLOR = "leftComplicationColor"
 private const val KEY_MIDDLE_COMPLICATION_COLOR = "middleComplicationColor"
 private const val KEY_RIGHT_COMPLICATION_COLOR = "rightComplicationColor"
 private const val KEY_BOTTOM_COMPLICATION_COLOR = "bottomComplicationColor"
+private const val KEY_ANDROID_12_TOP_LEFT_COMPLICATION_COLOR = "android12TopLeftComplicationColor"
+private const val KEY_ANDROID_12_TOP_RIGHT_COMPLICATION_COLOR = "android12TopRightComplicationColor"
+private const val KEY_ANDROID_12_BOTTOM_LEFT_COMPLICATION_COLOR = "android12BottomLeftComplicationColor"
+private const val KEY_ANDROID_12_BOTTOM_RIGHT_COMPLICATION_COLOR = "android12BottomRightComplicationColor"
 private const val KEY_USER_PREMIUM = "user_premium"
 private const val KEY_USE_24H_TIME_FORMAT = "use24hTimeFormat"
 private const val KEY_INSTALL_TIMESTAMP = "installTS"
@@ -42,15 +46,20 @@ private const val KEY_SHOW_WEAR_OS_LOGO = "showWearOSLogo"
 private const val KEY_SHOW_COMPLICATIONS_AMBIENT = "showComplicationsAmbient"
 private const val KEY_FILLED_TIME_AMBIENT = "filledTimeAmbient"
 private const val KEY_TIME_SIZE = "timeSize"
+private const val KEY_DATE_AND_BATTERY_SIZE = "dateSize"
 private const val KEY_SECONDS_RING = "secondsRing"
 private const val KEY_SHOW_WEATHER = "showWeather"
 private const val KEY_SHOW_BATTERY = "showBattery"
 private const val KEY_SHOW_PHONE_BATTERY = "showPhoneBattery"
-private const val KEY_SAMSUNG_UPDATE_NOTIFICATION_SHOWN = "samsungUpdateNotificationShown_3"
+private const val KEY_FEATURE_DROP_2021_NOTIFICATION = "featureDrop2021Notification_5"
 private const val KEY_USE_SHORT_DATE_FORMAT = "useShortDateFormat"
 private const val KEY_SHOW_DATE_AMBIENT = "showDateAmbient"
 private const val KEY_TIME_AND_DATE_COLOR = "timeAndDateColor"
 private const val KEY_BATTERY_COLOR = "batteryColor"
+private const val KEY_USE_ANDROID_12_STYLE = "useAndroid12Style"
+private const val KEY_HIDE_BATTERY_IN_AMBIENT = "hideBatteryInAmbient"
+private const val KEY_SECONDS_RING_COLOR = "secondsRingColor"
+private const val KEY_WIDGETS_SIZE = "widgetSize"
 
 interface Storage {
     fun getComplicationColors(): ComplicationColors
@@ -72,14 +81,16 @@ interface Storage {
     fun setShouldShowFilledTimeInAmbientMode(showFilledTime: Boolean)
     fun getTimeSize(): Int
     fun setTimeSize(timeSize: Int)
+    fun getDateAndBatterySize(): Int
+    fun setDateAndBatterySize(size: Int)
     fun shouldShowSecondsRing(): Boolean
     fun setShouldShowSecondsRing(showSecondsRing: Boolean)
     fun shouldShowWeather(): Boolean
     fun setShouldShowWeather(show: Boolean)
     fun shouldShowBattery(): Boolean
     fun setShouldShowBattery(show: Boolean)
-    fun hasSamsungGalaxyWatchUpdateNotificationBeenShown(): Boolean
-    fun setSamsungGalaxyWatchUpdateNotificationShown()
+    fun hasFeatureDropSummer2021NotificationBeenShown(): Boolean
+    fun setFeatureDropSummer2021NotificationShown()
     fun getUseShortDateFormat(): Boolean
     fun setUseShortDateFormat(useShortDateFormat: Boolean)
     fun setShowDateInAmbient(showDateInAmbient: Boolean)
@@ -92,6 +103,14 @@ interface Storage {
     @ColorInt fun getBatteryIndicatorColor(): Int
     fun getBatteryIndicatorColorFilter(): PorterDuffColorFilter
     fun setBatteryIndicatorColor(@ColorInt color: Int)
+    fun useAndroid12Style(): Boolean
+    fun setUseAndroid12Style(useAndroid12Style: Boolean)
+    fun shouldHideBatteryInAmbient(): Boolean
+    fun setShouldHideBatteryInAmbient(hide: Boolean)
+    fun getSecondRingColor(): PorterDuffColorFilter
+    fun setSecondRingColor(@ColorInt color: Int)
+    fun getWidgetsSize(): Int
+    fun setWidgetsSize(widgetsSize: Int)
 }
 
 class StorageImpl : Storage {
@@ -104,6 +123,8 @@ class StorageImpl : Storage {
     // SharedPreferences uses a map so we cache the values to avoid map lookups
     private var timeSizeCached = false
     private var cacheTimeSize = 0
+    private var dateAndBatterySizeCached = false
+    private var cacheDateAndBatterySize = 0
     private var isUserPremiumCached = false
     private var cacheIsUserPremium = false
     private var isUse24hFormatCached = false
@@ -131,6 +152,15 @@ class StorageImpl : Storage {
     private var batteryIndicatorColorCached = false
     private var cacheBatteryPorterDuffColorFilter = PorterDuffColorFilter(0, PorterDuff.Mode.SRC_IN)
     private var cacheBatteryIndicatorColor = 0
+    private var cacheUseAndroid12Style = false
+    private var useAndroid12StyleCached = false
+    private var cacheHideBatteryInAmbient = false
+    private var hideBatteryInAmbientCached = false
+    private var secondRingColorCached = false
+    private var cacheSecondRingColor = 0
+    private var cacheSecondRingPorterDuffColorFilter = PorterDuffColorFilter(0, PorterDuff.Mode.SRC_IN)
+    private var widgetsSizeCached = false
+    private var cacheWidgetsSize = 0
 
     fun init(context: Context): Storage {
         if( !initialized ) {
@@ -178,13 +208,37 @@ class StorageImpl : Storage {
             baseColor
         )
 
+        val android12TopLeftColor = sharedPreferences.getInt(
+            KEY_ANDROID_12_TOP_LEFT_COMPLICATION_COLOR,
+            baseColor
+        )
+
+        val android12TopRightColor = sharedPreferences.getInt(
+            KEY_ANDROID_12_TOP_RIGHT_COMPLICATION_COLOR,
+            baseColor
+        )
+
+        val android12BottomLeftColor = sharedPreferences.getInt(
+            KEY_ANDROID_12_BOTTOM_LEFT_COMPLICATION_COLOR,
+            baseColor
+        )
+
+        val android12BottomRightColor = sharedPreferences.getInt(
+            KEY_ANDROID_12_BOTTOM_RIGHT_COMPLICATION_COLOR,
+            baseColor
+        )
+
         val defaultColors = ComplicationColorsProvider.getDefaultComplicationColors(appContext)
 
         val colors = ComplicationColors(
             if( leftColor == DEFAULT_COMPLICATION_COLOR ) { defaultColors.leftColor } else { ComplicationColor(leftColor, ComplicationColorsProvider.getLabelForColor(appContext, leftColor),false) },
             if( middleColor == DEFAULT_COMPLICATION_COLOR ) { defaultColors.middleColor } else { ComplicationColor(middleColor, ComplicationColorsProvider.getLabelForColor(appContext, middleColor),false) },
             if( rightColor == DEFAULT_COMPLICATION_COLOR ) { defaultColors.rightColor } else { ComplicationColor(rightColor, ComplicationColorsProvider.getLabelForColor(appContext, rightColor),false) },
-            if( bottomColor == DEFAULT_COMPLICATION_COLOR ) { defaultColors.bottomColor } else { ComplicationColor(bottomColor, ComplicationColorsProvider.getLabelForColor(appContext, bottomColor),false) }
+            if( bottomColor == DEFAULT_COMPLICATION_COLOR ) { defaultColors.bottomColor } else { ComplicationColor(bottomColor, ComplicationColorsProvider.getLabelForColor(appContext, bottomColor),false) },
+            if( android12TopLeftColor == DEFAULT_COMPLICATION_COLOR ) { defaultColors.android12TopLeftColor } else { ComplicationColor(android12TopLeftColor, ComplicationColorsProvider.getLabelForColor(appContext, android12TopLeftColor),false) },
+            if( android12TopRightColor == DEFAULT_COMPLICATION_COLOR ) { defaultColors.android12TopRightColor } else { ComplicationColor(android12TopRightColor, ComplicationColorsProvider.getLabelForColor(appContext, android12TopRightColor),false) },
+            if( android12BottomLeftColor == DEFAULT_COMPLICATION_COLOR ) { defaultColors.android12BottomLeftColor } else { ComplicationColor(android12BottomLeftColor, ComplicationColorsProvider.getLabelForColor(appContext, android12BottomLeftColor),false) },
+            if( android12BottomRightColor == DEFAULT_COMPLICATION_COLOR ) { defaultColors.android12BottomRightColor } else { ComplicationColor(android12BottomRightColor, ComplicationColorsProvider.getLabelForColor(appContext, android12BottomRightColor),false) },
         )
 
         this.cacheComplicationsColor = colors
@@ -329,6 +383,22 @@ class StorageImpl : Storage {
         sharedPreferences.edit().putInt(KEY_TIME_SIZE, timeSize).apply()
     }
 
+    override fun getDateAndBatterySize(): Int {
+        if( !dateAndBatterySizeCached ) {
+            cacheDateAndBatterySize = sharedPreferences.getInt(KEY_DATE_AND_BATTERY_SIZE, getTimeSize())
+            dateAndBatterySizeCached = true
+        }
+
+        return cacheDateAndBatterySize
+    }
+
+    override fun setDateAndBatterySize(size: Int) {
+        cacheDateAndBatterySize = size
+        dateAndBatterySizeCached = true
+
+        sharedPreferences.edit().putInt(KEY_DATE_AND_BATTERY_SIZE, size).apply()
+    }
+
     override fun shouldShowSecondsRing(): Boolean {
         if( !shouldShowSecondsSettingCached ) {
             cacheShouldShowSecondsSetting = sharedPreferences.getBoolean(KEY_SECONDS_RING, false)
@@ -449,12 +519,78 @@ class StorageImpl : Storage {
         sharedPreferences.edit().putInt(KEY_BATTERY_COLOR, color).apply()
     }
 
-    override fun hasSamsungGalaxyWatchUpdateNotificationBeenShown(): Boolean {
-        return sharedPreferences.getBoolean(KEY_SAMSUNG_UPDATE_NOTIFICATION_SHOWN, false)
+    override fun useAndroid12Style(): Boolean {
+        if( !useAndroid12StyleCached ) {
+            cacheUseAndroid12Style = sharedPreferences.getBoolean(KEY_USE_ANDROID_12_STYLE, false)
+            useAndroid12StyleCached = true
+        }
+
+        return cacheUseAndroid12Style
     }
 
-    override fun setSamsungGalaxyWatchUpdateNotificationShown() {
-        sharedPreferences.edit().putBoolean(KEY_SAMSUNG_UPDATE_NOTIFICATION_SHOWN, true).apply()
+    override fun setUseAndroid12Style(useAndroid12Style: Boolean) {
+        cacheUseAndroid12Style = useAndroid12Style
+        useAndroid12StyleCached = true
+
+        sharedPreferences.edit().putBoolean(KEY_USE_ANDROID_12_STYLE, useAndroid12Style).apply()
+    }
+
+    override fun shouldHideBatteryInAmbient(): Boolean {
+        if( !hideBatteryInAmbientCached ) {
+            cacheHideBatteryInAmbient = sharedPreferences.getBoolean(KEY_HIDE_BATTERY_IN_AMBIENT, false)
+            hideBatteryInAmbientCached = true
+        }
+
+        return cacheHideBatteryInAmbient
+    }
+
+    override fun setShouldHideBatteryInAmbient(hide: Boolean) {
+        cacheHideBatteryInAmbient = hide
+        hideBatteryInAmbientCached = true
+
+        sharedPreferences.edit().putBoolean(KEY_HIDE_BATTERY_IN_AMBIENT, hide).apply()
+    }
+
+    override fun getSecondRingColor(): PorterDuffColorFilter {
+        if( !secondRingColorCached ) {
+            cacheSecondRingColor = sharedPreferences.getInt(KEY_SECONDS_RING_COLOR, appContext.getColor(R.color.white))
+            cacheSecondRingPorterDuffColorFilter = PorterDuffColorFilter(cacheTimeAndDateColor, PorterDuff.Mode.SRC_IN)
+            secondRingColorCached = true
+        }
+
+        return cacheSecondRingPorterDuffColorFilter
+    }
+
+    override fun setSecondRingColor(@ColorInt color: Int) {
+        cacheSecondRingColor = color
+        cacheSecondRingPorterDuffColorFilter = PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN)
+        secondRingColorCached = true
+
+        sharedPreferences.edit().putInt(KEY_SECONDS_RING_COLOR, color).apply()
+    }
+
+    override fun getWidgetsSize(): Int {
+        if( !widgetsSizeCached ) {
+            cacheWidgetsSize = sharedPreferences.getInt(KEY_WIDGETS_SIZE, DEFAULT_TIME_SIZE)
+            widgetsSizeCached = true
+        }
+
+        return cacheWidgetsSize
+    }
+
+    override fun setWidgetsSize(widgetsSize: Int) {
+        cacheWidgetsSize = widgetsSize
+        widgetsSizeCached = true
+
+        sharedPreferences.edit().putInt(KEY_WIDGETS_SIZE, widgetsSize).apply()
+    }
+
+    override fun hasFeatureDropSummer2021NotificationBeenShown(): Boolean {
+        return sharedPreferences.getBoolean(KEY_FEATURE_DROP_2021_NOTIFICATION, false)
+    }
+
+    override fun setFeatureDropSummer2021NotificationShown() {
+        sharedPreferences.edit().putBoolean(KEY_FEATURE_DROP_2021_NOTIFICATION, true).apply()
     }
 
     override fun getUseShortDateFormat(): Boolean {

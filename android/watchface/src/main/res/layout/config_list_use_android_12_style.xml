@@ -14,19 +14,12 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 -->
-<menu
+<Switch
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
-
-    <item
-        android:id="@+id/send_feedback_button"
-        android:title="@string/send_feedback_cta"
-        app:showAsAction="never"/>
-
-    <item
-        android:id="@+id/copyright_button"
-        android:enabled="false"
-        android:title="@string/copyright"
-        app:showAsAction="never" />
-
-</menu>
+    android:id="@+id/config_list_use_android_12_style_switch"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    style="@style/ButtonConfigurationStyle"
+    android:text="@string/config_use_android_12_style"
+    android:drawableStart="@drawable/ic_baseline_android"
+    android:layout_marginBottom="-10dp" />
