@@ -272,6 +272,30 @@ class StorageImpl : Storage {
                     DEFAULT_COMPLICATION_COLOR
                 } else { complicationColors.bottomColor.color }
             )
+            .putInt(
+                KEY_ANDROID_12_BOTTOM_LEFT_COMPLICATION_COLOR,
+                if( complicationColors.android12BottomLeftColor.isDefault ) {
+                    DEFAULT_COMPLICATION_COLOR
+                } else { complicationColors.android12BottomLeftColor.color }
+            )
+            .putInt(
+                KEY_ANDROID_12_TOP_LEFT_COMPLICATION_COLOR,
+                if( complicationColors.android12TopLeftColor.isDefault ) {
+                    DEFAULT_COMPLICATION_COLOR
+                } else { complicationColors.android12TopLeftColor.color }
+            )
+            .putInt(
+                KEY_ANDROID_12_TOP_RIGHT_COMPLICATION_COLOR,
+                if( complicationColors.android12TopRightColor.isDefault ) {
+                    DEFAULT_COMPLICATION_COLOR
+                } else { complicationColors.android12TopRightColor.color }
+            )
+            .putInt(
+                KEY_ANDROID_12_BOTTOM_RIGHT_COMPLICATION_COLOR,
+                if( complicationColors.android12BottomRightColor.isDefault ) {
+                    DEFAULT_COMPLICATION_COLOR
+                } else { complicationColors.android12BottomRightColor.color }
+            )
             .apply()
     }
 
