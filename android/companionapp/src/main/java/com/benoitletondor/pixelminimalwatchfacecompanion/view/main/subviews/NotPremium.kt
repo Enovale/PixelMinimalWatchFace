@@ -112,10 +112,31 @@ private fun NotPremiumLayout(
             color = MaterialTheme.colors.onBackground,
         )
 
-        Spacer(modifier = Modifier.height(6.dp))
-
         TextButton(onClick = redeemPromoCodeButtonPressed) {
             Text(text = "Redeem code".uppercase())
+        }
+
+        Spacer(modifier = Modifier.height(6.dp))
+
+        Column(
+            modifier = Modifier.fillMaxWidth()
+                .background(color = Color.DarkGray, shape = RoundedCornerShape(10))
+                .padding(horizontal = 10.dp, vertical = 6.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(
+                text = "Watch face not installed on your watch?",
+                color = MaterialTheme.colors.onBackground,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth(),
+            )
+
+            Button(
+                onClick = installWatchFaceButtonPressed,
+                colors = blueButtonColors(),
+            ) {
+                Text(text = "Install watch face".uppercase())
+            }
         }
 
         Spacer(modifier = Modifier.height(10.dp))
@@ -197,29 +218,6 @@ private fun SetupWatchFace(
         text = stringResource(R.string.setup_watch_face_instructions),
         color = MaterialTheme.colors.onBackground,
     )
-
-    Spacer(modifier = Modifier.height(10.dp))
-
-    Column(
-        modifier = Modifier.fillMaxWidth()
-            .background(color = Color.DarkGray, shape = RoundedCornerShape(10))
-            .padding(horizontal = 10.dp, vertical = 6.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Text(
-            text = "Watch face not installed on your watch?",
-            color = MaterialTheme.colors.onBackground,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth(),
-        )
-
-        TextButton(
-            onClick = installWatchFaceButtonPressed,
-            colors = blueButtonColors(),
-        ) {
-            Text(text = "Install watch face".uppercase())
-        }
-    }
 }
 
 @Composable

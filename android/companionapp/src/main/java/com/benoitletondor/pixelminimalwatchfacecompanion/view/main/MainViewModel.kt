@@ -280,6 +280,7 @@ class MainViewModel @Inject constructor(
             isSyncing: Boolean,
             userForcedInstallStatus: UserForcedInstallStatus,
         ) : Step {
+            return Step.NotPremium
             if (userIsBuyingPremium) {
                 return Step.Loading
             }
@@ -292,6 +293,10 @@ class MainViewModel @Inject constructor(
                 UserForcedInstallStatus.UNSPECIFIED -> appInstalledStatus is AppInstalledStatus.Result && appInstalledStatus.wearableStatus is Sync.WearableStatus.AvailableAppInstalled
                 UserForcedInstallStatus.INSTALLED -> true
                 UserForcedInstallStatus.UNINSTALLED -> false
+            }
+
+            if (userForcedInstallStatus == UserForcedInstallStatus.UNINSTALLED) {
+                return Step.InstallWatchFace(appInstalledStatus)
             }
 
             return when(premiumStatus) {
