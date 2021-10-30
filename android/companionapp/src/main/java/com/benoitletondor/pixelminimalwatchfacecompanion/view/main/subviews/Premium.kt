@@ -26,7 +26,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -37,7 +36,6 @@ import androidx.compose.ui.unit.sp
 import com.benoitletondor.pixelminimalwatchfacecompanion.R
 import com.benoitletondor.pixelminimalwatchfacecompanion.ui.AppMaterialTheme
 import com.benoitletondor.pixelminimalwatchfacecompanion.ui.blueButtonColors
-import com.benoitletondor.pixelminimalwatchfacecompanion.ui.primaryBlue
 import com.benoitletondor.pixelminimalwatchfacecompanion.ui.primaryGreen
 import com.benoitletondor.pixelminimalwatchfacecompanion.view.main.MainViewModel
 import kotlinx.coroutines.launch

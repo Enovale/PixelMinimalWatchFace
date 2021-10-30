@@ -36,6 +36,7 @@ import com.benoitletondor.pixelminimalwatchfacecompanion.R
 import com.benoitletondor.pixelminimalwatchfacecompanion.sync.Sync
 import com.benoitletondor.pixelminimalwatchfacecompanion.ui.AppMaterialTheme
 import com.benoitletondor.pixelminimalwatchfacecompanion.ui.blueButtonColors
+import com.benoitletondor.pixelminimalwatchfacecompanion.ui.whiteTextButtonColors
 import com.benoitletondor.pixelminimalwatchfacecompanion.view.main.MainViewModel
 
 @Composable
@@ -135,7 +136,7 @@ private fun Installed(
     Spacer(modifier = Modifier.height(10.dp))
 
     Text(
-        text = "Make sure you activate it as your watch face, either directly on your watch or by using your phone.",
+        text = "Make sure you activate it as your watch face",
         color = MaterialTheme.colors.onBackground,
         textAlign = TextAlign.Center,
         modifier = Modifier.fillMaxWidth(),
@@ -232,17 +233,19 @@ private fun InstallAutoLayout(
     Spacer(modifier = Modifier.height(10.dp))
 
     Text(
-        text = "1. Tap the button to open the PlayStore on your watch, then install the watch face",
+        text = "1. Tap the button below to open the PlayStore on your watch, directly on the watch face page ",
         textAlign = TextAlign.Left,
         modifier = Modifier.fillMaxWidth(),
         color = MaterialTheme.colors.onBackground,
     )
 
-    Button(
+    TextButton(
         onClick = onOpenPlayStoreButtonPressed,
-        colors = blueButtonColors(),
+        colors = whiteTextButtonColors(),
     ) {
-        Text(text = "Try launching PlayStore on watch".uppercase())
+        Text(
+            text = "Open PlayStore on watch".uppercase(),
+        )
     }
 
     Spacer(modifier = Modifier.height(5.dp))
@@ -269,7 +272,7 @@ private fun InstallAutoLayout(
     Spacer(modifier = Modifier.height(5.dp))
 
     Text(
-        text = "3. Once installed, activate it as your watch face either directly on your watch or from your phone",
+        text = "3. Once installed, activate it as your watch face",
         textAlign = TextAlign.Left,
         modifier = Modifier.fillMaxWidth(),
         color = MaterialTheme.colors.onBackground,
@@ -338,7 +341,7 @@ private fun InstallManuallyLayout(
     Spacer(modifier = Modifier.height(5.dp))
 
     Text(
-        text = "4. Once installed, activate it as your watch face either directly on your watch or from your phone",
+        text = "4. Once installed, activate it as your watch face",
         textAlign = TextAlign.Left,
         modifier = Modifier.fillMaxWidth(),
         color = MaterialTheme.colors.onBackground,

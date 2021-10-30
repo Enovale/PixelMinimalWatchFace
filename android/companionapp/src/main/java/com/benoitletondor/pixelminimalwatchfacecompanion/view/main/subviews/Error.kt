@@ -21,7 +21,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.benoitletondor.pixelminimalwatchfacecompanion.R
 import com.benoitletondor.pixelminimalwatchfacecompanion.ui.AppMaterialTheme
 import com.benoitletondor.pixelminimalwatchfacecompanion.ui.components.ErrorLayout
-import com.benoitletondor.pixelminimalwatchfacecompanion.view.main.MainViewModel
 
 @Composable
 fun Error(error: Throwable, onRetryButtonClicked: () -> Unit) {
