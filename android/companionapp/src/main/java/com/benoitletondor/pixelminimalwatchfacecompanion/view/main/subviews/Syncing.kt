@@ -33,7 +33,7 @@ import com.benoitletondor.pixelminimalwatchfacecompanion.view.main.MainViewModel
 @Composable
 fun Syncing() {
     LoadingLayout(
-        text = stringResource(R.string.syncing_premium_status),
+        text = "Syncing with watch…",
     )
 }
 

@@ -81,7 +81,7 @@ class MainViewModel @Inject constructor(
                     if( (premiumStatus == PremiumCheckStatus.Premium && lastSyncedPremiumStatusStateFlow.value == false) ||
                         (premiumStatus == PremiumCheckStatus.NotPremium && lastSyncedPremiumStatusStateFlow.value == true) ||
                         (premiumStatus == PremiumCheckStatus.Premium || premiumStatus == PremiumCheckStatus.NotPremium) && lastSyncedPremiumStatusStateFlow.value == null ) {
-                        syncState(premiumStatus == PremiumCheckStatus.Premium, displayError = premiumStatus == PremiumCheckStatus.Premium)
+                        syncState(premiumStatus == PremiumCheckStatus.Premium)
                     }
                 }
         }
@@ -94,7 +94,7 @@ class MainViewModel @Inject constructor(
         syncAppInstalledStatus()
     }
 
-    private fun syncState(userPremium: Boolean, displayError: Boolean) {
+    private fun syncState(userPremium: Boolean) {
         viewModelScope.launch {
             try {
                 isSyncingStateFlow.value = true
@@ -105,7 +105,7 @@ class MainViewModel @Inject constructor(
 
                 lastSyncedPremiumStatusStateFlow.value = userPremium
 
-                if( userPremium ) {
+                if(userPremium && (step == Step.Premium || step == Step.Syncing)) {
                     eventMutableFlow.emit(EventType.SYNC_WITH_WATCH_SUCCEED)
                 }
             } catch (t: Throwable) {
@@ -113,7 +113,7 @@ class MainViewModel @Inject constructor(
                     throw t
                 }
 
-                if (displayError) {
+                if (userPremium && (step == Step.Premium || step == Step.Syncing)) {
                     errorEventMutableFlow.emit(ErrorType.ErrorWhileSyncingWithWatch(t))
                 }
             } finally {
@@ -129,7 +129,7 @@ class MainViewModel @Inject constructor(
     }
 
     fun triggerSync() {
-        syncState(billing.isUserPremium(), displayError = billing.isUserPremium())
+        syncState(billing.isUserPremium())
     }
 
     fun retryPremiumStatusCheck() {
@@ -166,7 +166,7 @@ class MainViewModel @Inject constructor(
         val vouchers = config.getVouchers()
         if( vouchers.contains(voucher) ) {
             storage.setUserPremium(true)
-            syncState(true, displayError = false)
+            syncState(true)
 
             return
         }
@@ -182,10 +182,24 @@ class MainViewModel @Inject constructor(
         }
     }
 
+    fun onWatchFaceInstalledButtonPressed() {
+        syncState(billing.isUserPremium())
+
+        viewModelScope.launch {
+            userForcedInstallStatusFlow.emit(UserForcedInstallStatus.INSTALLED)
+        }
+    }
+
+    fun onSupportButtonPressed() {
+        viewModelScope.launch {
+            eventMutableFlow.emit(EventType.OPEN_SUPPORT_EMAIL)
+        }
+    }
+
     fun onInstallWatchFaceButtonPressed() {
         viewModelScope.launch {
             try {
-                if (sync.openPlayStoreOnWatch()) {
+                if (withTimeoutOrNull(1000) { sync.openPlayStoreOnWatch() } == true) {
                     eventMutableFlow.emit(EventType.PLAY_STORE_OPENED_ON_WATCH)
                 } else {
                     errorEventMutableFlow.emit(ErrorType.UnableToOpenPlayStoreOnWatch)
@@ -245,6 +259,7 @@ class MainViewModel @Inject constructor(
         PLAY_STORE_OPENED_ON_WATCH,
         SYNC_WITH_WATCH_SUCCEED,
         SHOW_VOUCHER_INPUT,
+        OPEN_SUPPORT_EMAIL,
     }
 
     sealed class AppInstalledStatus {
@@ -265,8 +280,6 @@ class MainViewModel @Inject constructor(
             isSyncing: Boolean,
             userForcedInstallStatus: UserForcedInstallStatus,
         ) : Step {
-            return Step.InstallWatchFace(AppInstalledStatus.Result(Sync.WearableStatus.AvailableAppNotInstalled))
-
             if (userIsBuyingPremium) {
                 return Step.Loading
             }
@@ -281,16 +294,16 @@ class MainViewModel @Inject constructor(
                 UserForcedInstallStatus.UNINSTALLED -> false
             }
 
-            return if (considerAppAsInstalled) {
-                when(premiumStatus) {
-                    PremiumCheckStatus.Checking -> Step.Loading
-                    is PremiumCheckStatus.Error ->  Step.Error(premiumStatus.error)
-                    PremiumCheckStatus.Initializing -> Step.Loading
-                    PremiumCheckStatus.NotPremium -> Step.NotPremium
-                    PremiumCheckStatus.Premium -> Step.Premium
+            return when(premiumStatus) {
+                PremiumCheckStatus.Checking -> Step.Loading
+                is PremiumCheckStatus.Error -> Step.Error(premiumStatus.error)
+                PremiumCheckStatus.Initializing -> Step.Loading
+                PremiumCheckStatus.NotPremium -> if (considerAppAsInstalled) {
+                    Step.NotPremium
+                } else {
+                    Step.InstallWatchFace(appInstalledStatus)
                 }
-            } else {
-                Step.InstallWatchFace(appInstalledStatus)
+                PremiumCheckStatus.Premium -> Step.Premium
             }
         }
     }

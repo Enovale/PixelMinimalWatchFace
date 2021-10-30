@@ -60,7 +60,7 @@ fun AppTopBarScaffold(
                     Text(
                         text = title,
                         fontFamily = productSansFontFamily,
-                        modifier = Modifier.padding(top = 4.dp),
+                        modifier = Modifier.padding(top = 3.dp),
                     )
                 },
                 actions = actions,

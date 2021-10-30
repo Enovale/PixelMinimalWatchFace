@@ -16,8 +16,6 @@
 package com.benoitletondor.pixelminimalwatchfacecompanion.view.main.subviews
 
 import android.app.Activity
-import android.view.LayoutInflater
-import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -33,19 +31,14 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.viewinterop.AndroidView
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentPagerAdapter
-import androidx.viewpager.widget.ViewPager
 import com.benoitletondor.pixelminimalwatchfacecompanion.R
 import com.benoitletondor.pixelminimalwatchfacecompanion.ui.AppMaterialTheme
+import com.benoitletondor.pixelminimalwatchfacecompanion.ui.blueButtonColors
 import com.benoitletondor.pixelminimalwatchfacecompanion.ui.productSansFontFamily
-import com.benoitletondor.pixelminimalwatchfacecompanion.ui.whiteButtonColors
 import com.benoitletondor.pixelminimalwatchfacecompanion.view.main.MainViewModel
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
@@ -222,7 +215,7 @@ private fun SetupWatchFace(
 
         TextButton(
             onClick = installWatchFaceButtonPressed,
-            colors = whiteButtonColors(),
+            colors = blueButtonColors(),
         ) {
             Text(text = "Install watch face".uppercase())
         }

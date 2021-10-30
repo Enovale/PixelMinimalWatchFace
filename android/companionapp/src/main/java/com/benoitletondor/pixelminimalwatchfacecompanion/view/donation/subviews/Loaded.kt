@@ -46,7 +46,7 @@ fun Loaded(
 ) {
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
         Text(
-            text = stringResource(R.string.donation_loaded_subtitle),
+            text = "I'm an indie developer, making Pixel Minimal Watch Face on my free time, open source, doing my best to provide a great experience.",
             modifier = Modifier.fillMaxWidth(),
             fontSize = 17.sp,
             color = MaterialTheme.colors.onBackground,
@@ -56,7 +56,7 @@ fun Loaded(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = stringResource(R.string.donation_loaded_subtitle_2),
+            text = "By being premium you're already supporting a lot but if you feel like donating a bit more, it would really help!",
             modifier = Modifier.fillMaxWidth(),
             fontSize = 17.sp,
             color = MaterialTheme.colors.onBackground,

@@ -158,13 +158,14 @@ private fun Main(navController: NavController, mainViewModel: MainViewModel) {
                         Toast.makeText(context, R.string.playstore_opened_on_watch_message, Toast.LENGTH_LONG).show()
                     }
                     MainViewModel.EventType.SYNC_WITH_WATCH_SUCCEED -> {
-                        Toast.makeText(context, R.string.sync_succeed_message, Toast.LENGTH_LONG).show()
+                        Toast.makeText(context, "Sync started! Check your watch.", Toast.LENGTH_LONG).show()
                     }
                     MainViewModel.EventType.SHOW_VOUCHER_INPUT -> {
                         context.showRedeemVoucherUI { voucherInput ->
                             mainViewModel.onVoucherInput(voucherInput)
                         }
                     }
+                    MainViewModel.EventType.OPEN_SUPPORT_EMAIL -> context.startSupportEmailActivity()
                 }
             }
         }
@@ -177,7 +178,7 @@ private fun Main(navController: NavController, mainViewModel: MainViewModel) {
         actions = {
             AppTopBarMoreMenuItem {
                 DropdownMenuItem(
-                    onClick = { context.startSupportEmailActivity() },
+                    onClick = mainViewModel::onSupportButtonPressed,
                 ) {
                     Text(stringResource(R.string.send_feedback_cta))
                 }
