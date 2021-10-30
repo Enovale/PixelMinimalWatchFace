@@ -18,7 +18,10 @@ package com.benoitletondor.pixelminimalwatchfacecompanion.view.main.subviews
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.*
+import androidx.compose.material.Button
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
+import androidx.compose.material.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,33 +32,23 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.benoitletondor.pixelminimalwatchfacecompanion.R
-import com.benoitletondor.pixelminimalwatchfacecompanion.sync.Sync
 import com.benoitletondor.pixelminimalwatchfacecompanion.ui.AppMaterialTheme
+import com.benoitletondor.pixelminimalwatchfacecompanion.ui.blueButtonColors
 import com.benoitletondor.pixelminimalwatchfacecompanion.ui.whiteButtonColors
 import com.benoitletondor.pixelminimalwatchfacecompanion.view.main.MainViewModel
-import java.lang.Exception
-import java.util.*
 
 @Composable
-fun Premium(state: MainViewModel.State.Premium, viewModel: MainViewModel) {
+fun Premium(viewModel: MainViewModel) {
     PremiumLayout(
-        appInstalledStatus = state.appInstalledStatus,
-        watchFaceInstallButtonPressed = {
-            viewModel.onInstallWatchFaceButtonPressed()
-        },
-        syncPremiumStatusButtonPressed = {
-            viewModel.triggerSync()
-        },
-        donateButtonPressed = {
-            viewModel.onDonateButtonPressed()
-        },
+        installWatchFaceButtonPressed = viewModel::onGoToInstallWatchFaceButtonPressed,
+        syncPremiumStatusButtonPressed = viewModel::triggerSync,
+        donateButtonPressed = viewModel::onDonateButtonPressed,
     )
 }
 
 @Composable
 private fun PremiumLayout(
-    appInstalledStatus: MainViewModel.AppInstalledStatus,
-    watchFaceInstallButtonPressed: () -> Unit,
+    installWatchFaceButtonPressed: () -> Unit,
     syncPremiumStatusButtonPressed: () -> Unit,
     donateButtonPressed: () -> Unit,
 ) {
@@ -67,11 +60,11 @@ private fun PremiumLayout(
             .padding(horizontal = 20.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(10.dp))
 
         Text(
-            text = stringResource(R.string.premium_status),
-            fontSize = 20.sp,
+            text = "You're premium! Thank you so much for your support :)",
+            fontSize = 18.sp,
             textAlign = TextAlign.Center,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.fillMaxWidth(),
@@ -81,59 +74,83 @@ private fun PremiumLayout(
         Spacer(modifier = Modifier.height(20.dp))
 
         Text(
-            text = stringResource(when(appInstalledStatus) {
-                is MainViewModel.AppInstalledStatus.Result -> when(appInstalledStatus.wearableStatus) {
-                    Sync.WearableStatus.AvailableAppInstalled -> R.string.premium_status_installed
-                    Sync.WearableStatus.AvailableAppNotInstalled -> R.string.premium_status_not_installed
-                    is Sync.WearableStatus.Error, Sync.WearableStatus.NotAvailable -> R.string.premium_status_unknown
-                }
-                MainViewModel.AppInstalledStatus.Unknown -> R.string.premium_status_unknown
-                MainViewModel.AppInstalledStatus.Verifying -> R.string.premium_status_loading
-            }),
-            fontSize = 16.sp,
+            text = "Setup the watch face",
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth(),
             color = MaterialTheme.colors.onBackground,
+            fontSize = 18.sp,
         )
 
-        Spacer(modifier = Modifier.height(30.dp))
-
-        when(appInstalledStatus) {
-            is MainViewModel.AppInstalledStatus.Result -> when(appInstalledStatus.wearableStatus) {
-                Sync.WearableStatus.AvailableAppInstalled -> {
-                    SyncPremiumStatusButton(syncPremiumStatusButtonPressed)
-                }
-                Sync.WearableStatus.AvailableAppNotInstalled -> {
-                    Button(
-                        onClick = watchFaceInstallButtonPressed,
-                        colors = whiteButtonColors(),
-                    ) {
-                        Text(text = stringResource(R.string.premium_install_cta).uppercase())
-                    }
-                }
-                is Sync.WearableStatus.Error, Sync.WearableStatus.NotAvailable -> {
-                    SyncPremiumStatusButton(syncPremiumStatusButtonPressed)
-                }
-            }
-            MainViewModel.AppInstalledStatus.Unknown -> {
-                SyncPremiumStatusButton(syncPremiumStatusButtonPressed)
-            }
-            MainViewModel.AppInstalledStatus.Verifying -> {
-                CircularProgressIndicator()
-            }
-        }
-
-        Spacer(modifier = Modifier.height(40.dp))
+        Spacer(modifier = Modifier.height(10.dp))
 
         Text(
-            text = stringResource(R.string.premium_status_thanks),
-            fontSize = 16.sp,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth(),
+            text = stringResource(R.string.setup_watch_face_instructions),
             color = MaterialTheme.colors.onBackground,
         )
 
-        Spacer(modifier = Modifier.height(40.dp))
+        Spacer(modifier = Modifier.height(20.dp))
+
+        Text(
+            text = "Troubleshooting",
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth(),
+            color = MaterialTheme.colors.onBackground,
+            fontSize = 18.sp,
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        Text(
+            text = "- Watch face doesn't recognize you as premium?",
+            textAlign = TextAlign.Start,
+            modifier = Modifier.fillMaxWidth(),
+            color = MaterialTheme.colors.onBackground,
+            fontWeight = FontWeight.Bold,
+        )
+
+        TextButton(
+            onClick = syncPremiumStatusButtonPressed,
+            colors = whiteButtonColors(),
+        ) {
+            Text(text = "Sync premium with Watch".uppercase())
+        }
+
+        Spacer(modifier = Modifier.height(5.dp))
+
+        Text(
+            text = "- Watch face is not installed on your watch?",
+            textAlign = TextAlign.Start,
+            modifier = Modifier.fillMaxWidth(),
+            color = MaterialTheme.colors.onBackground,
+            fontWeight = FontWeight.Bold,
+        )
+
+        TextButton(
+            onClick = installWatchFaceButtonPressed,
+            colors = whiteButtonColors(),
+        ) {
+            Text(text = "Install watch face".uppercase())
+        }
+
+        Spacer(modifier = Modifier.height(5.dp))
+
+        Text(
+            text = "- Sync doesn't work? Have another issue? I'm here to help",
+            textAlign = TextAlign.Start,
+            modifier = Modifier.fillMaxWidth(),
+            color = MaterialTheme.colors.onBackground,
+            fontWeight = FontWeight.Bold,
+        )
+
+        Spacer(modifier = Modifier.height(5.dp))
+
+        Button(
+            onClick = installWatchFaceButtonPressed,
+        ) {
+            Text(text = "Contact me for support".uppercase())
+        }
+
+        Spacer(modifier = Modifier.height(30.dp))
 
         Text(
             text = stringResource(R.string.donation_description),
@@ -147,62 +164,21 @@ private fun PremiumLayout(
 
         Button(
             onClick = donateButtonPressed,
-            colors = whiteButtonColors(),
+            colors = blueButtonColors(),
         ) {
             Text(text = stringResource(R.string.donation_cta).uppercase())
         }
+
+        Spacer(modifier = Modifier.height(10.dp))
     }
 }
 
 @Composable
-private fun SyncPremiumStatusButton(syncPremiumStatusButtonPressed: () -> Unit) {
-    Button(onClick = syncPremiumStatusButtonPressed) {
-        Text(text = stringResource(R.string.premium_sync_cta).uppercase())
-    }
-}
-
-@Composable
-@Preview(showSystemUi = true, name = "Watch face not installed")
-private fun PreviewNotInstalled() {
-    Preview(MainViewModel.AppInstalledStatus.Result(Sync.WearableStatus.AvailableAppNotInstalled))
-}
-
-@Composable
-@Preview(showSystemUi = true, name = "Watch face installed")
-private fun PreviewInstalled() {
-    Preview(MainViewModel.AppInstalledStatus.Result(Sync.WearableStatus.AvailableAppInstalled))
-}
-
-@Composable
-@Preview(showSystemUi = true, name = "Watch face unvailable")
-private fun PreviewUnavailable() {
-    Preview(MainViewModel.AppInstalledStatus.Result(Sync.WearableStatus.NotAvailable))
-}
-
-@Composable
-@Preview(showSystemUi = true, name = "Watch face error")
-private fun PreviewError() {
-    Preview(MainViewModel.AppInstalledStatus.Result(Sync.WearableStatus.Error(Exception("Error"))))
-}
-
-@Composable
-@Preview(showSystemUi = true, name = "Watch face status unknown")
-private fun PreviewUnknown() {
-    Preview(MainViewModel.AppInstalledStatus.Unknown)
-}
-
-@Composable
-@Preview(showSystemUi = true, name = "Watch face status verifying")
-private fun PreviewVerifying() {
-    Preview(MainViewModel.AppInstalledStatus.Verifying)
-}
-
-@Composable
-private fun Preview(appInstalledStatus: MainViewModel.AppInstalledStatus) {
+@Preview(showSystemUi = true)
+private fun Preview() {
     AppMaterialTheme {
         PremiumLayout(
-            appInstalledStatus = appInstalledStatus,
-            watchFaceInstallButtonPressed = {},
+            installWatchFaceButtonPressed = {},
             syncPremiumStatusButtonPressed = {},
             donateButtonPressed = {},
         )

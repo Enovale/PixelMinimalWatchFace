@@ -51,3 +51,15 @@ fun whiteButtonColors() = ButtonDefaults.buttonColors(
     backgroundColor = Color.White,
     contentColor = Color.Black,
 )
+
+@Composable
+fun blueButtonColors() = ButtonDefaults.buttonColors(
+    backgroundColor = primaryBlue,
+    contentColor = Color.White,
+)
+
+@Composable
+fun whiteTextButtonColors() = ButtonDefaults.buttonColors(
+    backgroundColor = Color.Transparent,
+    contentColor = Color.White,
+)

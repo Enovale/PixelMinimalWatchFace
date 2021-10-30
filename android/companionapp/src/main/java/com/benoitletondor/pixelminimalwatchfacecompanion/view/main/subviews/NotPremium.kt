@@ -18,16 +18,20 @@ package com.benoitletondor.pixelminimalwatchfacecompanion.view.main.subviews
 import android.app.Activity
 import android.view.LayoutInflater
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -39,37 +43,33 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentPagerAdapter
 import androidx.viewpager.widget.ViewPager
 import com.benoitletondor.pixelminimalwatchfacecompanion.R
-import com.benoitletondor.pixelminimalwatchfacecompanion.sync.Sync
 import com.benoitletondor.pixelminimalwatchfacecompanion.ui.AppMaterialTheme
+import com.benoitletondor.pixelminimalwatchfacecompanion.ui.productSansFontFamily
 import com.benoitletondor.pixelminimalwatchfacecompanion.ui.whiteButtonColors
 import com.benoitletondor.pixelminimalwatchfacecompanion.view.main.MainViewModel
-import me.relex.circleindicator.CircleIndicator
+import com.google.accompanist.pager.ExperimentalPagerApi
+import com.google.accompanist.pager.HorizontalPager
+import com.google.accompanist.pager.HorizontalPagerIndicator
+import com.google.accompanist.pager.rememberPagerState
 
 @Composable
-fun NotPremium(state: MainViewModel.State.NotPremium, viewModel: MainViewModel) {
+fun NotPremium(viewModel: MainViewModel) {
     val context = LocalContext.current
 
     NotPremiumLayout(
-        canInstallApp = state.appInstalledStatus is MainViewModel.AppInstalledStatus.Result && state.appInstalledStatus.wearableStatus == Sync.WearableStatus.AvailableAppNotInstalled,
-        watchFaceInstallButtonPressed = {
-            viewModel.onInstallWatchFaceButtonPressed()
-        },
         becomePremiumButtonPressed = {
             viewModel.launchPremiumBuyFlow(context as Activity)
         },
-        redeemPromoCodeButtonPressed = {
-            viewModel.onRedeemPromoCodeButtonPressed()
-        },
+        redeemPromoCodeButtonPressed = viewModel::onRedeemPromoCodeButtonPressed,
+        installWatchFaceButtonPressed = viewModel::onGoToInstallWatchFaceButtonPressed,
     )
 }
 
 @Composable
 private fun NotPremiumLayout(
-    showCarousel: Boolean = true,
-    canInstallApp: Boolean,
-    watchFaceInstallButtonPressed: () -> Unit,
     becomePremiumButtonPressed: () -> Unit,
     redeemPromoCodeButtonPressed: () -> Unit,
+    installWatchFaceButtonPressed: () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -81,74 +81,38 @@ private fun NotPremiumLayout(
     ) {
         Spacer(modifier = Modifier.height(10.dp))
 
-        if (showCarousel) {
-            AndroidView(
-                factory = { context ->
-                    val layout = LayoutInflater.from(context).inflate(R.layout.not_premium_view_pager, null)
-                    val pager = layout.findViewById<ViewPager>(R.id.not_premium_view_pager)
-                    val indicator = layout.findViewById<CircleIndicator>(R.id.not_premium_view_pager_indicator)
-                    pager.adapter = object : FragmentPagerAdapter((context as AppCompatActivity).supportFragmentManager, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {
+        SetupWatchFace(installWatchFaceButtonPressed = installWatchFaceButtonPressed)
 
-                        override fun getItem(position: Int): Fragment = Fragment(when(position) {
-                            0 -> R.layout.fragment_premium_1
-                            1 -> R.layout.fragment_premium_2
-                            2 -> R.layout.fragment_premium_3
-                            else -> throw IllegalStateException("invalid position: $position")
-                        })
-
-                        override fun getCount(): Int = 3
-                    }
-
-                    indicator.setViewPager(pager)
-                    layout
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(390.dp),
-            )
-        } else {
-            Spacer(modifier = Modifier
-                .fillMaxWidth()
-                .height(390.dp)
-                .background(color = Color.Gray)
-            )
-        }
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        if (canInstallApp) {
-            Button(
-                onClick = watchFaceInstallButtonPressed,
-                colors = whiteButtonColors(),
-            ) {
-                Text(text = stringResource(R.string.premium_install_cta).uppercase())
-            }
-        } else {
-            Text(
-                text = stringResource(R.string.not_premium_install),
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth(),
-                color = MaterialTheme.colors.onBackground,
-            )
-        }
-
-        Spacer(modifier = Modifier.height(22.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
         Text(
-            text = stringResource(R.string.not_premium_status),
+            text = "Unlock premium features",
+            color = MaterialTheme.colors.onBackground,
+            fontSize = 18.sp,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth(),
+        )
+
+        Spacer(modifier = Modifier.height(15.dp))
+
+        Pager()
+
+        Spacer(Modifier.height(16.dp))
+
+        Text(
+            text = "To unlock widgets, weather and battery indicators, become a premium user:",
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth(),
             color = MaterialTheme.colors.onBackground,
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(10.dp))
 
         Button(onClick = becomePremiumButtonPressed) {
-            Text(text = stringResource(R.string.premium_cta).uppercase())
+            Text(text = "Become premium".uppercase())
         }
         Text(
-            text = stringResource(R.string.not_premium_status_2),
+            text = "(1 time payment, no hidden fees)",
             textAlign = TextAlign.Center,
             fontSize = 13.sp,
             modifier = Modifier.fillMaxWidth(),
@@ -158,33 +122,121 @@ private fun NotPremiumLayout(
         Spacer(modifier = Modifier.height(6.dp))
 
         TextButton(onClick = redeemPromoCodeButtonPressed) {
-            Text(text = stringResource(R.string.promocode_cta).uppercase())
+            Text(text = "Redeem code".uppercase())
         }
+
+        Spacer(modifier = Modifier.height(10.dp))
+    }
+}
+
+@Composable
+@OptIn(ExperimentalPagerApi::class)
+private fun Pager() {
+    val pagerState = rememberPagerState()
+
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        HorizontalPager(
+            count = 3,
+            state = pagerState,
+        ) { page ->
+            PagerPage(page)
+        }
+
+        Spacer(Modifier.height(10.dp))
+
+        HorizontalPagerIndicator(
+            pagerState = pagerState,
+            modifier = Modifier.align(Alignment.CenterHorizontally),
+        )
+    }
+}
+
+@Composable
+private fun PagerPage(page: Int) {
+    val (imagePainterResource, title) = when(page) {
+        0 -> Pair(painterResource(R.drawable.inapp1), "4 customisable widgets, weather info, battery indicators, beautifully integrated")
+        1 -> Pair(painterResource(R.drawable.inapp2), "Choose the widgets you want")
+        else -> Pair(painterResource(R.drawable.inapp3), "Customize widgets & battery indicators accent color")
     }
 
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Text(
+            text = title,
+            fontSize = 17.sp,
+            fontFamily = productSansFontFamily,
+            color = MaterialTheme.colors.onBackground,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth(),
+        )
+
+        Spacer(Modifier.height(5.dp))
+
+        Image(
+            painter = imagePainterResource,
+            contentDescription = null,
+            contentScale = ContentScale.Fit,
+            modifier = Modifier
+                .fillMaxSize()
+                .height(200.dp),
+        )
+    }
 }
 
 @Composable
-@Preview(showSystemUi = true, name = "Can install app")
-private fun PreviewCanInstallApp() {
-    Preview(true)
+private fun SetupWatchFace(
+    installWatchFaceButtonPressed: () -> Unit,
+) {
+    Text(
+        text = "Setup the watch face",
+        textAlign = TextAlign.Center,
+        modifier = Modifier.fillMaxWidth(),
+        color = MaterialTheme.colors.onBackground,
+        fontSize = 18.sp,
+    )
+
+    Spacer(modifier = Modifier.height(10.dp))
+
+    Text(
+        text = stringResource(R.string.setup_watch_face_instructions),
+        color = MaterialTheme.colors.onBackground,
+    )
+
+    Spacer(modifier = Modifier.height(10.dp))
+
+    Column(
+        modifier = Modifier.fillMaxWidth()
+            .background(color = Color.DarkGray, shape = RoundedCornerShape(10))
+            .padding(horizontal = 10.dp, vertical = 6.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            text = "Watch face not installed on your watch?",
+            color = MaterialTheme.colors.onBackground,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth(),
+        )
+
+        TextButton(
+            onClick = installWatchFaceButtonPressed,
+            colors = whiteButtonColors(),
+        ) {
+            Text(text = "Install watch face".uppercase())
+        }
+    }
 }
 
 @Composable
-@Preview(showSystemUi = true, name = "Can't install app")
-private fun PreviewCantInstallApp() {
-    Preview(false)
-}
-
-@Composable
-private fun Preview(canInstallApp: Boolean) {
+@Preview(showSystemUi = true)
+private fun Preview() {
     AppMaterialTheme {
         NotPremiumLayout(
-            showCarousel = false,
-            canInstallApp = canInstallApp,
-            watchFaceInstallButtonPressed = {},
             becomePremiumButtonPressed = {},
             redeemPromoCodeButtonPressed = {},
+            installWatchFaceButtonPressed = {},
         )
     }
 }

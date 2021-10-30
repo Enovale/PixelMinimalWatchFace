@@ -17,10 +17,13 @@ package com.benoitletondor.pixelminimalwatchfacecompanion.ui.components
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -56,7 +59,8 @@ fun AppTopBarScaffold(
                 title = {
                     Text(
                         text = title,
-                        fontWeight = FontWeight.Medium,
+                        fontFamily = productSansFontFamily,
+                        modifier = Modifier.padding(top = 4.dp),
                     )
                 },
                 actions = actions,

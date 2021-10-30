@@ -93,7 +93,7 @@ private fun MainView() {
 
 @Composable
 private fun Main(navController: NavController, mainViewModel: MainViewModel) {
-    val state: MainViewModel.State by mainViewModel.stateFlow.collectAsState(initial = mainViewModel.state)
+    val step: MainViewModel.Step by mainViewModel.stepFlow.collectAsState(initial = mainViewModel.step)
     val context = LocalContext.current
 
     LaunchedEffect("nav") {
@@ -182,22 +182,28 @@ private fun Main(navController: NavController, mainViewModel: MainViewModel) {
                     Text(stringResource(R.string.send_feedback_cta))
                 }
                 DropdownMenuItem(
+                    onClick = mainViewModel::onDonateButtonPressed,
+                ) {
+                    Text("Donate")
+                }
+                DropdownMenuItem(
                     enabled = false,
                     onClick = {},
                 ) {
-                    Text(stringResource(R.string.copyright, BuildConfig.VERSION_NAME))
+                    Text("Version ${BuildConfig.VERSION_NAME}. Made by Benoit Letondor")
                 }
             }
         },
         content = {
-            when(val currentState = state) {
-                is MainViewModel.State.Error -> Error(state = currentState) {
+            when(val currentStep = step) {
+                is MainViewModel.Step.Error -> Error(error = currentStep.error) {
                     mainViewModel.retryPremiumStatusCheck()
                 }
-                MainViewModel.State.Loading -> Loading()
-                is MainViewModel.State.NotPremium -> NotPremium(state = currentState, viewModel = mainViewModel)
-                is MainViewModel.State.Premium -> Premium(state = currentState, viewModel = mainViewModel)
-                is MainViewModel.State.Syncing -> Syncing()
+                is MainViewModel.Step.InstallWatchFace -> InstallWatchFace(step = currentStep, viewModel = mainViewModel)
+                MainViewModel.Step.Loading -> Loading()
+                is MainViewModel.Step.NotPremium -> NotPremium(viewModel = mainViewModel)
+                is MainViewModel.Step.Premium -> Premium(viewModel = mainViewModel)
+                MainViewModel.Step.Syncing -> Syncing()
             }
         }
     )
