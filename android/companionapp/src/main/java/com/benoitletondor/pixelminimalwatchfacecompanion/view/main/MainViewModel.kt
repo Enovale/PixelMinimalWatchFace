@@ -288,8 +288,11 @@ class MainViewModel @Inject constructor(
                 return Step.Syncing
             }
 
+            val watchFaceDetected = appInstalledStatus is AppInstalledStatus.Result &&
+                    appInstalledStatus.wearableStatus is Sync.WearableStatus.AvailableAppInstalled
+
             val considerAppAsInstalled = when(userForcedInstallStatus) {
-                UserForcedInstallStatus.UNSPECIFIED -> appInstalledStatus is AppInstalledStatus.Result && appInstalledStatus.wearableStatus is Sync.WearableStatus.AvailableAppInstalled
+                UserForcedInstallStatus.UNSPECIFIED -> watchFaceDetected
                 UserForcedInstallStatus.INSTALLED -> true
                 UserForcedInstallStatus.UNINSTALLED -> false
             }

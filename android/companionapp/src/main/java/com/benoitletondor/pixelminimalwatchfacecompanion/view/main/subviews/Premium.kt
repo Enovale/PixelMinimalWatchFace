@@ -61,155 +61,186 @@ private fun PremiumLayout(
     val bottomSheetScaffoldState = rememberBottomSheetScaffoldState(
         bottomSheetState = BottomSheetState(BottomSheetValue.Collapsed)
     )
-    val coroutineScope = rememberCoroutineScope()
     BottomSheetScaffold(
         scaffoldState = bottomSheetScaffoldState,
         sheetContent = {
-            Troubleshooting(
-                installWatchFaceButtonPressed = {
-                    coroutineScope.launch {
-                        bottomSheetScaffoldState.bottomSheetState.collapse()
-                    }
-                    installWatchFaceButtonPressed()
-                },
-                syncPremiumStatusButtonPressed = {
-                    coroutineScope.launch {
-                        bottomSheetScaffoldState.bottomSheetState.collapse()
-                    }
-                    syncPremiumStatusButtonPressed()
-                } ,
-                onSupportButtonPressed = {
-                    coroutineScope.launch {
-                        bottomSheetScaffoldState.bottomSheetState.collapse()
-                    }
-                    onSupportButtonPressed()
-                },
-                onCloseButtonPressed = {
-                    coroutineScope.launch {
-                        bottomSheetScaffoldState.bottomSheetState.collapse()
-                    }
-                }
+            TroubleShootBottomSheet(
+                bottomSheetScaffoldState,
+                installWatchFaceButtonPressed = installWatchFaceButtonPressed,
+                onSupportButtonPressed = onSupportButtonPressed,
+                syncPremiumStatusButtonPressed = syncPremiumStatusButtonPressed,
             )
         },
         sheetPeekHeight = 0.dp,
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Spacer(modifier = Modifier.height(10.dp))
-
-            Text(
-                text = "You're premium!",
-                fontSize = 18.sp,
-                textAlign = TextAlign.Center,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.fillMaxWidth(),
-                color = MaterialTheme.colors.onBackground,
-            )
-
-            Spacer(modifier = Modifier.height(5.dp))
-
-            Text(
-                text = "Thank you so much for your support :)",
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth(),
-                color = MaterialTheme.colors.onBackground,
-            )
-
-            Spacer(modifier = Modifier.height(30.dp))
-
-            Text(
-                text = "Setup the watch face",
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth(),
-                color = MaterialTheme.colors.onBackground,
-                fontSize = 18.sp,
-            )
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            Text(
-                text = stringResource(R.string.setup_watch_face_instructions),
-                color = MaterialTheme.colors.onBackground,
-            )
-
-            Spacer(modifier = Modifier.height(30.dp))
-
-            Text(
-                text = "Troubleshooting",
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth(),
-                color = MaterialTheme.colors.onBackground,
-                fontSize = 18.sp,
-            )
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            Text(
-                text = "If you have any issue, tap here to troubleshoot",
-                textAlign = TextAlign.Start,
-                modifier = Modifier.fillMaxWidth(),
-                color = MaterialTheme.colors.onBackground,
-            )
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            Button(
-                onClick = {
-                    coroutineScope.launch {
-                        if (bottomSheetScaffoldState.bottomSheetState.isCollapsed) {
-                            bottomSheetScaffoldState.bottomSheetState.expand()
-                        } else {
-                            bottomSheetScaffoldState.bottomSheetState.collapse()
-                        }
-                    }
-                },
-                colors = blueButtonColors(),
-            ) {
-                Text(text = "Troubleshoot".uppercase())
-            }
-
-            Spacer(modifier = Modifier.height(30.dp))
-
-            Column(
-                modifier = Modifier.fillMaxWidth()
-                    .background(color = primaryGreen.copy(alpha = 0.7f), shape = RoundedCornerShape(10))
-                    .padding(horizontal = 10.dp, vertical = 6.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Text(
-                    text = "Feel like helping even more with a tip?",
-                    fontSize = 16.sp,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth(),
-                    color = MaterialTheme.colors.onBackground,
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Button(
-                    onClick = donateButtonPressed,
-                    colors = ButtonDefaults.buttonColors(
-                        backgroundColor = Color.White,
-                        contentColor = primaryGreen,
-                    ),
-                ) {
-                    Text(text = "Donate".uppercase())
-                }
-            }
-
-            Spacer(modifier = Modifier.height(10.dp))
-        }
+        PremiumLayoutContent(
+            bottomSheetScaffoldState,
+            donateButtonPressed = donateButtonPressed,
+        )
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
-private fun Troubleshooting(
+private fun PremiumLayoutContent(
+    bottomSheetScaffoldState: BottomSheetScaffoldState,
+    donateButtonPressed: () -> Unit,
+) {
+    val coroutineScope = rememberCoroutineScope()
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .fillMaxHeight()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 20.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Spacer(modifier = Modifier.height(10.dp))
+
+        Text(
+            text = "You're premium!",
+            fontSize = 18.sp,
+            textAlign = TextAlign.Center,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.fillMaxWidth(),
+            color = MaterialTheme.colors.onBackground,
+        )
+
+        Spacer(modifier = Modifier.height(5.dp))
+
+        Text(
+            text = "Thank you so much for your support :)",
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth(),
+            color = MaterialTheme.colors.onBackground,
+        )
+
+        Spacer(modifier = Modifier.height(30.dp))
+
+        Text(
+            text = "Setup the watch face",
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth(),
+            color = MaterialTheme.colors.onBackground,
+            fontSize = 18.sp,
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        Text(
+            text = stringResource(R.string.setup_watch_face_instructions),
+            color = MaterialTheme.colors.onBackground,
+        )
+
+        Spacer(modifier = Modifier.height(30.dp))
+
+        Text(
+            text = "Troubleshooting",
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth(),
+            color = MaterialTheme.colors.onBackground,
+            fontSize = 18.sp,
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        Text(
+            text = "If you have any issue, tap here to troubleshoot",
+            textAlign = TextAlign.Start,
+            modifier = Modifier.fillMaxWidth(),
+            color = MaterialTheme.colors.onBackground,
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        Button(
+            onClick = {
+                coroutineScope.launch {
+                    if (bottomSheetScaffoldState.bottomSheetState.isCollapsed) {
+                        bottomSheetScaffoldState.bottomSheetState.expand()
+                    } else {
+                        bottomSheetScaffoldState.bottomSheetState.collapse()
+                    }
+                }
+            },
+            colors = blueButtonColors(),
+        ) {
+            Text(text = "Troubleshoot".uppercase())
+        }
+
+        Spacer(modifier = Modifier.height(30.dp))
+
+        Column(
+            modifier = Modifier.fillMaxWidth()
+                .background(color = primaryGreen.copy(alpha = 0.7f), shape = RoundedCornerShape(10))
+                .padding(horizontal = 10.dp, vertical = 6.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(
+                text = "Feel like helping even more with a tip?",
+                fontSize = 16.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth(),
+                color = MaterialTheme.colors.onBackground,
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Button(
+                onClick = donateButtonPressed,
+                colors = ButtonDefaults.buttonColors(
+                    backgroundColor = Color.White,
+                    contentColor = primaryGreen,
+                ),
+            ) {
+                Text(text = "Donate".uppercase())
+            }
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+    }
+}
+
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+private fun TroubleShootBottomSheet(
+    bottomSheetScaffoldState: BottomSheetScaffoldState,
+    installWatchFaceButtonPressed: () -> Unit,
+    syncPremiumStatusButtonPressed: () -> Unit,
+    onSupportButtonPressed: () -> Unit,
+) {
+    val coroutineScope = rememberCoroutineScope()
+
+    TroubleshootingContent(
+        installWatchFaceButtonPressed = {
+            coroutineScope.launch {
+                bottomSheetScaffoldState.bottomSheetState.collapse()
+            }
+            installWatchFaceButtonPressed()
+        },
+        syncPremiumStatusButtonPressed = {
+            coroutineScope.launch {
+                bottomSheetScaffoldState.bottomSheetState.collapse()
+            }
+            syncPremiumStatusButtonPressed()
+        } ,
+        onSupportButtonPressed = {
+            coroutineScope.launch {
+                bottomSheetScaffoldState.bottomSheetState.collapse()
+            }
+            onSupportButtonPressed()
+        },
+        onCloseButtonPressed = {
+            coroutineScope.launch {
+                bottomSheetScaffoldState.bottomSheetState.collapse()
+            }
+        }
+    )
+}
+
+@Composable
+private fun TroubleshootingContent(
     installWatchFaceButtonPressed: () -> Unit,
     syncPremiumStatusButtonPressed: () -> Unit,
     onSupportButtonPressed: () -> Unit,
@@ -326,7 +357,7 @@ private fun Preview() {
 @Preview(name = "Troubleshooting")
 private fun TroubleshootPreview() {
     AppMaterialTheme {
-        Troubleshooting(
+        TroubleshootingContent(
             onSupportButtonPressed = {},
             installWatchFaceButtonPressed = {},
             syncPremiumStatusButtonPressed = {},

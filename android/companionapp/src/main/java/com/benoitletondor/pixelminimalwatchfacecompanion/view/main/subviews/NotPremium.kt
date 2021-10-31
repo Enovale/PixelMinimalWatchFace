@@ -74,7 +74,20 @@ private fun NotPremiumLayout(
     ) {
         Spacer(modifier = Modifier.height(10.dp))
 
-        SetupWatchFace(installWatchFaceButtonPressed = installWatchFaceButtonPressed)
+        Text(
+            text = "Setup the watch face",
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth(),
+            color = MaterialTheme.colors.onBackground,
+            fontSize = 18.sp,
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        Text(
+            text = stringResource(R.string.setup_watch_face_instructions),
+            color = MaterialTheme.colors.onBackground,
+        )
 
         Spacer(modifier = Modifier.height(20.dp))
 
@@ -198,26 +211,6 @@ private fun PagerPage(page: Int) {
                 .height(200.dp),
         )
     }
-}
-
-@Composable
-private fun SetupWatchFace(
-    installWatchFaceButtonPressed: () -> Unit,
-) {
-    Text(
-        text = "Setup the watch face",
-        textAlign = TextAlign.Center,
-        modifier = Modifier.fillMaxWidth(),
-        color = MaterialTheme.colors.onBackground,
-        fontSize = 18.sp,
-    )
-
-    Spacer(modifier = Modifier.height(10.dp))
-
-    Text(
-        text = stringResource(R.string.setup_watch_face_instructions),
-        color = MaterialTheme.colors.onBackground,
-    )
 }
 
 @Composable

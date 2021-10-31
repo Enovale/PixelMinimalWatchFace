@@ -355,7 +355,7 @@ class Android12DigitalWatchFaceDrawer(
         val batteryBottomY = if (storage.shouldShowWearOSLogo()) {
             screenHeight - chinSize - topAndBottomMargins.toInt()
         } else {
-            (timeBottomY + batteryHeight + context.dpToPx(4) + verticalPaddingBetweenElements).toInt()
+            (timeBottomY + batteryHeight + context.dpToPx(1) + verticalPaddingBetweenElements).toInt()
         }
 
         val batteryTopY = batteryBottomY - batteryHeight
@@ -456,8 +456,8 @@ class Android12DigitalWatchFaceDrawer(
         timePaint.textSize = context.resources.getDimension(R.dimen.android_12_time_text_size) * scaleFactor
         val dateSize = context.resources.getDimension(R.dimen.android_12_date_text_size) * dateAndBatteryScaleFactor
         datePaint.textSize = dateSize
-        batteryLevelPaint.textSize = context.resources.getDimension(R.dimen.battery_level_size) * dateAndBatteryScaleFactor
-        batteryIconSize = (context.resources.getDimension(R.dimen.battery_icon_size) * dateAndBatteryScaleFactor).toInt()
+        batteryLevelPaint.textSize = context.resources.getDimension(R.dimen.android_12_battery_level_size) * dateAndBatteryScaleFactor
+        batteryIconSize = (context.resources.getDimension(R.dimen.android_12_battery_icon_size) * dateAndBatteryScaleFactor).toInt()
     }
 
     private fun Android12DrawingState.CacheAvailable.draw(
