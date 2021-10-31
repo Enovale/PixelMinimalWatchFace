@@ -24,6 +24,8 @@
     <dimen name="screen_top_and_bottom_margin">20dp</dimen>
     <dimen name="battery_level_size">12dp</dimen>
     <dimen name="battery_icon_size">11dp</dimen>
+    <dimen name="android_12_battery_level_size">13dp</dimen>
+    <dimen name="android_12_battery_icon_size">12dp</dimen>
     <dimen name="complication_title_size">12sp</dimen>
     <dimen name="complication_text_size">14sp</dimen>
 

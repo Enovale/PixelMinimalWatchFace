@@ -63,7 +63,7 @@ fun Donation(navController: NavController, donationViewModel: DonationViewModel)
     AppTopBarScaffold(
         navController = navController,
         showBackButton = true,
-        title = stringResource(R.string.donation_title),
+        title = "Support with a tip",
         actions = {
             AppTopBarMoreMenuItem {
                 DropdownMenuItem(

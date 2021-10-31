@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.Color
 
 val primaryBlue = Color(0xFF5484f8)
 val primaryRed = Color(0xFFda482f)
+val primaryGreen = Color(0xFF54A74C)
 
 @Composable
 fun AppMaterialTheme(content: @Composable () -> Unit) {
@@ -47,7 +48,13 @@ fun AppMaterialTheme(content: @Composable () -> Unit) {
 }
 
 @Composable
-fun whiteButtonColors() = ButtonDefaults.buttonColors(
-    backgroundColor = Color.White,
-    contentColor = Color.Black,
+fun blueButtonColors() = ButtonDefaults.buttonColors(
+    backgroundColor = primaryBlue,
+    contentColor = Color.White,
+)
+
+@Composable
+fun whiteTextButtonColors() = ButtonDefaults.buttonColors(
+    backgroundColor = Color.Transparent,
+    contentColor = Color.White,
 )
