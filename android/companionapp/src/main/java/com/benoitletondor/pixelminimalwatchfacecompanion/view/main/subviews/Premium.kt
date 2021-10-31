@@ -146,7 +146,7 @@ private fun PremiumLayoutContent(
         Spacer(modifier = Modifier.height(10.dp))
 
         Text(
-            text = "If you have any issue, tap here to troubleshoot",
+            text = "You have any issue with the watch face? Something's not working?",
             textAlign = TextAlign.Start,
             modifier = Modifier.fillMaxWidth(),
             color = MaterialTheme.colors.onBackground,
@@ -286,7 +286,7 @@ private fun TroubleshootingContent(
             Spacer(modifier = Modifier.height(20.dp))
 
             Text(
-                text = "- Watch face is not installed on your watch?",
+                text = "Watch face is not installed on your watch?",
                 textAlign = TextAlign.Start,
                 modifier = Modifier.fillMaxWidth(),
                 color = MaterialTheme.colors.onBackground,
@@ -300,10 +300,10 @@ private fun TroubleshootingContent(
                 Text(text = "Install watch face".uppercase())
             }
 
-            Spacer(modifier = Modifier.height(5.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
             Text(
-                text = "- Watch face doesn't recognize you as premium?",
+                text = "Watch face doesn't recognize you as premium?",
                 textAlign = TextAlign.Start,
                 modifier = Modifier.fillMaxWidth(),
                 color = MaterialTheme.colors.onBackground,
@@ -317,10 +317,10 @@ private fun TroubleshootingContent(
                 Text(text = "Sync premium with Watch".uppercase())
             }
 
-            Spacer(modifier = Modifier.height(5.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
             Text(
-                text = "- Sync doesn't work? Have another issue? I'm here to help",
+                text = "Sync doesn't work? Have another issue? I'm here to help",
                 textAlign = TextAlign.Start,
                 modifier = Modifier.fillMaxWidth(),
                 color = MaterialTheme.colors.onBackground,
@@ -334,6 +334,14 @@ private fun TroubleshootingContent(
             ) {
                 Text(text = "Contact me for support".uppercase())
             }
+
+            Text(
+                text = "I'll help you within less than 24h",
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth(),
+                color = MaterialTheme.colors.onBackground,
+                fontSize = 13.sp,
+            )
 
             Spacer(modifier = Modifier.height(20.dp))
         }

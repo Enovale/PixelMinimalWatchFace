@@ -288,15 +288,6 @@ class MainViewModel @Inject constructor(
                 return Step.Syncing
             }
 
-            val watchFaceDetected = appInstalledStatus is AppInstalledStatus.Result &&
-                    appInstalledStatus.wearableStatus is Sync.WearableStatus.AvailableAppInstalled
-
-            val considerAppAsInstalled = when(userForcedInstallStatus) {
-                UserForcedInstallStatus.UNSPECIFIED -> watchFaceDetected
-                UserForcedInstallStatus.INSTALLED -> true
-                UserForcedInstallStatus.UNINSTALLED -> false
-            }
-
             if (userForcedInstallStatus == UserForcedInstallStatus.UNINSTALLED) {
                 return Step.InstallWatchFace(appInstalledStatus)
             }
@@ -305,11 +296,7 @@ class MainViewModel @Inject constructor(
                 PremiumCheckStatus.Checking -> Step.Loading
                 is PremiumCheckStatus.Error -> Step.Error(premiumStatus.error)
                 PremiumCheckStatus.Initializing -> Step.Loading
-                PremiumCheckStatus.NotPremium -> if (considerAppAsInstalled) {
-                    Step.NotPremium
-                } else {
-                    Step.InstallWatchFace(appInstalledStatus)
-                }
+                PremiumCheckStatus.NotPremium -> Step.NotPremium
                 PremiumCheckStatus.Premium -> Step.Premium
             }
         }
