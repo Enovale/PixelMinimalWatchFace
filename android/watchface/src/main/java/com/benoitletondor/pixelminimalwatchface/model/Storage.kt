@@ -578,7 +578,7 @@ class StorageImpl : Storage {
     override fun getSecondRingColor(): PorterDuffColorFilter {
         if( !secondRingColorCached ) {
             cacheSecondRingColor = sharedPreferences.getInt(KEY_SECONDS_RING_COLOR, appContext.getColor(R.color.white))
-            cacheSecondRingPorterDuffColorFilter = PorterDuffColorFilter(cacheTimeAndDateColor, PorterDuff.Mode.SRC_IN)
+            cacheSecondRingPorterDuffColorFilter = PorterDuffColorFilter(cacheSecondRingColor, PorterDuff.Mode.SRC_IN)
             secondRingColorCached = true
         }
 
