@@ -280,6 +280,7 @@ class MainViewModel @Inject constructor(
             isSyncing: Boolean,
             userForcedInstallStatus: UserForcedInstallStatus,
         ) : Step {
+            return Step.NotPremium
             if (userIsBuyingPremium) {
                 return Step.Loading
             }

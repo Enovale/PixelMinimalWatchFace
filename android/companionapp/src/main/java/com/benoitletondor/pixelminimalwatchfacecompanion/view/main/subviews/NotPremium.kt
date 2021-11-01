@@ -16,6 +16,8 @@
 package com.benoitletondor.pixelminimalwatchfacecompanion.view.main.subviews
 
 import android.app.Activity
+import android.view.LayoutInflater
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -35,15 +37,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentPagerAdapter
+import androidx.viewpager.widget.ViewPager
 import com.benoitletondor.pixelminimalwatchfacecompanion.R
 import com.benoitletondor.pixelminimalwatchfacecompanion.ui.AppMaterialTheme
 import com.benoitletondor.pixelminimalwatchfacecompanion.ui.blueButtonColors
-import com.benoitletondor.pixelminimalwatchfacecompanion.ui.productSansFontFamily
 import com.benoitletondor.pixelminimalwatchfacecompanion.view.main.MainViewModel
-import com.google.accompanist.pager.ExperimentalPagerApi
-import com.google.accompanist.pager.HorizontalPager
-import com.google.accompanist.pager.HorizontalPagerIndicator
-import com.google.accompanist.pager.rememberPagerState
+import me.relex.circleindicator.CircleIndicator
 
 @Composable
 fun NotPremium(viewModel: MainViewModel) {
@@ -63,6 +65,7 @@ private fun NotPremiumLayout(
     becomePremiumButtonPressed: () -> Unit,
     redeemPromoCodeButtonPressed: () -> Unit,
     installWatchFaceButtonPressed: () -> Unit,
+    drawViewPager: Boolean = true,
 ) {
     Column(
         modifier = Modifier
@@ -101,9 +104,11 @@ private fun NotPremiumLayout(
 
         Spacer(modifier = Modifier.height(15.dp))
 
-        Pager()
+        Pager(
+            drawViewPager = drawViewPager,
+        )
 
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(10.dp))
 
         Text(
             text = "To unlock widgets, weather and battery indicators, become a premium user:",
@@ -157,60 +162,41 @@ private fun NotPremiumLayout(
 }
 
 @Composable
-@OptIn(ExperimentalPagerApi::class)
-private fun Pager() {
-    val pagerState = rememberPagerState()
+private fun Pager(drawViewPager: Boolean = true) {
+    if (drawViewPager) {
+        AndroidView(
+            factory = { context ->
+                val layout = LayoutInflater.from(context).inflate(R.layout.not_premium_view_pager, null)
+                val pager = layout.findViewById<ViewPager>(R.id.not_premium_view_pager)
+                val indicator = layout.findViewById<CircleIndicator>(R.id.not_premium_view_pager_indicator)
+                pager.adapter = object : FragmentPagerAdapter((context as AppCompatActivity).supportFragmentManager, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {
 
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        HorizontalPager(
-            count = 3,
-            state = pagerState,
-        ) { page ->
-            PagerPage(page)
-        }
+                    override fun getItem(position: Int): Fragment = Fragment(when(position) {
+                        0 -> R.layout.fragment_premium_1
+                        1 -> R.layout.fragment_premium_2
+                        2 -> R.layout.fragment_premium_3
+                        else -> throw IllegalStateException("invalid position: $position")
+                    })
 
-        Spacer(Modifier.height(10.dp))
+                    override fun getCount(): Int = 3
+                }
 
-        HorizontalPagerIndicator(
-            pagerState = pagerState,
-            modifier = Modifier.align(Alignment.CenterHorizontally),
-        )
-    }
-}
-
-@Composable
-private fun PagerPage(page: Int) {
-    val (imagePainterResource, title) = when(page) {
-        0 -> Pair(painterResource(R.drawable.inapp1), "4 customisable widgets, weather info, battery indicators, beautifully integrated")
-        1 -> Pair(painterResource(R.drawable.inapp2), "Choose the widgets you want")
-        else -> Pair(painterResource(R.drawable.inapp3), "Customize widgets & battery indicators accent color")
-    }
-
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Text(
-            text = title,
-            fontSize = 17.sp,
-            fontFamily = productSansFontFamily,
-            color = MaterialTheme.colors.onBackground,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth(),
-        )
-
-        Spacer(Modifier.height(5.dp))
-
-        Image(
-            painter = imagePainterResource,
-            contentDescription = null,
-            contentScale = ContentScale.Fit,
+                indicator.setViewPager(pager)
+                layout
+            },
             modifier = Modifier
-                .fillMaxSize()
-                .height(200.dp),
+                .fillMaxWidth()
+                .height(250.dp),
+        )
+    } else {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(250.dp)
+                .background(Color.DarkGray),
         )
     }
+
 }
 
 @Composable
@@ -221,6 +207,7 @@ private fun Preview() {
             becomePremiumButtonPressed = {},
             redeemPromoCodeButtonPressed = {},
             installWatchFaceButtonPressed = {},
+            drawViewPager = false,
         )
     }
 }
