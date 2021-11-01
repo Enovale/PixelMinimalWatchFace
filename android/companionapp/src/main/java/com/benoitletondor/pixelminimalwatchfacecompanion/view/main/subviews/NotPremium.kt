@@ -18,20 +18,20 @@ package com.benoitletondor.pixelminimalwatchfacecompanion.view.main.subviews
 import android.app.Activity
 import android.view.LayoutInflater
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.*
+import androidx.compose.material.Button
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
+import androidx.compose.material.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -39,7 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentPagerAdapter
+import androidx.fragment.app.FragmentStatePagerAdapter
 import androidx.viewpager.widget.ViewPager
 import com.benoitletondor.pixelminimalwatchfacecompanion.R
 import com.benoitletondor.pixelminimalwatchfacecompanion.ui.AppMaterialTheme
@@ -75,7 +75,7 @@ private fun NotPremiumLayout(
             .padding(horizontal = 20.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(5.dp))
 
         Text(
             text = "Setup the watch face",
@@ -130,6 +130,8 @@ private fun NotPremiumLayout(
             color = MaterialTheme.colors.onBackground,
         )
 
+        Spacer(modifier = Modifier.height(5.dp))
+
         TextButton(onClick = redeemPromoCodeButtonPressed) {
             Text(text = "Redeem code".uppercase())
         }
@@ -148,6 +150,8 @@ private fun NotPremiumLayout(
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth(),
             )
+
+            Spacer(modifier = Modifier.height(5.dp))
 
             Button(
                 onClick = installWatchFaceButtonPressed,
@@ -169,7 +173,7 @@ private fun Pager(drawViewPager: Boolean = true) {
                 val layout = LayoutInflater.from(context).inflate(R.layout.not_premium_view_pager, null)
                 val pager = layout.findViewById<ViewPager>(R.id.not_premium_view_pager)
                 val indicator = layout.findViewById<CircleIndicator>(R.id.not_premium_view_pager_indicator)
-                pager.adapter = object : FragmentPagerAdapter((context as AppCompatActivity).supportFragmentManager, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {
+                pager.adapter = object : FragmentStatePagerAdapter((context as AppCompatActivity).supportFragmentManager, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {
 
                     override fun getItem(position: Int): Fragment = Fragment(when(position) {
                         0 -> R.layout.fragment_premium_1
