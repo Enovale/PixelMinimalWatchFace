@@ -86,10 +86,11 @@ class Android12DigitalWatchFaceDrawer(
     private var currentTimeSize = storage.getTimeSize()
     private var currentDateAndBatterySize = storage.getDateAndBatterySize()
     private var currentWidgetsSize = storage.getWidgetsSize()
+    private var currentShowWearOSLogo = storage.shouldShowWearOSLogo()
     private val weatherAndBatteryIconColorFilterDimmed: ColorFilter = PorterDuffColorFilter(dateAndBatteryColorDimmed, PorterDuff.Mode.SRC_IN)
     private val timeOffsetX = context.dpToPx(-2)
     private val timeCharPaddingX = context.dpToPx(1)
-    private val timePaddingY = context.dpToPx(-5)
+    private var timePaddingY = 0
     private val topAndBottomMargins = context.getTopAndBottomMargins()
     private val verticalPaddingBetweenElements = context.dpToPx(7)
     private var currentShowBatteryIndicator = false
@@ -241,8 +242,10 @@ class Android12DigitalWatchFaceDrawer(
             (currentTimeSize != storage.getTimeSize() ||
             currentDateAndBatterySize != storage.getDateAndBatterySize() ||
             (currentShowBatteryIndicator != storage.shouldShowPhoneBattery() || storage.shouldShowBattery()) ||
-            currentWidgetsSize != storage.getWidgetsSize()) ) {
+            currentWidgetsSize != storage.getWidgetsSize() ||
+            currentShowWearOSLogo != storage.shouldShowWearOSLogo()) ) {
 
+            currentShowWearOSLogo = storage.shouldShowWearOSLogo()
             currentShowBatteryIndicator = storage.shouldShowPhoneBattery() || storage.shouldShowBattery()
             drawingState = currentDrawingState.buildCache()
         }
@@ -319,6 +322,12 @@ class Android12DigitalWatchFaceDrawer(
     }
 
     private fun Android12DrawingState.NoCacheAvailable.buildCache(): Android12DrawingState.CacheAvailable {
+        timePaddingY = if (storage.shouldShowWearOSLogo()) {
+            context.dpToPx(-5)
+        } else {
+            0
+        }
+
         val timeSize = storage.getTimeSize()
         val dateAndBatterySize = storage.getDateAndBatterySize()
         setScaledSizes(timeSize, dateAndBatterySize)
@@ -332,12 +341,6 @@ class Android12DigitalWatchFaceDrawer(
 
         val timeX = centerX - timeWidth / 2f + timeOffsetX
 
-        val batteryBottomY = screenHeight - chinSize - topAndBottomMargins.toInt()
-        val batteryHeight = Rect().apply {
-            batteryLevelPaint.getTextBounds("22%", 0, 3, this)
-        }.height()
-        val batteryTopY = batteryBottomY - batteryHeight
-
         val dateText = "May, 15"
         val dateTextHeight = Rect().apply {
             datePaint.getTextBounds(dateText, 0, dateText.length, this)
@@ -345,6 +348,17 @@ class Android12DigitalWatchFaceDrawer(
         val timeTopY = (centerY - timeHeight - distanceBetweenHourAndMin + timePaddingY)
         val timeBottomY = (centerY + timeHeight + distanceBetweenHourAndMin + timePaddingY)
         val dateBottomY = timeTopY - verticalPaddingBetweenElements
+
+        val batteryHeight = Rect().apply {
+            batteryLevelPaint.getTextBounds("22%", 0, 3, this)
+        }.height()
+        val batteryBottomY = if (storage.shouldShowWearOSLogo()) {
+            screenHeight - chinSize - topAndBottomMargins.toInt()
+        } else {
+            (timeBottomY + batteryHeight + context.dpToPx(1) + verticalPaddingBetweenElements).toInt()
+        }
+
+        val batteryTopY = batteryBottomY - batteryHeight
 
         val complicationsDrawingCache = buildComplicationDrawingCache(
             timeX = timeX,
@@ -442,8 +456,8 @@ class Android12DigitalWatchFaceDrawer(
         timePaint.textSize = context.resources.getDimension(R.dimen.android_12_time_text_size) * scaleFactor
         val dateSize = context.resources.getDimension(R.dimen.android_12_date_text_size) * dateAndBatteryScaleFactor
         datePaint.textSize = dateSize
-        batteryLevelPaint.textSize = context.resources.getDimension(R.dimen.battery_level_size) * dateAndBatteryScaleFactor
-        batteryIconSize = (context.resources.getDimension(R.dimen.battery_icon_size) * dateAndBatteryScaleFactor).toInt()
+        batteryLevelPaint.textSize = context.resources.getDimension(R.dimen.android_12_battery_level_size) * dateAndBatteryScaleFactor
+        batteryIconSize = (context.resources.getDimension(R.dimen.android_12_battery_icon_size) * dateAndBatteryScaleFactor).toInt()
     }
 
     private fun Android12DrawingState.CacheAvailable.draw(

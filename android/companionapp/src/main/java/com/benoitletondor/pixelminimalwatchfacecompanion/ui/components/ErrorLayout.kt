@@ -29,7 +29,7 @@ import com.benoitletondor.pixelminimalwatchfacecompanion.R
 
 @Composable
 fun ErrorLayout(
-    errorTitle: String = stringResource(R.string.premium_error_title),
+    errorTitle: String = "Oops",
     errorMessage: String,
     onRetryButtonClicked: () -> Unit,
 ) {
@@ -53,7 +53,7 @@ fun ErrorLayout(
         )
         Spacer(modifier = Modifier.height(30.dp))
         Button(onClick = onRetryButtonClicked) {
-            Text(stringResource(R.string.error_retry_cta).uppercase())
+            Text("Retry".uppercase())
         }
     }
 }

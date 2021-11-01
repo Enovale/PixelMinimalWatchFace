@@ -28,7 +28,7 @@ import com.benoitletondor.pixelminimalwatchfacecompanion.R
 
 @Composable
 fun LoadingLayout(
-    text: String = stringResource(R.string.loading_status),
+    text: String = "Loading…",
 ) {
     Column(
         modifier = Modifier
