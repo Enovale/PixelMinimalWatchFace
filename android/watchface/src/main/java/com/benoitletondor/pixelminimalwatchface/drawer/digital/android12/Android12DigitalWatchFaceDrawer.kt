@@ -247,7 +247,7 @@ class Android12DigitalWatchFaceDrawer(
         } else if( currentDrawingState is Android12DrawingState.CacheAvailable &&
             (currentTimeSize != storage.getTimeSize() ||
             currentDateAndBatterySize != storage.getDateAndBatterySize() ||
-            (currentShowBatteryIndicator != storage.shouldShowPhoneBattery() || storage.shouldShowBattery()) ||
+            (currentShowBatteryIndicator != (storage.shouldShowPhoneBattery() || storage.shouldShowBattery())) ||
             currentWidgetsSize != storage.getWidgetsSize() ||
             currentShowWearOSLogo != storage.shouldShowWearOSLogo()) ) {
 
