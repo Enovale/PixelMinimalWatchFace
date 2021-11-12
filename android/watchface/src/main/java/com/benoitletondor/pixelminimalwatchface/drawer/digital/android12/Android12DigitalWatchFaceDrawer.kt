@@ -21,11 +21,13 @@ import android.graphics.drawable.Drawable
 import android.support.wearable.complications.ComplicationData
 import android.support.wearable.complications.rendering.ComplicationDrawable
 import android.support.wearable.complications.rendering.CustomComplicationDrawable
+import android.util.Log
 import android.util.SparseArray
 import android.view.WindowInsets
 import androidx.annotation.ColorInt
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
+import com.benoitletondor.pixelminimalwatchface.DEBUG_LOGS
 import com.benoitletondor.pixelminimalwatchface.PhoneBatteryStatus
 import com.benoitletondor.pixelminimalwatchface.PixelMinimalWatchFace
 import com.benoitletondor.pixelminimalwatchface.R
@@ -155,7 +157,11 @@ class Android12DigitalWatchFaceDrawer(
         data: ComplicationData?,
         complicationColors: ComplicationColors
     ) {
-        val complicationDrawable = complicationDrawableSparseArray[complicationId] ?: return
+        val complicationDrawable = complicationDrawableSparseArray[complicationId] ?: kotlin.run {
+            if (DEBUG_LOGS) Log.d(TAG, "Ignoring update for complicationId: $complicationId")
+            return
+        }
+
         complicationDrawable.setComplicationData(data)
 
         val primaryComplicationColor = complicationColors.getPrimaryColorForComplicationId(complicationId)
@@ -568,5 +574,7 @@ class Android12DigitalWatchFaceDrawer(
             PixelMinimalWatchFace.ANDROID_12_BOTTOM_LEFT_COMPLICATION_ID,
             PixelMinimalWatchFace.ANDROID_12_BOTTOM_RIGHT_COMPLICATION_ID,
         )
+
+        private const val TAG = "PixelMinimalWatchFace/Android12Drawer"
     }
 }
