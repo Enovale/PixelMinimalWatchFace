@@ -62,6 +62,8 @@ private const val DATA_KEY_BATTERY_STATUS_PERCENT = "/batterySync/batteryStatus"
 private const val THREE_DAYS_MS: Long = 1000 * 60 * 60 * 24 * 3
 private const val THIRTY_MINS_MS: Long = 1000 * 60 * 30
 private const val MINIMUM_COMPLICATION_UPDATE_INTERVAL_MS = 1000L
+val DEBUG_LOGS = BuildConfig.DEBUG
+private const val TAG = "PixelMinimalWatchFace"
 
 class PixelMinimalWatchFace : CanvasWatchFaceService() {
 
@@ -72,6 +74,8 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
         if (storage.getAppVersion() == DEFAULT_APP_VERSION) {
             storage.setAppVersion(BuildConfig.VERSION_CODE)
         }
+
+        if (DEBUG_LOGS) Log.d(TAG, "onCreateEngine")
 
         return Engine(this, storage)
     }
@@ -123,6 +127,8 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
         override fun onCreate(holder: SurfaceHolder) {
             super.onCreate(holder)
 
+            if (DEBUG_LOGS) Log.d(TAG, "onCreate")
+
             setWatchFaceStyle(
                 WatchFaceStyle.Builder(service)
                     .setAcceptsTapEvents(true)
@@ -139,6 +145,8 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
         }
 
         private fun initWatchFaceDrawer() {
+            if (DEBUG_LOGS) Log.d(TAG, "initWatchFaceDrawer, a12? ${storage.useAndroid12Style()}")
+
             watchFaceDrawer = if (storage.useAndroid12Style()) {
                 Android12DigitalWatchFaceDrawer(service, storage)
             } else {
@@ -160,12 +168,19 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
         private fun initializeComplications() {
             val activeComplicationIds = watchFaceDrawer.initializeComplicationDrawables(this)
 
+            if (DEBUG_LOGS) Log.d(TAG, "initializeComplications, activeComplicationIds: $activeComplicationIds")
+
+            shouldShowWeather = false
+            shouldShowBattery = false
+
             setActiveComplications(*activeComplicationIds.plus(WEATHER_COMPLICATION_ID).plus(BATTERY_COMPLICATION_ID))
 
             watchFaceDrawer.onComplicationColorsUpdate(complicationsColors, complicationDataSparseArray)
         }
 
         private fun subscribeToWeatherComplicationData() {
+            if (DEBUG_LOGS) Log.d(TAG, "subscribeToWeatherComplicationData")
+
             val weatherProviderInfo = getWeatherProviderInfo() ?: return
             setDefaultComplicationProvider(
                 WEATHER_COMPLICATION_ID,
@@ -175,6 +190,8 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
         }
 
         private fun unsubscribeToWeatherComplicationData() {
+            if (DEBUG_LOGS) Log.d(TAG, "unsubscribeToWeatherComplicationData")
+
             setDefaultComplicationProvider(
                 WEATHER_COMPLICATION_ID,
                 null,
@@ -183,6 +200,8 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
         }
 
         private fun subscribeToBatteryComplicationData() {
+            if (DEBUG_LOGS) Log.d(TAG, "subscribeToBatteryComplicationData")
+
             setDefaultSystemComplicationProvider(
                 BATTERY_COMPLICATION_ID,
                 SystemProviders.WATCH_BATTERY,
@@ -191,6 +210,8 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
         }
 
         private fun unsubscribeToBatteryComplicationData() {
+            if (DEBUG_LOGS) Log.d(TAG, "unsubscribeToBatteryComplicationData")
+
             setDefaultComplicationProvider(
                 BATTERY_COMPLICATION_ID,
                 null,
@@ -199,6 +220,8 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
         }
 
         override fun onDestroy() {
+            if (DEBUG_LOGS) Log.d(TAG, "onDestroy")
+
             unregisterReceiver()
             Wearable.getDataClient(service).removeListener(this)
             Wearable.getMessageClient(service).removeListener(this)
@@ -210,6 +233,8 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
 
         override fun onPropertiesChanged(properties: Bundle) {
             super.onPropertiesChanged(properties)
+
+            if (DEBUG_LOGS) Log.d(TAG, "onPropertiesChanged")
 
             lowBitAmbient = properties.getBoolean(
                 WatchFaceService.PROPERTY_LOW_BIT_AMBIENT, false
@@ -224,12 +249,16 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
         override fun onApplyWindowInsets(insets: WindowInsets) {
             super.onApplyWindowInsets(insets)
 
+            if (DEBUG_LOGS) Log.d(TAG, "onApplyWindowInsets")
+
             windowInsets = insets
             watchFaceDrawer.onApplyWindowInsets(insets)
         }
 
         override fun onTimeTick() {
             super.onTimeTick()
+
+            if (DEBUG_LOGS) Log.d(TAG, "onTimeTick")
 
             if( !storage.hasRatingBeenDisplayed() &&
                 System.currentTimeMillis() - storage.getInstallTimestamp() > THREE_DAYS_MS ) {
@@ -250,6 +279,9 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
 
         override fun onAmbientModeChanged(inAmbientMode: Boolean) {
             super.onAmbientModeChanged(inAmbientMode)
+
+            if (DEBUG_LOGS) Log.d(TAG, "onAmbientModeChanged, ambient: ${isAmbientMode()}")
+
             ambient = inAmbientMode
 
             invalidate()
@@ -257,7 +289,10 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
 
         override fun onInterruptionFilterChanged(interruptionFilter: Int) {
             super.onInterruptionFilterChanged(interruptionFilter)
+
             val inMuteMode = interruptionFilter == WatchFaceService.INTERRUPTION_FILTER_NONE
+
+            if (DEBUG_LOGS) Log.d(TAG, "onInterruptionFilterChanged, inMuteMode: $inMuteMode")
 
             if (muteMode != inMuteMode) {
                 muteMode = inMuteMode
@@ -269,6 +304,8 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
         override fun onSurfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
             super.onSurfaceChanged(holder, format, width, height)
 
+            if (DEBUG_LOGS) Log.d(TAG, "onSurfaceChanged, width: $width, height: $height")
+
             screenWidth = width
             screenHeight = height
 
@@ -278,7 +315,11 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
         override fun onComplicationDataUpdate(watchFaceComplicationId: Int, complicationData: ComplicationData) {
             super.onComplicationDataUpdate(watchFaceComplicationId, complicationData)
 
+            if (DEBUG_LOGS) Log.d(TAG, "onComplicationDataUpdate, watchFaceComplicationId: $watchFaceComplicationId, complicationData: $complicationData")
+
             if( watchFaceComplicationId == WEATHER_COMPLICATION_ID ) {
+                if (DEBUG_LOGS) Log.d(TAG, "onComplicationDataUpdate, weatherComplicationData")
+
                 weatherComplicationData = if( complicationData.type == ComplicationData.TYPE_SHORT_TEXT ) {
                     complicationData
                 } else {
@@ -290,6 +331,8 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
             }
 
             if( watchFaceComplicationId == BATTERY_COMPLICATION_ID ) {
+                if (DEBUG_LOGS) Log.d(TAG, "onComplicationDataUpdate, batteryComplicationData")
+
                 batteryComplicationData = if( complicationData.type == ComplicationData.TYPE_SHORT_TEXT ) {
                     complicationData
                 } else {
@@ -440,6 +483,8 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
 
         override fun onVisibilityChanged(visible: Boolean) {
             super.onVisibilityChanged(visible)
+
+            if (DEBUG_LOGS) Log.d(TAG, "onVisibilityChanged: $visible")
 
             if (visible) {
                 registerReceiver()
