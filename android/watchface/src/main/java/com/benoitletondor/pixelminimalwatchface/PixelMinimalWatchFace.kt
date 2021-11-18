@@ -62,7 +62,7 @@ private const val DATA_KEY_BATTERY_STATUS_PERCENT = "/batterySync/batteryStatus"
 private const val THREE_DAYS_MS: Long = 1000 * 60 * 60 * 24 * 3
 private const val THIRTY_MINS_MS: Long = 1000 * 60 * 30
 private const val MINIMUM_COMPLICATION_UPDATE_INTERVAL_MS = 1000L
-const val DEBUG_LOGS = true
+val DEBUG_LOGS = BuildConfig.DEBUG
 private const val TAG = "PixelMinimalWatchFace"
 
 class PixelMinimalWatchFace : CanvasWatchFaceService() {
