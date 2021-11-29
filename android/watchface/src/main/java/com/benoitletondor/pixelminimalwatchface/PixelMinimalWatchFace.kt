@@ -280,7 +280,8 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
             }
 
             val lastWatchBatteryPercentage = lastWatchBatteryPercentage
-            if ( storage.shouldShowBattery() &&
+            if ( Device.isSamsungGalaxy &&
+                storage.shouldShowBattery() &&
                 lastWatchBatteryPercentage != null ) {
                 ensureBatteryDataIsUpToDateOrReload(lastWatchBatteryPercentage)
             }
