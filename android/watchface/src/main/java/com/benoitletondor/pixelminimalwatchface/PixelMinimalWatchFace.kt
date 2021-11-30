@@ -62,7 +62,6 @@ const val MISC_NOTIFICATION_CHANNEL_ID = "rating"
 private const val DATA_KEY_PREMIUM = "premium"
 private const val DATA_KEY_BATTERY_STATUS_PERCENT = "/batterySync/batteryStatus"
 private const val THREE_DAYS_MS: Long = 1000 * 60 * 60 * 24 * 3L
-private const val TEN_MINS_MS: Long = 1000*60*10L
 private const val THIRTY_MINS_MS: Long = 1000 * 60 * 30L
 private const val MINIMUM_COMPLICATION_UPDATE_INTERVAL_MS = 1000L
 val DEBUG_LOGS = true
@@ -115,8 +114,7 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
 
         private var lastPhoneSyncRequestTimestamp: Long? = null
         private var phoneBatteryStatus: PhoneBatteryStatus = PhoneBatteryStatus.Unknown
-        private var lastWatchBatteryPercentage: Int? = null
-        private var lastResetAfterBatteryDesyncTs: Long? = null
+        private var lastWatchBatteryStatus: WatchBatteryStatus = WatchBatteryStatus.Unknown
 
         private var screenWidth = -1
         private var screenHeight = -1
@@ -279,25 +277,18 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
                 syncPhoneBatteryStatus()
             }
 
-            val lastWatchBatteryPercentage = lastWatchBatteryPercentage
-            if ( Device.isSamsungGalaxy &&
+            val lastWatchBatteryStatus = lastWatchBatteryStatus
+            if (Device.isSamsungGalaxy &&
                 storage.shouldShowBattery() &&
-                lastWatchBatteryPercentage != null ) {
-                ensureBatteryDataIsUpToDateOrReload(lastWatchBatteryPercentage)
+                lastWatchBatteryStatus is WatchBatteryStatus.DataReceived) {
+                ensureBatteryDataIsUpToDateOrReload(lastWatchBatteryStatus)
             }
 
             invalidate()
         }
 
-        private fun ensureBatteryDataIsUpToDateOrReload(lastWatchBatteryPercentage: Int) {
-            this.lastResetAfterBatteryDesyncTs?.let {
-                if (System.currentTimeMillis() - it < TEN_MINS_MS) { // Let's make sure we don't reload more than once every 10 mins
-                    if (DEBUG_LOGS) Log.d(TAG, "ensureBatteryDataIsUpToDateOrReload ignoring as last reload was less than 10 mins ago")
-                    return
-                }
-            }
-
-            if (DEBUG_LOGS) Log.d(TAG, "ensureBatteryDataIsUpToDateOrReload comparing $lastWatchBatteryPercentage")
+        private fun ensureBatteryDataIsUpToDateOrReload(lastWatchBatteryStatus: WatchBatteryStatus.DataReceived) {
+            if (DEBUG_LOGS) Log.d(TAG, "ensureBatteryDataIsUpToDateOrReload comparing $lastWatchBatteryStatus")
 
             try {
                 val filter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
@@ -310,13 +301,18 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
 
                 if (DEBUG_LOGS) Log.d(TAG, "ensureBatteryDataIsUpToDateOrReload current value $maybeCurrentBatteryPercentage")
 
-                if (maybeCurrentBatteryPercentage != null && maybeCurrentBatteryPercentage != lastWatchBatteryPercentage) {
-                    this.lastWatchBatteryPercentage = null
-                    this.lastResetAfterBatteryDesyncTs = System.currentTimeMillis()
+                if (maybeCurrentBatteryPercentage != null &&
+                    maybeCurrentBatteryPercentage != lastWatchBatteryStatus.batteryPercentage) {
 
-                    if (DEBUG_LOGS) showDebugResetNotification(lastWatchBatteryPercentage, maybeCurrentBatteryPercentage)
+                    if (lastWatchBatteryStatus.isStale(maybeCurrentBatteryPercentage)) {
+                        this.lastWatchBatteryStatus = WatchBatteryStatus.Unknown
 
-                    initWatchFaceDrawer()
+                        if (DEBUG_LOGS) showDebugResetNotification(lastWatchBatteryStatus.batteryPercentage, maybeCurrentBatteryPercentage)
+
+                        initWatchFaceDrawer()
+                    } else {
+                        if (DEBUG_LOGS) Log.d(TAG, "ensureBatteryDataIsUpToDateOrReload ignoring cause not stale yet")
+                    }
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "ensureBatteryDataIsUpToDateOrReload: Error while comparing data", e)
@@ -401,9 +397,12 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
 
                 try {
                     complicationData.shortText?.getText(this@PixelMinimalWatchFace, System.currentTimeMillis())?.let { text ->
-                        lastWatchBatteryPercentage = text.substring(0, text.indexOf("%")).toInt()
+                        lastWatchBatteryStatus = WatchBatteryStatus.DataReceived(
+                            batteryPercentage = text.substring(0, text.indexOf("%")).toInt(),
+                            timestamp = System.currentTimeMillis(),
+                        )
 
-                        if (DEBUG_LOGS) Log.d(TAG, "onComplicationDataUpdate, batteryComplicationData saved: $lastWatchBatteryPercentage")
+                        if (DEBUG_LOGS) Log.d(TAG, "onComplicationDataUpdate, batteryComplicationData saved: $lastWatchBatteryStatus")
                     }
                 } catch (e: Exception) {
                     Log.e(TAG, "onComplicationDataUpdate, error while parsing battery data from complication", e)
