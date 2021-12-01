@@ -304,33 +304,20 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
                 if (maybeCurrentBatteryPercentage != null &&
                     maybeCurrentBatteryPercentage != lastWatchBatteryStatus.batteryPercentage) {
 
-                    if (lastWatchBatteryStatus.isStale(maybeCurrentBatteryPercentage)) {
+                    if (lastWatchBatteryStatus.shouldRefresh(maybeCurrentBatteryPercentage)) {
                         this.lastWatchBatteryStatus = WatchBatteryStatus.Unknown
 
-                        if (DEBUG_LOGS) showDebugResetNotification(lastWatchBatteryStatus.batteryPercentage, maybeCurrentBatteryPercentage)
+                        if (DEBUG_LOGS) Log.d(TAG, "ensureBatteryDataIsUpToDateOrReload, refreshing")
 
                         initWatchFaceDrawer()
                     } else {
                         if (DEBUG_LOGS) Log.d(TAG, "ensureBatteryDataIsUpToDateOrReload ignoring cause not stale yet")
+                        lastWatchBatteryStatus.markAsStale()
                     }
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "ensureBatteryDataIsUpToDateOrReload: Error while comparing data", e)
             }
-        }
-
-        private fun showDebugResetNotification(lastValue: Int, currentValue: Int) {
-            val text = "last value: $lastValue, current value: $currentValue"
-            val notification = NotificationCompat.Builder(this@PixelMinimalWatchFace, MISC_NOTIFICATION_CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_notification)
-                .setContentTitle("Watch face reset")
-                .setContentText(text)
-                .setStyle(
-                    NotificationCompat.BigTextStyle().bigText(text)
-                )
-                .build()
-
-            NotificationManagerCompat.from(this@PixelMinimalWatchFace).notify(193529, notification)
         }
 
         override fun onAmbientModeChanged(inAmbientMode: Boolean) {
@@ -399,7 +386,6 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
                     complicationData.shortText?.getText(this@PixelMinimalWatchFace, System.currentTimeMillis())?.let { text ->
                         lastWatchBatteryStatus = WatchBatteryStatus.DataReceived(
                             batteryPercentage = text.substring(0, text.indexOf("%")).toInt(),
-                            timestamp = System.currentTimeMillis(),
                         )
 
                         if (DEBUG_LOGS) Log.d(TAG, "onComplicationDataUpdate, batteryComplicationData saved: $lastWatchBatteryStatus")
