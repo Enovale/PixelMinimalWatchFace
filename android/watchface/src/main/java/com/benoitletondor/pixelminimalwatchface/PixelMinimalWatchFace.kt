@@ -24,6 +24,7 @@ import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
 import android.graphics.Canvas
 import android.graphics.Rect
 import android.graphics.drawable.Drawable
+import android.os.BatteryManager
 import android.os.Build
 import android.os.Bundle
 import android.support.wearable.complications.ComplicationData
@@ -51,6 +52,7 @@ import com.benoitletondor.pixelminimalwatchface.model.ComplicationLocation
 import com.benoitletondor.pixelminimalwatchface.settings.phonebattery.*
 import com.google.android.gms.wearable.*
 import kotlinx.coroutines.*
+import java.lang.Exception
 import java.lang.Runnable
 import java.lang.ref.WeakReference
 import java.util.*
@@ -59,10 +61,10 @@ import kotlin.math.max
 const val MISC_NOTIFICATION_CHANNEL_ID = "rating"
 private const val DATA_KEY_PREMIUM = "premium"
 private const val DATA_KEY_BATTERY_STATUS_PERCENT = "/batterySync/batteryStatus"
-private const val THREE_DAYS_MS: Long = 1000 * 60 * 60 * 24 * 3
-private const val THIRTY_MINS_MS: Long = 1000 * 60 * 30
+private const val THREE_DAYS_MS: Long = 1000 * 60 * 60 * 24 * 3L
+private const val THIRTY_MINS_MS: Long = 1000 * 60 * 30L
 private const val MINIMUM_COMPLICATION_UPDATE_INTERVAL_MS = 1000L
-val DEBUG_LOGS = BuildConfig.DEBUG
+const val DEBUG_LOGS = false
 private const val TAG = "PixelMinimalWatchFace"
 
 class PixelMinimalWatchFace : CanvasWatchFaceService() {
@@ -112,6 +114,7 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
 
         private var lastPhoneSyncRequestTimestamp: Long? = null
         private var phoneBatteryStatus: PhoneBatteryStatus = PhoneBatteryStatus.Unknown
+        private var lastWatchBatteryStatus: WatchBatteryStatus = WatchBatteryStatus.Unknown
 
         private var screenWidth = -1
         private var screenHeight = -1
@@ -274,7 +277,47 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
                 syncPhoneBatteryStatus()
             }
 
+            val lastWatchBatteryStatus = lastWatchBatteryStatus
+            if (Device.isSamsungGalaxyWatch &&
+                storage.shouldShowBattery() &&
+                lastWatchBatteryStatus is WatchBatteryStatus.DataReceived) {
+                ensureBatteryDataIsUpToDateOrReload(lastWatchBatteryStatus)
+            }
+
             invalidate()
+        }
+
+        private fun ensureBatteryDataIsUpToDateOrReload(lastWatchBatteryStatus: WatchBatteryStatus.DataReceived) {
+            if (DEBUG_LOGS) Log.d(TAG, "ensureBatteryDataIsUpToDateOrReload comparing $lastWatchBatteryStatus")
+
+            try {
+                val filter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
+                val maybeBatteryStatus = registerReceiver(null, filter)
+                val maybeCurrentBatteryPercentage = maybeBatteryStatus?.let { intent ->
+                    val level: Int = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
+                    val scale: Int = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
+                    level * 100 / scale.toFloat()
+                }?.toInt()
+
+                if (DEBUG_LOGS) Log.d(TAG, "ensureBatteryDataIsUpToDateOrReload current value $maybeCurrentBatteryPercentage")
+
+                if (maybeCurrentBatteryPercentage != null &&
+                    maybeCurrentBatteryPercentage != lastWatchBatteryStatus.batteryPercentage) {
+
+                    if (lastWatchBatteryStatus.shouldRefresh(maybeCurrentBatteryPercentage)) {
+                        this.lastWatchBatteryStatus = WatchBatteryStatus.Unknown
+
+                        if (DEBUG_LOGS) Log.d(TAG, "ensureBatteryDataIsUpToDateOrReload, refreshing")
+
+                        initWatchFaceDrawer()
+                    } else {
+                        if (DEBUG_LOGS) Log.d(TAG, "ensureBatteryDataIsUpToDateOrReload ignoring cause not stale yet")
+                        lastWatchBatteryStatus.markAsStale()
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "ensureBatteryDataIsUpToDateOrReload: Error while comparing data", e)
+            }
         }
 
         override fun onAmbientModeChanged(inAmbientMode: Boolean) {
@@ -337,6 +380,18 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
                     complicationData
                 } else {
                     null
+                }
+
+                try {
+                    complicationData.shortText?.getText(this@PixelMinimalWatchFace, System.currentTimeMillis())?.let { text ->
+                        lastWatchBatteryStatus = WatchBatteryStatus.DataReceived(
+                            batteryPercentage = text.substring(0, text.indexOf("%")).toInt(),
+                        )
+
+                        if (DEBUG_LOGS) Log.d(TAG, "onComplicationDataUpdate, batteryComplicationData saved: $lastWatchBatteryStatus")
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "onComplicationDataUpdate, error while parsing battery data from complication", e)
                 }
 
                 invalidate()

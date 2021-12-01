@@ -1,6 +1,7 @@
 package com.benoitletondor.pixelminimalwatchface.helper
 
 import android.annotation.SuppressLint
+import android.app.PendingIntent
 import android.content.Context
 import android.graphics.drawable.Icon
 import android.net.Uri
@@ -11,37 +12,86 @@ import com.benoitletondor.pixelminimalwatchface.Device
 import com.benoitletondor.pixelminimalwatchface.R
 import org.json.JSONObject
 import kotlin.math.roundToInt
+import android.content.ComponentName
+import android.content.Intent
+import androidx.core.content.pm.PackageInfoCompat
 
 fun Context.getTopAndBottomMargins(): Float {
     return when {
         Device.isOppoWatch -> dpToPx(5).toFloat()
-        Device.isSamsungGalaxyWatch4BigScreen(this) -> dpToPx(26).toFloat()
-        Device.isSamsungGalaxy -> dpToPx(23).toFloat()
+        Device.isSamsungGalaxyWatchBigScreen(this) -> dpToPx(26).toFloat()
+        Device.isSamsungGalaxyWatch -> dpToPx(23).toFloat()
         else -> resources.getDimension(R.dimen.screen_top_and_bottom_margin)
     }
 }
 
 fun ComplicationData.sanitize(context: Context): ComplicationData {
     try {
-        if (!Device.isSamsungGalaxy) {
+        if (!Device.isSamsungGalaxyWatch) {
             return this
         }
 
-        if (!isSamsungHeartRateBadComplicationData(context)) {
-            return this
+        return when {
+            isSamsungHeartRateBadComplicationData(context) -> {
+                val shortText = context.getSamsungHeartRateData() ?: "?"
+
+                val builder = ComplicationData.Builder(ComplicationData.TYPE_SHORT_TEXT)
+                    .setTapAction(tapAction)
+                    .setShortText(ComplicationText.plainText(shortText))
+                    .setIcon(Icon.createWithResource(context, R.drawable.ic_heart_complication))
+                builder.build()
+            }
+            isSamsungStepsBadComplicationData(context) || isSamsungDailyActivityBadComplicationData(context) -> {
+                ComplicationData.Builder(this)
+                    .setTapAction(
+                        PendingIntent.getActivity(
+                            context,
+                            0,
+                            Intent().apply {
+                                component = getSamsungHealthHomeComponentName()
+                            },
+                            PendingIntent.FLAG_IMMUTABLE,
+                        )
+                    )
+                    .build()
+            }
+            else -> this
         }
-
-        val shortText = context.getSamsungHeartRateData() ?: "?"
-
-        val builder = ComplicationData.Builder(ComplicationData.TYPE_SHORT_TEXT)
-            .setTapAction(tapAction)
-            .setShortText(ComplicationText.plainText(shortText))
-            .setIcon(Icon.createWithResource(context, R.drawable.ic_heart_complication))
-        return builder.build()
     } catch (t: Throwable) {
         Log.e("PixelWatchFace", "Error while sanitizing complication data", t)
         return this
     }
+}
+
+private fun ComplicationData.isSamsungDailyActivityBadComplicationData(context: Context): Boolean {
+    val sHealthVersion = try {
+        context.getShealthAppVersion()
+    } catch (e: Throwable) {
+        return false
+    }
+
+    if (sHealthVersion != S_HEALTH_6_20_0_016) {
+        return false
+    }
+
+    return icon != null &&
+        icon.type == Icon.TYPE_RESOURCE &&
+        icon.resPackage == "com.samsung.android.wear.shealth" &&
+        icon.resId == 2131231593
+}
+
+private fun ComplicationData.isSamsungStepsBadComplicationData(context: Context): Boolean {
+    val sHealthVersion = try {
+        context.getShealthAppVersion()
+    } catch (e: Throwable) {
+        return false
+    }
+
+    if (sHealthVersion != S_HEALTH_6_20_0_016) {
+        return false
+    }
+
+    return shortTitle != null && samsungStepComplicationShortTextValues.contains(shortTitle.getText(context, System.currentTimeMillis()))
 }
 
 @SuppressLint("NewApi")
@@ -50,11 +100,32 @@ private fun ComplicationData.isSamsungHeartRateBadComplicationData(context: Cont
         return true
     }
 
-    if (icon != null && icon.type == Icon.TYPE_RESOURCE && icon.resPackage == "com.samsung.android.wear.shealth" && icon.resId == 2131231612) {
+    if (icon != null &&
+        icon.type == Icon.TYPE_RESOURCE &&
+        icon.resPackage == "com.samsung.android.wear.shealth" &&
+        icon.resId.matchesHR(context)) {
         return true
     }
 
     return false
+}
+
+private fun Int.matchesHR(context: Context): Boolean {
+    val sHealthVersion = try {
+        context.getShealthAppVersion()
+    } catch (e: Throwable) {
+        null
+    }
+
+    return when {
+        sHealthVersion != null && sHealthVersion >= S_HEALTH_6_20_0_016 -> this == 2131231607
+        else -> this == 2131231612
+    }
+}
+
+private fun Context.getShealthAppVersion(): Long {
+    val packageInfo = packageManager.getPackageInfo("com.samsung.android.wear.shealth", 0);
+    return PackageInfoCompat.getLongVersionCode(packageInfo)
 }
 
 private fun Context.getSamsungHeartRateData(): String? {
@@ -79,6 +150,91 @@ private fun Context.getSamsungHeartRateData(): String? {
 
     return null
 }
+
+private fun getSamsungHealthHomeComponentName() = ComponentName(
+    "com.samsung.android.wear.shealth",
+    "com.samsung.android.wear.shealth.app.home.HomeActivity"
+)
+
+private const val S_HEALTH_6_20_0_016 = 6200016L
+
+private val samsungStepComplicationShortTextValues = setOf(
+    "Steps",
+    "الخطوات",
+    "খোজ",
+    "Addımlar",
+    "Крокі",
+    "Крачки",
+    "পদক্ষেপ",
+    "পদক্ষেপগুলি",
+    "གོམ་གྲངས་འཇལ",
+    "Koraci",
+    "Passes",
+    "Kroky",
+    "Skridt",
+    "Schritte",
+    "Βήματα",
+    "Pasos",
+    "Sammud",
+    "Pausoak",
+    "قدم‌ها",
+    "Askeleet",
+    "Pas",
+    "Céim",
+    "પગલાં",
+    "कदम",
+    "Lépések",
+    "Քայլեր",
+    "Langkah",
+    "Skref",
+    "Passi",
+    "צעדים",
+    "歩",
+    "ნაბიჯები",
+    "Қадамдар",
+    "ជំហាន",
+    "ಹೆಜ್ಜೆಗಳು",
+    "걸음 수",
+    "ກ້າວ",
+    "Žingsniai",
+    "Soļi",
+    "Чекори",
+    "ചുവടുകൾ",
+    "Алхам",
+    "पाऊले",
+    "Langkah",
+    "ခြေလှမ်းများ",
+    "ေျခလွမ္းမ်ား",
+    "Skritt",
+    "चरणहरू",
+    "Stappen",
+    "ପାଦଗୁଡିକ",
+    "ਕਦਮ",
+    "Kroki",
+    "Krokōw",
+    "Passos",
+    "Pași",
+    "Шаги",
+    "පියවර",
+    "Kroky",
+    "Koraki",
+    "Hapat",
+    "Koraci",
+    "Steg",
+    "காலடிகள்",
+    "అడుగులు",
+    "Қадамҳо",
+    "ก้าว",
+    "Ädimler",
+    "Hakbang",
+    "Adım",
+    "计步",
+    "Кроки",
+    "مراحل,",
+    "Qadaml",
+    "Các bước",
+    "计步",
+)
 
 private val samsungHeartRateComplicationShortTextValues = setOf(
     "心跳率",
