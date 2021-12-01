@@ -117,8 +117,8 @@ private fun Int.matchesHR(context: Context): Boolean {
         null
     }
 
-    return when(sHealthVersion) {
-        in S_HEALTH_6_20_0_016..Long.MAX_VALUE -> this == 2131231607
+    return when {
+        sHealthVersion != null && sHealthVersion >= S_HEALTH_6_20_0_016 -> this == 2131231607
         else -> this == 2131231612
     }
 }
