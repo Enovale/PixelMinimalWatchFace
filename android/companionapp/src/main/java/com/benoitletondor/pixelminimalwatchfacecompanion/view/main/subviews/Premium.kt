@@ -293,6 +293,8 @@ private fun TroubleshootingContent(
                 fontWeight = FontWeight.Bold,
             )
 
+            Spacer(modifier = Modifier.height(5.dp))
+
             TextButton(
                 onClick = installWatchFaceButtonPressed,
                 colors = blueButtonColors(),
@@ -300,7 +302,7 @@ private fun TroubleshootingContent(
                 Text(text = "Install watch face".uppercase())
             }
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(15.dp))
 
             Text(
                 text = "Watch face doesn't recognize you as premium?",
@@ -310,6 +312,8 @@ private fun TroubleshootingContent(
                 fontWeight = FontWeight.Bold,
             )
 
+            Spacer(modifier = Modifier.height(5.dp))
+
             TextButton(
                 onClick = syncPremiumStatusButtonPressed,
                 colors = blueButtonColors(),
@@ -317,7 +321,7 @@ private fun TroubleshootingContent(
                 Text(text = "Sync premium with Watch".uppercase())
             }
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(15.dp))
 
             Text(
                 text = "Sync doesn't work? Have another issue? I'm here to help",
@@ -334,6 +338,8 @@ private fun TroubleshootingContent(
             ) {
                 Text(text = "Contact me for support".uppercase())
             }
+
+            Spacer(modifier = Modifier.height(5.dp))
 
             Text(
                 text = "I'll help you within less than 24h",

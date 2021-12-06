@@ -409,6 +409,8 @@ private fun SupportLayout(
             modifier = Modifier.fillMaxWidth(),
         )
 
+        Spacer(modifier = Modifier.height(5.dp))
+
         Button(
             onClick = onSupportButtonPressed,
         ) {
