@@ -19,8 +19,8 @@ import androidx.core.content.pm.PackageInfoCompat
 fun Context.getTopAndBottomMargins(): Float {
     return when {
         Device.isOppoWatch -> dpToPx(5).toFloat()
-        Device.isSamsungGalaxyWatchBigScreen(this) -> dpToPx(26).toFloat()
-        Device.isSamsungGalaxyWatch -> dpToPx(23).toFloat()
+        Device.isSamsungGalaxyWatchBigScreen(this) -> dpToPx(29).toFloat()
+        Device.isSamsungGalaxyWatch -> dpToPx(26).toFloat()
         else -> resources.getDimension(R.dimen.screen_top_and_bottom_margin)
     }
 }
@@ -41,7 +41,7 @@ fun ComplicationData.sanitize(context: Context): ComplicationData {
                     .setIcon(Icon.createWithResource(context, R.drawable.ic_heart_complication))
                 builder.build()
             }
-            isSamsungStepsBadComplicationData(context) || isSamsungDailyActivityBadComplicationData(context) -> {
+            isSamsungHealthBadComplicationData(context) -> {
                 ComplicationData.Builder(this)
                     .setTapAction(
                         PendingIntent.getActivity(
@@ -63,7 +63,7 @@ fun ComplicationData.sanitize(context: Context): ComplicationData {
     }
 }
 
-private fun ComplicationData.isSamsungDailyActivityBadComplicationData(context: Context): Boolean {
+private fun ComplicationData.isSamsungHealthBadComplicationData(context: Context): Boolean {
     val sHealthVersion = try {
         context.getShealthAppVersion()
     } catch (e: Throwable) {
@@ -74,24 +74,35 @@ private fun ComplicationData.isSamsungDailyActivityBadComplicationData(context: 
         return false
     }
 
+    return isSamsungDailyActivityBadComplicationData() ||
+        isSamsungStepsBadComplicationData(context) ||
+        isSamsungSleepBadComplicationData() ||
+        isSamsungWaterBadComplicationData()
+}
+
+private fun ComplicationData.isSamsungDailyActivityBadComplicationData(): Boolean {
     return icon != null &&
         icon.type == Icon.TYPE_RESOURCE &&
-        icon.resPackage == "com.samsung.android.wear.shealth" &&
+        icon.resPackage == S_HEALTH_PACKAGE_NAME &&
         icon.resId == 2131231593
 }
 
 private fun ComplicationData.isSamsungStepsBadComplicationData(context: Context): Boolean {
-    val sHealthVersion = try {
-        context.getShealthAppVersion()
-    } catch (e: Throwable) {
-        return false
-    }
-
-    if (sHealthVersion != S_HEALTH_6_20_0_016) {
-        return false
-    }
-
     return shortTitle != null && samsungStepComplicationShortTextValues.contains(shortTitle.getText(context, System.currentTimeMillis()))
+}
+
+private fun ComplicationData.isSamsungSleepBadComplicationData(): Boolean {
+    return icon != null &&
+        icon.type == Icon.TYPE_RESOURCE &&
+        icon.resPackage == S_HEALTH_PACKAGE_NAME &&
+        icon.resId == 2131231610
+}
+
+private fun ComplicationData.isSamsungWaterBadComplicationData(): Boolean {
+    return icon != null &&
+        icon.type == Icon.TYPE_RESOURCE &&
+        icon.resPackage == S_HEALTH_PACKAGE_NAME &&
+        icon.resId == 2131231614
 }
 
 @SuppressLint("NewApi")
@@ -102,7 +113,7 @@ private fun ComplicationData.isSamsungHeartRateBadComplicationData(context: Cont
 
     if (icon != null &&
         icon.type == Icon.TYPE_RESOURCE &&
-        icon.resPackage == "com.samsung.android.wear.shealth" &&
+        icon.resPackage == S_HEALTH_PACKAGE_NAME &&
         icon.resId.matchesHR(context)) {
         return true
     }
@@ -124,12 +135,12 @@ private fun Int.matchesHR(context: Context): Boolean {
 }
 
 private fun Context.getShealthAppVersion(): Long {
-    val packageInfo = packageManager.getPackageInfo("com.samsung.android.wear.shealth", 0);
+    val packageInfo = packageManager.getPackageInfo(S_HEALTH_PACKAGE_NAME, 0);
     return PackageInfoCompat.getLongVersionCode(packageInfo)
 }
 
 private fun Context.getSamsungHeartRateData(): String? {
-    val uri = "content://com.samsung.android.wear.shealth.healthdataprovider"
+    val uri = "content://$S_HEALTH_PACKAGE_NAME.healthdataprovider"
 
     val bundle = contentResolver.call(Uri.parse(uri), "heart_rate", null, null)
     if (bundle != null) {
@@ -152,10 +163,11 @@ private fun Context.getSamsungHeartRateData(): String? {
 }
 
 private fun getSamsungHealthHomeComponentName() = ComponentName(
-    "com.samsung.android.wear.shealth",
+    S_HEALTH_PACKAGE_NAME,
     "com.samsung.android.wear.shealth.app.home.HomeActivity"
 )
 
+private const val S_HEALTH_PACKAGE_NAME = "com.samsung.android.wear.shealth"
 private const val S_HEALTH_6_20_0_016 = 6200016L
 
 private val samsungStepComplicationShortTextValues = setOf(
