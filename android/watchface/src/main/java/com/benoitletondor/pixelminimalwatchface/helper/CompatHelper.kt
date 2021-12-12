@@ -88,7 +88,9 @@ private fun ComplicationData.isSamsungDailyActivityBadComplicationData(): Boolea
 }
 
 private fun ComplicationData.isSamsungStepsBadComplicationData(context: Context): Boolean {
-    return shortTitle != null && samsungStepComplicationShortTextValues.contains(shortTitle.getText(context, System.currentTimeMillis()))
+    return shortTitle != null &&
+        samsungStepComplicationShortTextValues.contains(shortTitle.getText(context, System.currentTimeMillis())) &&
+        imageContentDescription != null
 }
 
 private fun ComplicationData.isSamsungSleepBadComplicationData(): Boolean {
