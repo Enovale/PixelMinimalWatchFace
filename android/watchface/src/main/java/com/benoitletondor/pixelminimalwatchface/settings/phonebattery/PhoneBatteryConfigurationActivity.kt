@@ -23,19 +23,20 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.benoitletondor.pixelminimalwatchface.BuildConfig
 import com.benoitletondor.pixelminimalwatchface.R
+import com.benoitletondor.pixelminimalwatchface.databinding.ActivityPhoneBatteryConfigurationBinding
 import com.benoitletondor.pixelminimalwatchface.helper.await
 import com.benoitletondor.pixelminimalwatchface.settings.phonebattery.troubleshoot.PhoneBatterySyncTroubleshootActivity
 import com.google.android.gms.wearable.*
 import com.google.android.gms.wearable.CapabilityClient
-import kotlinx.android.synthetic.main.activity_phone_battery_configuration.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
-class PhoneBatteryConfigurationActivity : AppCompatActivity(),
-    CapabilityClient.OnCapabilityChangedListener {
+class PhoneBatteryConfigurationActivity : AppCompatActivity(), CapabilityClient.OnCapabilityChangedListener {
     private val viewModel: PhoneBatteryConfigurationViewModel by viewModels()
+
+    private lateinit var binding: ActivityPhoneBatteryConfigurationBinding
 
     private val adapter = PhoneBatteryConfigurationAdapter(
         onSyncActivatedChanged = { syncActivated ->
@@ -58,14 +59,17 @@ class PhoneBatteryConfigurationActivity : AppCompatActivity(),
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_phone_battery_configuration)
+        binding = ActivityPhoneBatteryConfigurationBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         bindToViewModel()
 
-        wearable_recycler_view.isEdgeItemsCenteringEnabled = true
-        wearable_recycler_view.layoutManager = LinearLayoutManager(this)
-        wearable_recycler_view.setHasFixedSize(true)
-        wearable_recycler_view.adapter = adapter
+        binding.wearableRecyclerView.apply {
+            isEdgeItemsCenteringEnabled = true
+            layoutManager = LinearLayoutManager(this@PhoneBatteryConfigurationActivity)
+            setHasFixedSize(true)
+            adapter = this@PhoneBatteryConfigurationActivity.adapter
+        }
 
         Wearable.getCapabilityClient(this).addListener(this, BuildConfig.COMPANION_APP_CAPABILITY)
         checkIfPhoneHasApp()

@@ -30,17 +30,21 @@ import com.benoitletondor.pixelminimalwatchface.PixelMinimalWatchFace
 import com.benoitletondor.pixelminimalwatchface.PixelMinimalWatchFace.Companion.getComplicationId
 import com.benoitletondor.pixelminimalwatchface.PixelMinimalWatchFace.Companion.getSupportedComplicationTypes
 import com.benoitletondor.pixelminimalwatchface.R
+import com.benoitletondor.pixelminimalwatchface.databinding.ActivityWidgetConfigBinding
 import com.benoitletondor.pixelminimalwatchface.model.ComplicationColor
 import com.benoitletondor.pixelminimalwatchface.model.ComplicationColorsProvider
-import kotlinx.android.synthetic.main.activity_widget_config.*
+import com.benoitletondor.pixelminimalwatchface.model.ComplicationLocation
 
 class WidgetConfigurationActivity : Activity() {
     private lateinit var adapter: WidgetConfigRecyclerViewAdapter
     private lateinit var complicationLocation: ComplicationLocation
 
+    private lateinit var binding: ActivityWidgetConfigBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_widget_config)
+        binding = ActivityWidgetConfigBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         complicationLocation = intent.getParcelableExtra(EXTRA_COMPLICATION_LOCATION)!!
         title = when(complicationLocation) {
@@ -48,6 +52,10 @@ class WidgetConfigurationActivity : Activity() {
             ComplicationLocation.MIDDLE -> getString(R.string.config_middle_complication)
             ComplicationLocation.RIGHT -> getString(R.string.config_right_complication)
             ComplicationLocation.BOTTOM -> getString(R.string.config_bottom_complication)
+            ComplicationLocation.ANDROID_12_TOP_LEFT -> getString(R.string.config_android_12_top_left_complication)
+            ComplicationLocation.ANDROID_12_TOP_RIGHT -> getString(R.string.config_android_12_top_right_complication)
+            ComplicationLocation.ANDROID_12_BOTTOM_LEFT -> getString(R.string.config_android_12_bottom_left_complication)
+            ComplicationLocation.ANDROID_12_BOTTOM_RIGHT -> getString(R.string.config_android_12_bottom_right_complication)
         }
 
         adapter = WidgetConfigRecyclerViewAdapter(
@@ -60,6 +68,10 @@ class WidgetConfigurationActivity : Activity() {
                     ComplicationLocation.MIDDLE -> ComplicationColorsProvider.getDefaultComplicationColors(this).middleColor
                     ComplicationLocation.RIGHT -> ComplicationColorsProvider.getDefaultComplicationColors(this).rightColor
                     ComplicationLocation.BOTTOM -> ComplicationColorsProvider.getDefaultComplicationColors(this).bottomColor
+                    ComplicationLocation.ANDROID_12_TOP_LEFT -> ComplicationColorsProvider.getDefaultComplicationColors(this).android12TopLeftColor
+                    ComplicationLocation.ANDROID_12_TOP_RIGHT -> ComplicationColorsProvider.getDefaultComplicationColors(this).android12TopRightColor
+                    ComplicationLocation.ANDROID_12_BOTTOM_LEFT -> ComplicationColorsProvider.getDefaultComplicationColors(this).android12BottomLeftColor
+                    ComplicationLocation.ANDROID_12_BOTTOM_RIGHT -> ComplicationColorsProvider.getDefaultComplicationColors(this).android12BottomRightColor
                 }
 
                 startActivityForResult(ColorSelectionActivity.createIntent(this, defaultColor), UPDATE_COLORS_CONFIG_REQUEST_CODE)
@@ -77,10 +89,12 @@ class WidgetConfigurationActivity : Activity() {
             }
         )
 
-        widget_config_recycler_view.isEdgeItemsCenteringEnabled = true
-        widget_config_recycler_view.layoutManager = WearableLinearLayoutManager(this)
-        widget_config_recycler_view.setHasFixedSize(true)
-        widget_config_recycler_view.adapter = adapter
+        binding.widgetConfigRecyclerView.apply {
+            isEdgeItemsCenteringEnabled = true
+            layoutManager = WearableLinearLayoutManager(this@WidgetConfigurationActivity)
+            setHasFixedSize(true)
+            adapter = this@WidgetConfigurationActivity.adapter
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -102,6 +116,10 @@ class WidgetConfigurationActivity : Activity() {
                 ComplicationLocation.MIDDLE -> colors.copy(middleColor = selectedColor)
                 ComplicationLocation.RIGHT -> colors.copy(rightColor = selectedColor)
                 ComplicationLocation.BOTTOM -> colors.copy(bottomColor = selectedColor)
+                ComplicationLocation.ANDROID_12_TOP_LEFT -> colors.copy(android12TopLeftColor = selectedColor)
+                ComplicationLocation.ANDROID_12_TOP_RIGHT -> colors.copy(android12TopRightColor = selectedColor)
+                ComplicationLocation.ANDROID_12_BOTTOM_LEFT -> colors.copy(android12BottomLeftColor = selectedColor)
+                ComplicationLocation.ANDROID_12_BOTTOM_RIGHT -> colors.copy(android12BottomRightColor = selectedColor)
             })
 
             adapter.updatePreviewColors(selectedColor)

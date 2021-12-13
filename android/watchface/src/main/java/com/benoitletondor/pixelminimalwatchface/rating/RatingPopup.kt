@@ -97,12 +97,12 @@ class RatingPopup(private val activity: Activity) {
                         override fun onReceiveResult(resultCode: Int, resultData: Bundle?) {
                             if (resultCode == RemoteIntent.RESULT_OK) {
                                 ConfirmationOverlay()
-                                    .setFinishedAnimationListener {
+                                    .setOnAnimationFinishedListener {
                                         finishListener()
                                     }
                                     .setType(ConfirmationOverlay.OPEN_ON_PHONE_ANIMATION)
                                     .setDuration(3000)
-                                    .setMessage(activity.getString(R.string.open_phone_url_android_device))
+                                    .setMessage(activity.getString(R.string.open_phone_url_android_device) as CharSequence)
                                     .showOn(activity)
                             } else if (resultCode == RemoteIntent.RESULT_FAILED) {
                                 Toast.makeText(activity, activity.resources.getString(R.string.rating_feedback_send_error), Toast.LENGTH_SHORT).show()

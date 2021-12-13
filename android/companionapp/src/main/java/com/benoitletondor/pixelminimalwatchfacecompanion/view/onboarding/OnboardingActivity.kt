@@ -17,22 +17,29 @@ package com.benoitletondor.pixelminimalwatchfacecompanion.view.onboarding
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.widget.Button
+import androidx.activity.viewModels
+import androidx.lifecycle.lifecycleScope
 import com.benoitletondor.pixelminimalwatchfacecompanion.R
-import kotlinx.android.synthetic.main.activity_onboarding.*
-import org.koin.androidx.viewmodel.ext.android.viewModel
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class OnboardingActivity : AppCompatActivity() {
-    private val viewModel: OnboardingViewModel by viewModel()
+    private val viewModel: OnboardingViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_onboarding)
 
-        viewModel.finishEventStream.observe(this, {
-            finish()
-        })
+        lifecycleScope.launch {
+            viewModel.finishEventFlow.collect {
+                finish()
+            }
+        }
 
-        onboarding_finish_cta.setOnClickListener {
+        findViewById<Button>(R.id.onboarding_finish_cta).setOnClickListener {
             viewModel.onOnboardingFinishButtonPressed()
         }
     }

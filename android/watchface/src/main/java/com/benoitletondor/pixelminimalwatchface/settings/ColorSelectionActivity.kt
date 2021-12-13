@@ -20,32 +20,34 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.wear.widget.WearableLinearLayoutManager
-import com.benoitletondor.pixelminimalwatchface.R
+import com.benoitletondor.pixelminimalwatchface.databinding.ActivityColorSelectionConfigBinding
 import com.benoitletondor.pixelminimalwatchface.model.ComplicationColor
 import com.benoitletondor.pixelminimalwatchface.model.ComplicationColorsProvider
-import kotlinx.android.synthetic.main.activity_color_selection_config.*
 
 class ColorSelectionActivity : Activity() {
+    private lateinit var binding: ActivityColorSelectionConfigBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_color_selection_config)
+        binding = ActivityColorSelectionConfigBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         val defaultColor = intent.getParcelableExtra<ComplicationColor>(EXTRA_DEFAULT_COLOR)!!
 
         val availableColors = ComplicationColorsProvider.getAllComplicationColors(this)
-        val adapter = ColorSelectionRecyclerViewAdapter(listOf(defaultColor).plus(availableColors)) { selectedColor ->
-            setResult(RESULT_OK, Intent().apply {
-                putExtra(RESULT_SELECTED_COLOR, selectedColor)
-            })
 
-            finish()
+        binding.colorsRecyclerView.apply {
+            isEdgeItemsCenteringEnabled = true
+            layoutManager = WearableLinearLayoutManager(this@ColorSelectionActivity)
+            setHasFixedSize(true)
+            adapter = ColorSelectionRecyclerViewAdapter(listOf(defaultColor).plus(availableColors)) { selectedColor ->
+                setResult(RESULT_OK, Intent().apply {
+                    putExtra(RESULT_SELECTED_COLOR, selectedColor)
+                })
+
+                finish()
+            }
         }
-
-        colors_recycler_view.isEdgeItemsCenteringEnabled = true
-        colors_recycler_view.layoutManager = WearableLinearLayoutManager(this)
-        colors_recycler_view.setHasFixedSize(true)
-        colors_recycler_view.adapter = adapter
     }
 
     companion object {

@@ -34,6 +34,7 @@ import com.benoitletondor.pixelminimalwatchface.PixelMinimalWatchFace
 import com.benoitletondor.pixelminimalwatchface.PixelMinimalWatchFace.Companion.getComplicationId
 import com.benoitletondor.pixelminimalwatchface.R
 import com.benoitletondor.pixelminimalwatchface.model.ComplicationColor
+import com.benoitletondor.pixelminimalwatchface.model.ComplicationLocation
 import java.util.concurrent.Executors
 
 class WidgetConfigRecyclerViewAdapter(
@@ -85,6 +86,10 @@ class WidgetConfigRecyclerViewAdapter(
                     ComplicationLocation.MIDDLE -> storage.getComplicationColors().middleColor
                     ComplicationLocation.RIGHT -> storage.getComplicationColors().rightColor
                     ComplicationLocation.BOTTOM -> storage.getComplicationColors().bottomColor
+                    ComplicationLocation.ANDROID_12_TOP_LEFT -> storage.getComplicationColors().android12TopLeftColor
+                    ComplicationLocation.ANDROID_12_TOP_RIGHT -> storage.getComplicationColors().android12TopRightColor
+                    ComplicationLocation.ANDROID_12_BOTTOM_LEFT -> storage.getComplicationColors().android12BottomLeftColor
+                    ComplicationLocation.ANDROID_12_BOTTOM_RIGHT -> storage.getComplicationColors().android12BottomRightColor
                 })
             }
         }

@@ -20,7 +20,7 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:paddingBottom="10dp">
+    android:paddingBottom="12dp">
 
     <TextView
         android:id="@+id/app_title_text_view"
@@ -30,6 +30,7 @@
         android:textSize="16sp"
         android:textColor="@android:color/white"
         android:gravity="center"
+        android:fontFamily="@font/product_sans_regular"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>

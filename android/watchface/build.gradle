@@ -15,21 +15,20 @@
  */
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
 
 def keystorePropertiesFile = rootProject.file("key/key.properties")
 def keystoreProperties = new Properties()
 keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 
 android {
-    compileSdkVersion 30
+    compileSdkVersion 31
 
     defaultConfig {
         applicationId "com.benoitletondor.pixelminimalwatchface"
         minSdkVersion 25
-        targetSdkVersion 30
-        versionCode 45
-        versionName "1.8.1"
+        targetSdkVersion 31
+        versionCode 89
+        versionName "2.0.7"
         multiDexEnabled true
 
         buildConfigField "String", "COMPANION_APP_PLAYSTORE_URL", '"https://play.google.com/store/apps/details?id=com.benoitletondor.pixelminimalwatchface"'
@@ -49,6 +48,10 @@ android {
             storeFile file(keystoreProperties['storeFile'])
             storePassword keystoreProperties['storePassword']
         }
+    }
+
+    buildFeatures {
+        viewBinding true
     }
 
     buildTypes {
@@ -76,12 +79,12 @@ android {
 dependencies {
     implementation"org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 
-    implementation 'androidx.wear:wear:1.1.0'
+    implementation 'androidx.wear:wear:1.2.0'
     implementation 'com.google.android.support:wearable:2.8.1'
-    implementation 'com.google.android.gms:play-services-wearable:17.0.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
+    implementation 'com.google.android.gms:play-services-wearable:17.1.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.2'
     implementation 'androidx.cardview:cardview:1.0.0'
-    implementation 'androidx.activity:activity-ktx:1.2.2'
+    implementation 'androidx.activity:activity-ktx:1.4.0'
 
     compileOnly 'com.google.android.wearable:wearable:2.8.1'
 }

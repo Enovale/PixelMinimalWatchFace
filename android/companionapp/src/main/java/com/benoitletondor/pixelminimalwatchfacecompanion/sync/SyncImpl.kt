@@ -29,8 +29,10 @@ import com.google.android.gms.wearable.Node
 import com.google.android.gms.wearable.PutDataMapRequest
 import com.google.android.gms.wearable.Wearable
 import com.google.android.wearable.intent.RemoteIntent
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.suspendCancellableCoroutine
 import java.lang.RuntimeException
+import javax.inject.Inject
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
@@ -39,7 +41,7 @@ private const val KEY_TIMESTAMP = "ts"
 private const val KEY_SYNC_ACTIVATED = "/batterySync/syncActivated"
 private const val KEY_BATTERY_STATUS_PERCENT = "/batterySync/batteryStatus"
 
-class SyncImpl(private val context: Context) : Sync {
+class SyncImpl @Inject constructor(@ApplicationContext private val context: Context) : Sync {
     private val capabilityClient = Wearable.getCapabilityClient(context)
     private val messageClient = Wearable.getMessageClient(context)
     private val dataClient = Wearable.getDataClient(context)

@@ -15,66 +15,31 @@
  */
 package com.benoitletondor.pixelminimalwatchfacecompanion
 
-import android.app.Activity
 import android.app.Application
-import android.os.Bundle
 import android.util.Log
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleObserver
+import androidx.lifecycle.OnLifecycleEvent
+import androidx.lifecycle.ProcessLifecycleOwner
 import com.benoitletondor.pixelminimalwatchfacecompanion.billing.Billing
 import com.benoitletondor.pixelminimalwatchfacecompanion.config.Config
-import com.benoitletondor.pixelminimalwatchfacecompanion.injection.appModule
-import com.benoitletondor.pixelminimalwatchfacecompanion.injection.viewModelModule
 import com.benoitletondor.pixelminimalwatchfacecompanion.storage.Storage
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
-import org.koin.android.ext.android.inject
-import org.koin.android.ext.koin.androidContext
-import org.koin.android.ext.koin.androidLogger
-import org.koin.core.context.startKoin
+import dagger.hilt.android.HiltAndroidApp
+import kotlinx.coroutines.*
+import javax.inject.Inject
 
-class App : Application() {
-    private val billing: Billing by inject()
-    private val config: Config by inject()
-    private val storage: Storage by inject()
+@HiltAndroidApp
+class App : Application(), LifecycleObserver, CoroutineScope by CoroutineScope(SupervisorJob() + Dispatchers.Default) {
+    @Inject lateinit var billing: Billing
+    @Inject lateinit var config: Config
+    @Inject lateinit var storage: Storage
 
     override fun onCreate() {
         super.onCreate()
 
-        startKoin {
-            androidLogger()
-            androidContext(this@App)
-            modules(listOf(appModule, viewModelModule))
-        }
-
-        // Activity counter for app foreground & background
-        registerActivityLifecycleCallbacks(object : ActivityLifecycleCallbacks {
-            private var activityCounter = 0
-
-            override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {}
-
-            override fun onActivityStarted(activity: Activity) {
-                if (activityCounter == 0) {
-                    onAppForeground()
-                }
-
-                activityCounter++
-            }
-
-            override fun onActivityResumed(activity: Activity) {}
-
-            override fun onActivityPaused(activity: Activity) {}
-
-            override fun onActivityStopped(activity: Activity) {
-                if (activityCounter == 1) {
-                    onAppBackground()
-                }
-
-                activityCounter--
-            }
-
-            override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
-
-            override fun onActivityDestroyed(activity: Activity) {}
-        })
+        ProcessLifecycleOwner.get()
+            .lifecycle
+            .addObserver(this)
 
         // Register battery receiver if needed
         if (storage.isBatterySyncActivated()) {
@@ -82,19 +47,17 @@ class App : Application() {
         }
     }
 
+    @OnLifecycleEvent(Lifecycle.Event.ON_START)
+    @Suppress("UNUSED")
     private fun onAppForeground() {
         billing.updatePremiumStatusIfNeeded()
 
-        GlobalScope.async {
+        launch {
             try {
                 config.fetch()
             } catch (t: Throwable) {
                 Log.e("App", "Error syncing config", t)
             }
-        }.start()
-    }
-
-    private fun onAppBackground() {
-
+        }
     }
 }

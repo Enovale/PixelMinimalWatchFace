@@ -109,10 +109,11 @@ public class CustomComplicationDrawable extends ComplicationDrawable {
         this.mAmbientStyleBuilder = new ComplicationStyle.Builder();
     }
 
-    public CustomComplicationDrawable(Context context, boolean isWide) {
+    public CustomComplicationDrawable(Context context, boolean isWide, Drawable.Callback callback) {
         this();
         this.mIsWide = isWide;
         this.setContext(context);
+        this.setCallback(callback);
     }
 
     public CustomComplicationDrawable(CustomComplicationDrawable drawable) {

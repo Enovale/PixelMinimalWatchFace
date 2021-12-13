@@ -46,11 +46,11 @@ class AppUpdateReceiver : BroadcastReceiver() {
 
     @Suppress("SameParameterValue", "UNUSED_PARAMETER")
     private fun onAppUpgrade(context: Context, oldVersion: Int, newVersion: Int) {
-        if( oldVersion < 43 ) {
+        if( oldVersion < 65 ) {
             val storage = Injection.storage(context)
 
-            if( !storage.hasFeatureDrop2021NotificationBeenShown() ) {
-                storage.setFeatureDrop2021NotificationShown()
+            if( !storage.hasFeatureDropSummer2021NotificationBeenShown() ) {
+                storage.setFeatureDropSummer2021NotificationShown()
                 showFeatureDropNotification(context)
             }
         }
@@ -75,12 +75,12 @@ class AppUpdateReceiver : BroadcastReceiver() {
                     notificationManager.createNotificationChannel(mChannel)
                 }
 
-                val activityIntent = Intent(context, FeatureDrop2021Activity::class.java)
+                val activityIntent = Intent(context, FeatureDropActivity::class.java)
                 val pendingIntent = PendingIntent.getActivity(
                     context,
                     0,
                     activityIntent,
-                    PendingIntent.FLAG_CANCEL_CURRENT
+                    PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_CANCEL_CURRENT
                 )
 
                 val notification = NotificationCompat.Builder(context, MISC_NOTIFICATION_CHANNEL_ID)
