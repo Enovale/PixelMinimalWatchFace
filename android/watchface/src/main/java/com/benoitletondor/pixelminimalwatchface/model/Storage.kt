@@ -44,7 +44,8 @@ private const val KEY_RATING_NOTIFICATION_SENT = "ratingNotificationSent"
 private const val KEY_APP_VERSION = "appVersion"
 private const val KEY_SHOW_WEAR_OS_LOGO = "showWearOSLogo"
 private const val KEY_SHOW_COMPLICATIONS_AMBIENT = "showComplicationsAmbient"
-private const val KEY_FILLED_TIME_AMBIENT = "filledTimeAmbient"
+private const val KEY_USE_NORMAL_TIME_STYLE_IN_AMBIENT = "filledTimeAmbient"
+private const val KEY_USE_THIN_TIME_STYLE_IN_REGULAR = "thinTimeRegularMode"
 private const val KEY_TIME_SIZE = "timeSize"
 private const val KEY_DATE_AND_BATTERY_SIZE = "dateSize"
 private const val KEY_SECONDS_RING = "secondsRing"
@@ -77,8 +78,10 @@ interface Storage {
     fun setShouldShowWearOSLogo(shouldShowWearOSLogo: Boolean)
     fun shouldShowComplicationsInAmbientMode(): Boolean
     fun setShouldShowComplicationsInAmbientMode(show: Boolean)
-    fun shouldShowFilledTimeInAmbientMode(): Boolean
-    fun setShouldShowFilledTimeInAmbientMode(showFilledTime: Boolean)
+    fun shouldUseNormalTimeStyleInAmbientMode(): Boolean
+    fun setShouldUseNormalTimeStyleInAmbientMode(useNormalTime: Boolean)
+    fun shouldUseThinTimeStyleInRegularMode(): Boolean
+    fun setShouldUseThinTimeStyleInRegularMode(useThinTime: Boolean)
     fun getTimeSize(): Int
     fun setTimeSize(timeSize: Int)
     fun getDateAndBatterySize(): Int
@@ -161,6 +164,10 @@ class StorageImpl : Storage {
     private var cacheSecondRingPorterDuffColorFilter = PorterDuffColorFilter(0, PorterDuff.Mode.SRC_IN)
     private var widgetsSizeCached = false
     private var cacheWidgetsSize = 0
+    private var useNormalTimeInAmbientModeCached = false
+    private var cacheUseNormalTimeInAmbientMode = false
+    private var useThinTimeInRegularModeCached = false
+    private var cacheUseThinTimeInRegularMode = false
 
     fun init(context: Context): Storage {
         if( !initialized ) {
@@ -383,12 +390,36 @@ class StorageImpl : Storage {
         sharedPreferences.edit().putBoolean(KEY_SHOW_COMPLICATIONS_AMBIENT, show).apply()
     }
 
-    override fun shouldShowFilledTimeInAmbientMode(): Boolean {
-        return sharedPreferences.getBoolean(KEY_FILLED_TIME_AMBIENT, false)
+    override fun shouldUseNormalTimeStyleInAmbientMode(): Boolean {
+        if( !useNormalTimeInAmbientModeCached ) {
+            cacheUseNormalTimeInAmbientMode = sharedPreferences.getBoolean(KEY_USE_NORMAL_TIME_STYLE_IN_AMBIENT, false)
+            useNormalTimeInAmbientModeCached = true
+        }
+
+        return cacheUseNormalTimeInAmbientMode
     }
 
-    override fun setShouldShowFilledTimeInAmbientMode(showFilledTime: Boolean) {
-        sharedPreferences.edit().putBoolean(KEY_FILLED_TIME_AMBIENT, showFilledTime).apply()
+    override fun setShouldUseNormalTimeStyleInAmbientMode(useNormalTime: Boolean) {
+        cacheUseNormalTimeInAmbientMode = useNormalTime
+        useNormalTimeInAmbientModeCached = true
+
+        sharedPreferences.edit().putBoolean(KEY_USE_NORMAL_TIME_STYLE_IN_AMBIENT, useNormalTime).apply()
+    }
+
+    override fun shouldUseThinTimeStyleInRegularMode(): Boolean {
+        if( !useThinTimeInRegularModeCached ) {
+            cacheUseThinTimeInRegularMode = sharedPreferences.getBoolean(KEY_USE_THIN_TIME_STYLE_IN_REGULAR, false)
+            useThinTimeInRegularModeCached = true
+        }
+
+        return cacheUseThinTimeInRegularMode
+    }
+
+    override fun setShouldUseThinTimeStyleInRegularMode(useThinTime: Boolean) {
+        cacheUseThinTimeInRegularMode = useThinTime
+        useThinTimeInRegularModeCached = true
+
+        sharedPreferences.edit().putBoolean(KEY_USE_THIN_TIME_STYLE_IN_REGULAR, useThinTime).apply()
     }
 
     override fun getTimeSize(): Int {

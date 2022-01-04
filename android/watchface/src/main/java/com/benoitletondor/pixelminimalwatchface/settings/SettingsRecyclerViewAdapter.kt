@@ -45,7 +45,7 @@ private const val TYPE_HOUR_FORMAT = 5
 private const val TYPE_SEND_FEEDBACK = 6
 private const val TYPE_SHOW_WEAR_OS_LOGO = 7
 private const val TYPE_SHOW_COMPLICATIONS_AMBIENT = 8
-private const val TYPE_SHOW_FILLED_TIME_AMBIENT = 9
+private const val TYPE_USE_NORMAL_TIME_STYLE_IN_AMBIENT_MODE = 9
 private const val TYPE_TIME_SIZE = 10
 private const val TYPE_SHOW_SECONDS_RING = 11
 private const val TYPE_SHOW_WEATHER = 12
@@ -68,6 +68,8 @@ private const val TYPE_ANDROID_12_COMPLICATIONS_CONFIG = 28
 private const val TYPE_SHOW_BATTERY_IN_AMBIENT = 29
 private const val TYPE_SECONDS_RING_COLOR = 30
 private const val TYPE_WIDGETS_SIZE = 31
+private const val TYPE_USE_THIN_TIME_STYLE_IN_REGULAR_MODE = 32
+private const val TYPE_SECTION_TIME_STYLE = 33
 
 class ComplicationConfigRecyclerViewAdapter(
     private val context: Context,
@@ -77,7 +79,8 @@ class ComplicationConfigRecyclerViewAdapter(
     private val onFeedbackButtonPressed: () -> Unit,
     private val showWearOSButtonListener: (Boolean) -> Unit,
     private val showComplicationsAmbientListener: (Boolean) -> Unit,
-    private val showFilledTimeAmbientListener: (Boolean) -> Unit,
+    private val useNormalTimeStyleInAmbientModeListener: (Boolean) -> Unit,
+    private val useThinTimeStyleInRegularModeListener: (Boolean) -> Unit,
     private val timeSizeChangedListener: (Int) -> Unit,
     private val dateAndBatterySizeChangedListener: (Int) -> Unit,
     private val showSecondsRingListener: (Boolean) -> Unit,
@@ -166,6 +169,14 @@ class ComplicationConfigRecyclerViewAdapter(
                 ),
                 hourFormatSelectionListener
             )
+            TYPE_USE_THIN_TIME_STYLE_IN_REGULAR_MODE -> return UseThinTimeStyleInRegularModeViewHolder(
+                LayoutInflater.from(parent.context).inflate(
+                    R.layout.config_list_show_thin_time_regular,
+                    parent,
+                    false
+                ),
+                useThinTimeStyleInRegularModeListener
+            )
             TYPE_SEND_FEEDBACK -> return SendFeedbackViewHolder(
                 LayoutInflater.from(parent.context).inflate(
                     R.layout.config_list_feedback,
@@ -191,13 +202,13 @@ class ComplicationConfigRecyclerViewAdapter(
                 ),
                 showComplicationsAmbientListener
             )
-            TYPE_SHOW_FILLED_TIME_AMBIENT -> return ShowFilledTimeAmbientViewHolder(
+            TYPE_USE_NORMAL_TIME_STYLE_IN_AMBIENT_MODE -> return UseNormalTimeStyleInAmbientModeViewHolder(
                 LayoutInflater.from(parent.context).inflate(
                     R.layout.config_list_show_filled_time_ambient,
                     parent,
                     false
                 ),
-                showFilledTimeAmbientListener
+                useNormalTimeStyleInAmbientModeListener
             )
             TYPE_TIME_SIZE -> return TimeSizeViewHolder(
                 LayoutInflater.from(parent.context).inflate(
@@ -309,7 +320,7 @@ class ComplicationConfigRecyclerViewAdapter(
                 ),
                 phoneBatteryButtonPressed,
             )
-            TYPE_SECTION_BATTERY, TYPE_SECTION_AMBIENT, TYPE_SECTION_DATE_AND_TIME, TYPE_SECTION_SUPPORT, TYPE_SECTION_WIDGETS -> return SectionViewHolder(
+            TYPE_SECTION_BATTERY, TYPE_SECTION_AMBIENT, TYPE_SECTION_DATE_AND_TIME, TYPE_SECTION_SUPPORT, TYPE_SECTION_WIDGETS, TYPE_SECTION_TIME_STYLE -> return SectionViewHolder(
                 LayoutInflater.from(parent.context).inflate(
                     R.layout.config_list_section,
                     parent,
@@ -401,6 +412,10 @@ class ComplicationConfigRecyclerViewAdapter(
                 val use24hTimeFormat = storage.getUse24hTimeFormat()
                 (viewHolder as HourFormatViewHolder).setHourFormatSwitchChecked(use24hTimeFormat)
             }
+            TYPE_USE_THIN_TIME_STYLE_IN_REGULAR_MODE -> {
+                val useThinTimeInRegular = storage.shouldUseThinTimeStyleInRegularMode()
+                (viewHolder as UseThinTimeStyleInRegularModeViewHolder).setUseThinTimeInRegularSwitchChecked(useThinTimeInRegular)
+            }
             TYPE_SHOW_WEAR_OS_LOGO -> {
                 (viewHolder as ShowWearOSLogoViewHolder).apply {
                     setShowWearOSLogoSwitchChecked(storage.shouldShowWearOSLogo())
@@ -411,9 +426,9 @@ class ComplicationConfigRecyclerViewAdapter(
                 val showComplicationsAmbient = storage.shouldShowComplicationsInAmbientMode()
                 (viewHolder as ShowComplicationsAmbientViewHolder).setShowComplicationsAmbientSwitchChecked(showComplicationsAmbient)
             }
-            TYPE_SHOW_FILLED_TIME_AMBIENT -> {
-                val showFilledTimeAmbient = storage.shouldShowFilledTimeInAmbientMode()
-                (viewHolder as ShowFilledTimeAmbientViewHolder).setShowFilledTimeSwitchChecked(showFilledTimeAmbient)
+            TYPE_USE_NORMAL_TIME_STYLE_IN_AMBIENT_MODE -> {
+                val useNormalTimeStyleInAmbientMode = storage.shouldUseNormalTimeStyleInAmbientMode()
+                (viewHolder as UseNormalTimeStyleInAmbientModeViewHolder).setUseNormalTimeStyleInAmbientSwitchChecked(useNormalTimeStyleInAmbientMode)
             }
             TYPE_TIME_SIZE -> {
                 val size = storage.getTimeSize()
@@ -447,13 +462,14 @@ class ComplicationConfigRecyclerViewAdapter(
                 val useAndroid12Style = storage.useAndroid12Style()
                 (viewHolder as UseAndroid12StyleViewHolder).setUseAndroid12StyleSwitchChecked(useAndroid12Style)
             }
-            TYPE_SECTION_BATTERY, TYPE_SECTION_AMBIENT, TYPE_SECTION_DATE_AND_TIME, TYPE_SECTION_SUPPORT, TYPE_SECTION_WIDGETS -> {
+            TYPE_SECTION_BATTERY, TYPE_SECTION_AMBIENT, TYPE_SECTION_DATE_AND_TIME, TYPE_SECTION_SUPPORT, TYPE_SECTION_WIDGETS, TYPE_SECTION_TIME_STYLE -> {
                 val text = viewHolder.itemView.context.getString(when(viewHolder.itemViewType) {
                     TYPE_SECTION_SUPPORT -> R.string.config_section_support
                     TYPE_SECTION_DATE_AND_TIME -> R.string.config_section_date_and_time
                     TYPE_SECTION_BATTERY -> R.string.config_section_battery
                     TYPE_SECTION_AMBIENT -> R.string.config_section_ambient
                     TYPE_SECTION_WIDGETS -> R.string.config_section_widgets
+                    TYPE_SECTION_TIME_STYLE -> R.string.config_section_time_style
                     else -> throw IllegalStateException("Unknown section type: ${viewHolder.itemViewType}")
                 })
 
@@ -598,10 +614,14 @@ class ComplicationConfigRecyclerViewAdapter(
             }
         }
 
+        // TYPE_SECTION_TIME_STYLE
+        list.add(TYPE_SECTION_TIME_STYLE)
+        list.add(TYPE_USE_THIN_TIME_STYLE_IN_REGULAR_MODE)
+        list.add(TYPE_USE_NORMAL_TIME_STYLE_IN_AMBIENT_MODE)
+
         // TYPE_SECTION_AMBIENT
         list.add(TYPE_SECTION_AMBIENT)
         list.add(TYPE_SHOW_DATE_AMBIENT)
-        list.add(TYPE_SHOW_FILLED_TIME_AMBIENT)
         if (isUserPremium) {
             list.add(TYPE_SHOW_COMPLICATIONS_AMBIENT)
         }

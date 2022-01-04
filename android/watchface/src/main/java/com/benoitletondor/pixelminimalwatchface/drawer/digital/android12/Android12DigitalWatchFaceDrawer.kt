@@ -284,10 +284,11 @@ class Android12DigitalWatchFaceDrawer(
                                   burnInProtection: Boolean) {
         wearOSLogoPaint.isAntiAlias = !ambient
 
+        val shouldUseThinFont = (ambient && !storage.shouldUseNormalTimeStyleInAmbientMode()) || (!ambient && storage.shouldUseThinTimeStyleInRegularMode())
         timePaint.apply {
             isAntiAlias = !(ambient && lowBitAmbient)
             color = if( ambient ) { timeColorDimmed } else { storage.getTimeAndDateColor() }
-            typeface = if( ambient && !storage.shouldShowFilledTimeInAmbientMode() ) { productSansThinFont } else { productSansRegularFont }
+            typeface = if( shouldUseThinFont ) { productSansThinFont } else { productSansRegularFont }
         }
 
         datePaint.apply {

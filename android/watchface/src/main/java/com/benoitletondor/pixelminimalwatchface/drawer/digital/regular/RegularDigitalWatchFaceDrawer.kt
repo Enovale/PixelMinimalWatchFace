@@ -32,7 +32,6 @@ import com.benoitletondor.pixelminimalwatchface.PhoneBatteryStatus
 import com.benoitletondor.pixelminimalwatchface.PixelMinimalWatchFace
 import com.benoitletondor.pixelminimalwatchface.R
 import com.benoitletondor.pixelminimalwatchface.drawer.WatchFaceDrawer
-import com.benoitletondor.pixelminimalwatchface.drawer.digital.android12.Android12DigitalWatchFaceDrawer
 import com.benoitletondor.pixelminimalwatchface.helper.*
 import com.benoitletondor.pixelminimalwatchface.model.ComplicationColors
 import com.benoitletondor.pixelminimalwatchface.model.Storage
@@ -489,9 +488,10 @@ class RegularDigitalWatchFaceDrawer(
                                   burnInProtection: Boolean) {
         wearOSLogoPaint.isAntiAlias = !ambient
 
+        val shouldUseStrokeStyle = (ambient && !storage.shouldUseNormalTimeStyleInAmbientMode()) || (!ambient && storage.shouldUseThinTimeStyleInRegularMode())
         timePaint.apply {
             isAntiAlias = !(ambient && lowBitAmbient)
-            style = if( ambient && !storage.shouldShowFilledTimeInAmbientMode() ) { Paint.Style.STROKE } else { Paint.Style.FILL }
+            style = if(shouldUseStrokeStyle) { Paint.Style.STROKE } else { Paint.Style.FILL }
             color = if( ambient ) { timeColorDimmed } else { storage.getTimeAndDateColor() }
         }
 
