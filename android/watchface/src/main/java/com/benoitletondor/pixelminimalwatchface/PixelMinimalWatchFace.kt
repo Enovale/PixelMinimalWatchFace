@@ -64,7 +64,7 @@ private const val DATA_KEY_BATTERY_STATUS_PERCENT = "/batterySync/batteryStatus"
 private const val THREE_DAYS_MS: Long = 1000 * 60 * 60 * 24 * 3L
 private const val THIRTY_MINS_MS: Long = 1000 * 60 * 30L
 private const val MINIMUM_COMPLICATION_UPDATE_INTERVAL_MS = 1000L
-const val DEBUG_LOGS = false
+val DEBUG_LOGS = BuildConfig.DEBUG
 private const val TAG = "PixelMinimalWatchFace"
 
 class PixelMinimalWatchFace : CanvasWatchFaceService() {
@@ -107,6 +107,7 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
 
         private var shouldShowWeather = false
         private var shouldShowBattery = false
+        private var didForceGalaxyWatch4BatterySubscription = false
         private var weatherComplicationData: ComplicationData? = null
         private var batteryComplicationData: ComplicationData? = null
 
@@ -175,6 +176,7 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
 
             shouldShowWeather = false
             shouldShowBattery = false
+            didForceGalaxyWatch4BatterySubscription = false
 
             setActiveComplications(*activeComplicationIds.plus(WEATHER_COMPLICATION_ID).plus(BATTERY_COMPLICATION_ID))
 
@@ -394,7 +396,10 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
                     Log.e(TAG, "onComplicationDataUpdate, error while parsing battery data from complication", e)
                 }
 
-                invalidate()
+                if (shouldShowBattery) {
+                    invalidate()
+                }
+
                 return
             }
 
@@ -473,10 +478,12 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
             }
 
             // Update battery subscription if needed
-            if( storage.shouldShowBattery() != shouldShowBattery && storage.isUserPremium() ) {
+            if( storage.isUserPremium() &&
+                (storage.shouldShowBattery() != shouldShowBattery || (Device.isSamsungGalaxyWatch && !didForceGalaxyWatch4BatterySubscription)) ) {
                 shouldShowBattery = storage.shouldShowBattery()
+                didForceGalaxyWatch4BatterySubscription = true
 
-                if( shouldShowBattery ) {
+                if( shouldShowBattery || Device.isSamsungGalaxyWatch ) {
                     subscribeToBatteryComplicationData()
                 } else {
                     unsubscribeToBatteryComplicationData()
