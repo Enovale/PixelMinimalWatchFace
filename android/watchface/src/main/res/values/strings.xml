@@ -35,7 +35,7 @@
     <string name="config_feedback_cta">Give your feedback</string>
     <string name="config_version">Version: %s</string>
     <string name="config_footer">Made by Benoit Letondor</string>
-    <string name="config_hour_format_24h">Use 24h time</string>
+    <string name="config_hour_format_24h">Use 24h time format</string>
     <string name="config_show_date_ambient">Show date in ambient mode</string>
     <string name="config_date_format_short">Use short date format</string>
     <string name="config_show_wear_os_logo">Show WearOS logo</string>
