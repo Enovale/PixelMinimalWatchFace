@@ -488,9 +488,10 @@ class RegularDigitalWatchFaceDrawer(
                                   burnInProtection: Boolean) {
         wearOSLogoPaint.isAntiAlias = !ambient
 
+        val shouldUseStrokeStyle = (ambient && !storage.shouldUseNormalTimeStyleInAmbientMode()) || (!ambient && storage.shouldUseThinTimeStyleInRegularMode())
         timePaint.apply {
             isAntiAlias = !(ambient && lowBitAmbient)
-            style = if( ambient && !storage.shouldShowFilledTimeInAmbientMode() || storage.shouldShowThinTimeRegular() && !ambient) { Paint.Style.STROKE } else { Paint.Style.FILL }
+            style = if(shouldUseStrokeStyle) { Paint.Style.STROKE } else { Paint.Style.FILL }
             color = if( ambient ) { timeColorDimmed } else { storage.getTimeAndDateColor() }
         }
 

@@ -61,10 +61,10 @@ class SettingsActivity : Activity() {
             storage.setShouldShowWearOSLogo(showWearOSLogo)
         }, { showComplicationsAmbient ->
             storage.setShouldShowComplicationsInAmbientMode(showComplicationsAmbient)
-        }, { showFilledTimeAmbient ->
-            storage.setShouldShowFilledTimeInAmbientMode(showFilledTimeAmbient)
-        }, { showThinTimeRegular ->
-            storage.setShouldShowThinTimeRegular(showThinTimeRegular)
+        }, { useNormalTimeStyleInAmbientMode ->
+            storage.setShouldUseNormalTimeStyleInAmbientMode(useNormalTimeStyleInAmbientMode)
+        }, { useThinTimeStyleInRegularMode ->
+            storage.setShouldUseThinTimeStyleInRegularMode(useThinTimeStyleInRegularMode)
         }, { timeSize ->
             storage.setTimeSize(timeSize)
         }, { dateAndBatterySize ->
