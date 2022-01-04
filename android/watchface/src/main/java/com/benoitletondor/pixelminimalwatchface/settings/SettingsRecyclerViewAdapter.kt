@@ -232,7 +232,7 @@ class ComplicationConfigRecyclerViewAdapter(
                     parent,
                     false
                 )) { showSecondsRing ->
-                    if (showSecondsRing != storage.shouldShowSecondsRing()) {
+                    if (showSecondsRing != storage.showSecondsRing()) {
                         showSecondsRingListener(showSecondsRing)
                         notifyDataSetChanged()
                     }
@@ -281,7 +281,7 @@ class ComplicationConfigRecyclerViewAdapter(
                         )
                     } else {
                         showBatteryListener(false)
-                        regularComplicationsViewHolder?.showBottomComplication(!storage.shouldShowPhoneBattery())
+                        regularComplicationsViewHolder?.showBottomComplication(!storage.showPhoneBattery())
                         notifyDataSetChanged()
                     }
                 }
@@ -413,21 +413,21 @@ class ComplicationConfigRecyclerViewAdapter(
                 (viewHolder as HourFormatViewHolder).setHourFormatSwitchChecked(use24hTimeFormat)
             }
             TYPE_USE_THIN_TIME_STYLE_IN_REGULAR_MODE -> {
-                val useThinTimeInRegular = storage.shouldUseThinTimeStyleInRegularMode()
+                val useThinTimeInRegular = storage.useThinTimeStyleInRegularMode()
                 (viewHolder as UseThinTimeStyleInRegularModeViewHolder).setUseThinTimeInRegularSwitchChecked(useThinTimeInRegular)
             }
             TYPE_SHOW_WEAR_OS_LOGO -> {
                 (viewHolder as ShowWearOSLogoViewHolder).apply {
-                    setShowWearOSLogoSwitchChecked(storage.shouldShowWearOSLogo())
+                    setShowWearOSLogoSwitchChecked(storage.showWearOSLogo())
                     setPremiumTitle(storage.isUserPremium(), storage.useAndroid12Style())
                 }
             }
             TYPE_SHOW_COMPLICATIONS_AMBIENT -> {
-                val showComplicationsAmbient = storage.shouldShowComplicationsInAmbientMode()
+                val showComplicationsAmbient = storage.showComplicationsInAmbientMode()
                 (viewHolder as ShowComplicationsAmbientViewHolder).setShowComplicationsAmbientSwitchChecked(showComplicationsAmbient)
             }
             TYPE_USE_NORMAL_TIME_STYLE_IN_AMBIENT_MODE -> {
-                val useNormalTimeStyleInAmbientMode = storage.shouldUseNormalTimeStyleInAmbientMode()
+                val useNormalTimeStyleInAmbientMode = storage.useNormalTimeStyleInAmbientMode()
                 (viewHolder as UseNormalTimeStyleInAmbientModeViewHolder).setUseNormalTimeStyleInAmbientSwitchChecked(useNormalTimeStyleInAmbientMode)
             }
             TYPE_TIME_SIZE -> {
@@ -439,15 +439,15 @@ class ComplicationConfigRecyclerViewAdapter(
                 (viewHolder as DateAndBatterySizeViewHolder).setDateAndBatterySize(size)
             }
             TYPE_SHOW_SECONDS_RING -> {
-                val showSeconds = storage.shouldShowSecondsRing()
+                val showSeconds = storage.showSecondsRing()
                 (viewHolder as ShowSecondsRingViewHolder).setShowSecondsRingSwitchChecked(showSeconds)
             }
             TYPE_SHOW_WEATHER -> {
-                val showWeather = storage.shouldShowWeather()
+                val showWeather = storage.showWeather()
                 (viewHolder as ShowWeatherViewHolder).setShowWeatherViewSwitchChecked(showWeather)
             }
             TYPE_SHOW_BATTERY -> {
-                val showBattery = storage.shouldShowBattery()
+                val showBattery = storage.showWatchBattery()
                 (viewHolder as ShowBatteryViewHolder).setShowBatteryViewSwitchChecked(showBattery)
             }
             TYPE_DATE_FORMAT -> {
@@ -476,7 +476,7 @@ class ComplicationConfigRecyclerViewAdapter(
                 (viewHolder as SectionViewHolder).setSectionText(text)
             }
             TYPE_SHOW_BATTERY_IN_AMBIENT -> {
-                val showBatteryInAmbient = !storage.shouldHideBatteryInAmbient()
+                val showBatteryInAmbient = !storage.hideBatteryInAmbient()
                 (viewHolder as ShowBatteryInAmbientViewHolder).setShowBatteryInAmbientSwitchChecked(showBatteryInAmbient)
             }
             TYPE_WIDGETS_SIZE -> {
@@ -490,8 +490,8 @@ class ComplicationConfigRecyclerViewAdapter(
         regularComplicationsViewHolder?.bound = true
         
         regularComplicationsViewHolder?.setDefaultComplicationDrawable()
-        regularComplicationsViewHolder?.showMiddleComplication(!storage.shouldShowWearOSLogo())
-        regularComplicationsViewHolder?.showBottomComplication(!storage.shouldShowBattery() && !storage.shouldShowPhoneBattery())
+        regularComplicationsViewHolder?.showMiddleComplication(!storage.showWearOSLogo())
+        regularComplicationsViewHolder?.showBottomComplication(!storage.showWatchBattery() && !storage.showPhoneBattery())
         initializesRegularColorsAndComplications()
     }
 
@@ -609,7 +609,7 @@ class ComplicationConfigRecyclerViewAdapter(
         list.add(TYPE_TIME_AND_DATE_COLOR)
         if( isScreenRound ) {
             list.add(TYPE_SHOW_SECONDS_RING)
-            if (storage.shouldShowSecondsRing()) {
+            if (storage.showSecondsRing()) {
                 list.add(TYPE_SECONDS_RING_COLOR)
             }
         }
@@ -625,7 +625,7 @@ class ComplicationConfigRecyclerViewAdapter(
         if (isUserPremium) {
             list.add(TYPE_SHOW_COMPLICATIONS_AMBIENT)
         }
-        if (isUserPremium && (storage.shouldShowBattery() || storage.shouldShowPhoneBattery())) {
+        if (isUserPremium && (storage.showWatchBattery() || storage.showPhoneBattery())) {
             list.add(TYPE_SHOW_BATTERY_IN_AMBIENT)
         }
 

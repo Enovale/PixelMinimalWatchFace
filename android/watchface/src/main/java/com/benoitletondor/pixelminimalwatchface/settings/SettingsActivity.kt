@@ -58,29 +58,29 @@ class SettingsActivity : Activity() {
             storage.setRatingDisplayed(true)
             startActivity(Intent(this, FeedbackActivity::class.java))
         }, { showWearOSLogo ->
-            storage.setShouldShowWearOSLogo(showWearOSLogo)
+            storage.setShowWearOSLogo(showWearOSLogo)
         }, { showComplicationsAmbient ->
-            storage.setShouldShowComplicationsInAmbientMode(showComplicationsAmbient)
+            storage.setShowComplicationsInAmbientMode(showComplicationsAmbient)
         }, { useNormalTimeStyleInAmbientMode ->
-            storage.setShouldUseNormalTimeStyleInAmbientMode(useNormalTimeStyleInAmbientMode)
+            storage.setUseNormalTimeStyleInAmbientMode(useNormalTimeStyleInAmbientMode)
         }, { useThinTimeStyleInRegularMode ->
-            storage.setShouldUseThinTimeStyleInRegularMode(useThinTimeStyleInRegularMode)
+            storage.setUseThinTimeStyleInRegularMode(useThinTimeStyleInRegularMode)
         }, { timeSize ->
             storage.setTimeSize(timeSize)
         }, { dateAndBatterySize ->
             storage.setDateAndBatterySize(dateAndBatterySize)
         }, { showSecondsRing ->
-            storage.setShouldShowSecondsRing(showSecondsRing)
+            storage.setShowSecondsRing(showSecondsRing)
         }, { showWeather ->
-            storage.setShouldShowWeather(showWeather)
+            storage.setShowWeather(showWeather)
         }, {
             getWeatherProviderInfo()?.let { weatherProviderInfo ->
                 openActivity(weatherProviderInfo.appPackage, weatherProviderInfo.weatherActivityName)
             }
         }, { showBattery ->
-            storage.setShouldShowBattery(showBattery)
+            storage.setShowWatchBattery(showBattery)
         }, { showBatteryInAmbient ->
-            storage.setShouldHideBatteryInAmbient(!showBatteryInAmbient)
+            storage.setHideBatteryInAmbient(!showBatteryInAmbient)
         }, { useShortDateFormat ->
             storage.setUseShortDateFormat(useShortDateFormat)
         }, { showDateAmbient ->

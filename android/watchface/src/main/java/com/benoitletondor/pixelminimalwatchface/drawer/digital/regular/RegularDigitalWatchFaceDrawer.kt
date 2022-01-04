@@ -192,7 +192,7 @@ class RegularDigitalWatchFaceDrawer(
 
     override fun tapIsOnWeather(x: Int, y: Int): Boolean {
         val drawingState = drawingState
-        if( !storage.shouldShowWeather() ||
+        if( !storage.showWeather() ||
             !storage.isUserPremium() ||
             drawingState !is RegularDrawerDrawingState.CacheAvailable ) {
             return false
@@ -252,9 +252,9 @@ class RegularDigitalWatchFaceDrawer(
                 calendar,
                 ambient,
                 storage.isUserPremium(),
-                storage.shouldShowSecondsRing(),
-                storage.shouldShowBattery(),
-                storage.shouldShowPhoneBattery(),
+                storage.showSecondsRing(),
+                storage.showWatchBattery(),
+                storage.showPhoneBattery(),
                 !ambient || storage.getShowDateInAmbient(),
                 weatherComplicationData,
                 batteryComplicationData,
@@ -431,7 +431,7 @@ class RegularDigitalWatchFaceDrawer(
             drawSecondRing(canvas, calendar, secondsRingPaint)
         }
 
-        if( isUserPremium && (drawBattery || drawPhoneBattery) && (!ambient || !storage.shouldHideBatteryInAmbient()) ) {
+        if( isUserPremium && (drawBattery || drawPhoneBattery) && (!ambient || !storage.hideBatteryInAmbient()) ) {
             drawBattery(
                 canvas,
                 batteryLevelPaint,
@@ -452,15 +452,15 @@ class RegularDigitalWatchFaceDrawer(
         calendar: Calendar,
         isUserPremium: Boolean
     ) {
-        if( isUserPremium && (storage.shouldShowComplicationsInAmbientMode() || !ambient) ) {
+        if( isUserPremium && (storage.showComplicationsInAmbientMode() || !ambient) ) {
             ACTIVE_COMPLICATIONS.forEach { complicationId ->
                 val complicationDrawable = complicationDrawableSparseArray[complicationId]
 
-                if( complicationId == PixelMinimalWatchFace.MIDDLE_COMPLICATION_ID && storage.shouldShowWearOSLogo() ) {
+                if( complicationId == PixelMinimalWatchFace.MIDDLE_COMPLICATION_ID && storage.showWearOSLogo() ) {
                     return@forEach
                 }
 
-                if( complicationId == PixelMinimalWatchFace.BOTTOM_COMPLICATION_ID && (storage.shouldShowBattery() || storage.shouldShowPhoneBattery()) ) {
+                if( complicationId == PixelMinimalWatchFace.BOTTOM_COMPLICATION_ID && (storage.showWatchBattery() || storage.showPhoneBattery()) ) {
                     return@forEach
                 }
 
@@ -468,7 +468,7 @@ class RegularDigitalWatchFaceDrawer(
             }
         }
 
-        if( storage.shouldShowWearOSLogo() ) {
+        if( storage.showWearOSLogo() ) {
             val wearOsImage = if( ambient ) { wearOSLogoAmbient } else { wearOSLogo }
             canvas.drawBitmap(wearOsImage, iconXOffset, iconYOffset, wearOSLogoPaint)
         }
@@ -488,7 +488,7 @@ class RegularDigitalWatchFaceDrawer(
                                   burnInProtection: Boolean) {
         wearOSLogoPaint.isAntiAlias = !ambient
 
-        val shouldUseStrokeStyle = (ambient && !storage.shouldUseNormalTimeStyleInAmbientMode()) || (!ambient && storage.shouldUseThinTimeStyleInRegularMode())
+        val shouldUseStrokeStyle = (ambient && !storage.useNormalTimeStyleInAmbientMode()) || (!ambient && storage.useThinTimeStyleInRegularMode())
         timePaint.apply {
             isAntiAlias = !(ambient && lowBitAmbient)
             style = if(shouldUseStrokeStyle) { Paint.Style.STROKE } else { Paint.Style.FILL }
