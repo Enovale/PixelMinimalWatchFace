@@ -287,6 +287,7 @@ class Android12DigitalWatchFaceDrawer(
         timePaint.apply {
             isAntiAlias = !(ambient && lowBitAmbient)
             color = if( ambient ) { timeColorDimmed } else { storage.getTimeAndDateColor() }
+            style = if (storage.shouldShowThinTimeRegular() && !ambient) { Paint.Style.STROKE } else { Paint.Style.FILL } // excluding ambient here, since it works different for the A12 theme
             typeface = if( ambient && !storage.shouldShowFilledTimeInAmbientMode() ) { productSansThinFont } else { productSansRegularFont }
         }
 

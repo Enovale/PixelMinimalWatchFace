@@ -27,6 +27,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.benoitletondor.pixelminimalwatchface.*
 import com.benoitletondor.pixelminimalwatchface.PixelMinimalWatchFace.Companion.getComplicationId
+import com.benoitletondor.pixelminimalwatchface.databinding.ConfigListShowThinTimeRegularBinding
 import com.benoitletondor.pixelminimalwatchface.drawer.digital.android12.Android12DigitalWatchFaceDrawer
 import com.benoitletondor.pixelminimalwatchface.drawer.digital.regular.RegularDigitalWatchFaceDrawer
 import com.benoitletondor.pixelminimalwatchface.helper.isPermissionGranted
@@ -46,6 +47,7 @@ private const val TYPE_SEND_FEEDBACK = 6
 private const val TYPE_SHOW_WEAR_OS_LOGO = 7
 private const val TYPE_SHOW_COMPLICATIONS_AMBIENT = 8
 private const val TYPE_SHOW_FILLED_TIME_AMBIENT = 9
+private const val TYPE_SHOW_THIN_TIME_REGULAR = 32
 private const val TYPE_TIME_SIZE = 10
 private const val TYPE_SHOW_SECONDS_RING = 11
 private const val TYPE_SHOW_WEATHER = 12
@@ -78,6 +80,7 @@ class ComplicationConfigRecyclerViewAdapter(
     private val showWearOSButtonListener: (Boolean) -> Unit,
     private val showComplicationsAmbientListener: (Boolean) -> Unit,
     private val showFilledTimeAmbientListener: (Boolean) -> Unit,
+    private val showThinTimeRegularListener: (Boolean) -> Unit,
     private val timeSizeChangedListener: (Int) -> Unit,
     private val dateAndBatterySizeChangedListener: (Int) -> Unit,
     private val showSecondsRingListener: (Boolean) -> Unit,
@@ -165,6 +168,14 @@ class ComplicationConfigRecyclerViewAdapter(
                     false
                 ),
                 hourFormatSelectionListener
+            )
+            TYPE_SHOW_THIN_TIME_REGULAR -> return ThinTimeRegularViewHolder(
+                LayoutInflater.from(parent.context).inflate(
+                    R.layout.config_list_show_thin_time_regular,
+                    parent,
+                    false
+                ),
+                showThinTimeRegularListener
             )
             TYPE_SEND_FEEDBACK -> return SendFeedbackViewHolder(
                 LayoutInflater.from(parent.context).inflate(
@@ -401,6 +412,10 @@ class ComplicationConfigRecyclerViewAdapter(
                 val use24hTimeFormat = storage.getUse24hTimeFormat()
                 (viewHolder as HourFormatViewHolder).setHourFormatSwitchChecked(use24hTimeFormat)
             }
+            TYPE_SHOW_THIN_TIME_REGULAR -> {
+                val useThinTimeInRegular = storage.shouldShowThinTimeRegular()
+                (viewHolder as ThinTimeRegularViewHolder).setShowThinTimeRegularSwitchChecked(useThinTimeInRegular)
+            }
             TYPE_SHOW_WEAR_OS_LOGO -> {
                 (viewHolder as ShowWearOSLogoViewHolder).apply {
                     setShowWearOSLogoSwitchChecked(storage.shouldShowWearOSLogo())
@@ -588,6 +603,7 @@ class ComplicationConfigRecyclerViewAdapter(
             list.add(TYPE_SHOW_WEATHER)
         }
         list.add(TYPE_HOUR_FORMAT)
+        list.add(TYPE_SHOW_THIN_TIME_REGULAR)
         list.add(TYPE_TIME_SIZE)
         list.add(TYPE_DATE_AND_BATTERY_SIZE)
         list.add(TYPE_TIME_AND_DATE_COLOR)

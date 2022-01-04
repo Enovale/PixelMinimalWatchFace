@@ -41,6 +41,7 @@
     <string name="config_show_wear_os_logo">Show WearOS logo</string>
     <string name="config_show_weather">Show weather after date</string>
     <string name="config_show_filled_time_ambient">Use thin time in ambient mode</string>
+    <string name="config_show_thin_time_regular">Use thin time in regular mode</string>
     <string name="config_show_wear_os_logo_premium">WearOS logo as middle widget</string>
     <string name="config_show_complications_ambient">Widgets in ambient mode</string>
     <string name="config_time_size">Size of time: %s</string>

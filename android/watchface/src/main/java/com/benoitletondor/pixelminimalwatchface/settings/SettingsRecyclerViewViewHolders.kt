@@ -335,6 +335,24 @@ class HourFormatViewHolder(
     }
 }
 
+
+class ThinTimeRegularViewHolder(
+    view: View,
+    showThinTimeRegularListener: (Boolean) -> Unit,
+) : RecyclerView.ViewHolder(view) {
+    private val showThinTimeRegularSwitch: Switch = view as Switch
+
+    init {
+        showThinTimeRegularSwitch.setOnCheckedChangeListener { _, checked ->
+            showThinTimeRegularListener(checked)
+        }
+    }
+
+    fun setShowThinTimeRegularSwitchChecked(checked: Boolean) {
+        showThinTimeRegularSwitch.isChecked = checked
+    }
+}
+
 class ShowWearOSLogoViewHolder(
     view: View,
     showWearOSLogoClickListener: (Boolean) -> Unit,

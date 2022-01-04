@@ -63,6 +63,8 @@ class SettingsActivity : Activity() {
             storage.setShouldShowComplicationsInAmbientMode(showComplicationsAmbient)
         }, { showFilledTimeAmbient ->
             storage.setShouldShowFilledTimeInAmbientMode(showFilledTimeAmbient)
+        }, { showThinTimeRegular ->
+            storage.setShouldShowThinTimeRegular(showThinTimeRegular)
         }, { timeSize ->
             storage.setTimeSize(timeSize)
         }, { dateAndBatterySize ->

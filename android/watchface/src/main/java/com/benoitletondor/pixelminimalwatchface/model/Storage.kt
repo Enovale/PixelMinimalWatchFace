@@ -45,6 +45,7 @@ private const val KEY_APP_VERSION = "appVersion"
 private const val KEY_SHOW_WEAR_OS_LOGO = "showWearOSLogo"
 private const val KEY_SHOW_COMPLICATIONS_AMBIENT = "showComplicationsAmbient"
 private const val KEY_FILLED_TIME_AMBIENT = "filledTimeAmbient"
+private const val KEY_THIN_TIME_REGULAR = "thinTimeRegularMode"
 private const val KEY_TIME_SIZE = "timeSize"
 private const val KEY_DATE_AND_BATTERY_SIZE = "dateSize"
 private const val KEY_SECONDS_RING = "secondsRing"
@@ -79,6 +80,8 @@ interface Storage {
     fun setShouldShowComplicationsInAmbientMode(show: Boolean)
     fun shouldShowFilledTimeInAmbientMode(): Boolean
     fun setShouldShowFilledTimeInAmbientMode(showFilledTime: Boolean)
+    fun shouldShowThinTimeRegular(): Boolean
+    fun setShouldShowThinTimeRegular(showThinTimeRegular: Boolean)
     fun getTimeSize(): Int
     fun setTimeSize(timeSize: Int)
     fun getDateAndBatterySize(): Int
@@ -389,6 +392,14 @@ class StorageImpl : Storage {
 
     override fun setShouldShowFilledTimeInAmbientMode(showFilledTime: Boolean) {
         sharedPreferences.edit().putBoolean(KEY_FILLED_TIME_AMBIENT, showFilledTime).apply()
+    }
+
+    override fun shouldShowThinTimeRegular(): Boolean {
+        return sharedPreferences.getBoolean(KEY_THIN_TIME_REGULAR, false)
+    }
+
+    override fun setShouldShowThinTimeRegular(showThinTimeRegular: Boolean) {
+        sharedPreferences.edit().putBoolean(KEY_THIN_TIME_REGULAR, showThinTimeRegular).apply()
     }
 
     override fun getTimeSize(): Int {
