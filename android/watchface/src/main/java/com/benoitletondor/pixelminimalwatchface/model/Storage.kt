@@ -16,7 +16,6 @@
 package com.benoitletondor.pixelminimalwatchface.model
 
 import android.content.Context
-import android.content.SharedPreferences
 import android.graphics.ColorFilter
 import androidx.annotation.ColorInt
 import com.benoitletondor.pixelminimalwatchface.R
@@ -115,50 +114,41 @@ interface Storage {
     fun setWidgetsSize(widgetsSize: Int)
 }
 
-class StorageImpl : Storage {
-    private var initialized: Boolean = false
-
-    private lateinit var appContext: Context
-    private lateinit var sharedPreferences: SharedPreferences
+class StorageImpl(
+    context: Context,
+) : Storage {
+    private val appContext = context.applicationContext
+    private val sharedPreferences = appContext.getSharedPreferences(SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE)
 
     // Those values will be called up to 60 times a minute when not in ambient mode
     // SharedPreferences uses a map so we cache the values to avoid map lookups
-    private val timeSizeCache by lazy { StorageCachedIntValue(sharedPreferences, KEY_TIME_SIZE, DEFAULT_TIME_SIZE) }
-    private val dateAndBatterySizeCache by lazy { StorageCachedIntValue(sharedPreferences, KEY_DATE_AND_BATTERY_SIZE, getTimeSize()) }
-    private val isPremiumUserCache by lazy { StorageCachedBoolValue(sharedPreferences, KEY_USER_PREMIUM, false) }
-    private val use24hFormatCache by lazy { StorageCachedBoolValue(sharedPreferences, KEY_USE_24H_TIME_FORMAT, true) }
-    private val showWearOSLogoCache by lazy { StorageCachedBoolValue(sharedPreferences, KEY_SHOW_WEAR_OS_LOGO, true) }
-    private val showComplicationsInAmbientModeCache by lazy { StorageCachedBoolValue(sharedPreferences, KEY_SHOW_COMPLICATIONS_AMBIENT, false) }
-    private val showSecondsRingCache by lazy { StorageCachedBoolValue(sharedPreferences, KEY_SECONDS_RING, false) }
-    private val showWeatherCache by lazy { StorageCachedBoolValue(sharedPreferences, KEY_SHOW_WEATHER, false) }
-    private val showWatchBattery by lazy { StorageCachedBoolValue(sharedPreferences, KEY_SHOW_WATCH_BATTERY, false) }
-    private val useShortDateFormatCache by lazy { StorageCachedBoolValue(sharedPreferences, KEY_USE_SHORT_DATE_FORMAT, false) }
-    private val showDateInAmbientCache by lazy { StorageCachedBoolValue(sharedPreferences, KEY_SHOW_DATE_AMBIENT, true) }
-    private val showPhoneBatteryCache by lazy { StorageCachedBoolValue(sharedPreferences, KEY_SHOW_PHONE_BATTERY, false) }
-    private val timeAndDateColorCache by lazy { StorageCachedColorValue(sharedPreferences, appContext, KEY_TIME_AND_DATE_COLOR, R.color.white) }
-    private val batteryIndicatorColorCache by lazy { StorageCachedColorValue(sharedPreferences, appContext, KEY_BATTERY_COLOR, R.color.white) }
+    private val timeSizeCache = StorageCachedIntValue(sharedPreferences, KEY_TIME_SIZE, DEFAULT_TIME_SIZE)
+    private val dateAndBatterySizeCache = StorageCachedIntValue(sharedPreferences, KEY_DATE_AND_BATTERY_SIZE, getTimeSize())
+    private val isPremiumUserCache = StorageCachedBoolValue(sharedPreferences, KEY_USER_PREMIUM, false)
+    private val use24hFormatCache = StorageCachedBoolValue(sharedPreferences, KEY_USE_24H_TIME_FORMAT, true)
+    private val showWearOSLogoCache = StorageCachedBoolValue(sharedPreferences, KEY_SHOW_WEAR_OS_LOGO, true)
+    private val showComplicationsInAmbientModeCache = StorageCachedBoolValue(sharedPreferences, KEY_SHOW_COMPLICATIONS_AMBIENT, false)
+    private val showSecondsRingCache = StorageCachedBoolValue(sharedPreferences, KEY_SECONDS_RING, false)
+    private val showWeatherCache = StorageCachedBoolValue(sharedPreferences, KEY_SHOW_WEATHER, false)
+    private val showWatchBattery = StorageCachedBoolValue(sharedPreferences, KEY_SHOW_WATCH_BATTERY, false)
+    private val useShortDateFormatCache = StorageCachedBoolValue(sharedPreferences, KEY_USE_SHORT_DATE_FORMAT, false)
+    private val showDateInAmbientCache = StorageCachedBoolValue(sharedPreferences, KEY_SHOW_DATE_AMBIENT, true)
+    private val showPhoneBatteryCache = StorageCachedBoolValue(sharedPreferences, KEY_SHOW_PHONE_BATTERY, false)
+    private val timeAndDateColorCache = StorageCachedColorValue(sharedPreferences, appContext, KEY_TIME_AND_DATE_COLOR, R.color.white)
+    private val batteryIndicatorColorCache = StorageCachedColorValue(sharedPreferences, appContext, KEY_BATTERY_COLOR, R.color.white)
     private var cacheComplicationsColor: ComplicationColors? = null
-    private val useAndroid12StyleCache by lazy { StorageCachedBoolValue(sharedPreferences, KEY_USE_ANDROID_12_STYLE, false) }
-    private val hideBatteryInAmbientCache by lazy { StorageCachedBoolValue(sharedPreferences, KEY_HIDE_BATTERY_IN_AMBIENT, false) }
-    private val secondRingColorCache by lazy { StorageCachedColorValue(sharedPreferences, appContext, KEY_SECONDS_RING_COLOR, R.color.white) }
-    private val widgetsSizeCache by lazy { StorageCachedIntValue(sharedPreferences, KEY_WIDGETS_SIZE, DEFAULT_TIME_SIZE) }
-    private val useNormalTimeStyleInAmbientModeCache by lazy { StorageCachedBoolValue(sharedPreferences, KEY_USE_NORMAL_TIME_STYLE_IN_AMBIENT, false) }
-    private val useThinTimeStyleInNormalModeCache by lazy { StorageCachedBoolValue(sharedPreferences, KEY_USE_THIN_TIME_STYLE_IN_REGULAR, false) }
-    private val hasRatingBeenDisplayedCache by lazy { StorageCachedBoolValue(sharedPreferences, KEY_RATING_NOTIFICATION_SENT, false) }
+    private val useAndroid12StyleCache = StorageCachedBoolValue(sharedPreferences, KEY_USE_ANDROID_12_STYLE, false)
+    private val hideBatteryInAmbientCache = StorageCachedBoolValue(sharedPreferences, KEY_HIDE_BATTERY_IN_AMBIENT, false)
+    private val secondRingColorCache = StorageCachedColorValue(sharedPreferences, appContext, KEY_SECONDS_RING_COLOR, R.color.white)
+    private val widgetsSizeCache = StorageCachedIntValue(sharedPreferences, KEY_WIDGETS_SIZE, DEFAULT_TIME_SIZE)
+    private val useNormalTimeStyleInAmbientModeCache = StorageCachedBoolValue(sharedPreferences, KEY_USE_NORMAL_TIME_STYLE_IN_AMBIENT, false)
+    private val useThinTimeStyleInNormalModeCache = StorageCachedBoolValue(sharedPreferences, KEY_USE_THIN_TIME_STYLE_IN_REGULAR, false)
+    private val hasRatingBeenDisplayedCache = StorageCachedBoolValue(sharedPreferences, KEY_RATING_NOTIFICATION_SENT, false)
 
-    fun init(context: Context): Storage {
-        if( !initialized ) {
-            appContext = context.applicationContext
-            sharedPreferences = context.getSharedPreferences(SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE)
-
-            if( getInstallTimestamp() < 0 ) {
-                sharedPreferences.edit().putLong(KEY_INSTALL_TIMESTAMP, System.currentTimeMillis()).apply()
-            }
-
-            initialized = true
+    init {
+        if( getInstallTimestamp() < 0 ) {
+            sharedPreferences.edit().putLong(KEY_INSTALL_TIMESTAMP, System.currentTimeMillis()).apply()
         }
-
-        return this
     }
 
     override fun getComplicationColors(): ComplicationColors {
