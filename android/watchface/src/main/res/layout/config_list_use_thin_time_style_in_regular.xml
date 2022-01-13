@@ -16,9 +16,9 @@
 -->
 <Switch
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/config_list_date_format_switch"
+    android:id="@+id/config_list_show_thin_time_regular_switch"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     style="@style/ButtonConfigurationStyle"
-    android:text="@string/config_date_format_short"
-    android:drawableStart="@drawable/ic_baseline_short_text"/>
+    android:text="@string/config_show_thin_time_regular"
+    android:drawableStart="@drawable/ic_baseline_invert_colors"/>

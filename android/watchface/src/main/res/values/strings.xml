@@ -1,5 +1,5 @@
 <!--
-   Copyright 2021 Benoit LETONDOR
+   Copyright 2022 Benoit LETONDOR
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -35,12 +35,13 @@
     <string name="config_feedback_cta">Give your feedback</string>
     <string name="config_version">Version: %s</string>
     <string name="config_footer">Made by Benoit Letondor</string>
-    <string name="config_hour_format_24h">Use 24h time</string>
+    <string name="config_hour_format_24h">Use 24h time format</string>
     <string name="config_show_date_ambient">Show date in ambient mode</string>
     <string name="config_date_format_short">Use short date format</string>
     <string name="config_show_wear_os_logo">Show WearOS logo</string>
     <string name="config_show_weather">Show weather after date</string>
-    <string name="config_show_filled_time_ambient">Use thin time in ambient mode</string>
+    <string name="config_show_filled_time_ambient">Use normal in place of thin time style in ambient mode</string>
+    <string name="config_show_thin_time_regular">Use thin time style when watch is on</string>
     <string name="config_show_wear_os_logo_premium">WearOS logo as middle widget</string>
     <string name="config_show_complications_ambient">Widgets in ambient mode</string>
     <string name="config_time_size">Size of time: %s</string>
@@ -55,6 +56,7 @@
     <string name="config_section_battery">Display battery status</string>
     <string name="config_section_support">Support</string>
     <string name="config_section_widgets">Widgets</string>
+    <string name="config_section_time_style">Time style</string>
     <string name="config_battery_section_header">Activating any battery indicator replaces the bottom widget</string>
     <string name="config_time_and_date_color">Time and date color (doesn\'t affect ambient mode)</string>
     <string name="config_battery_indicator_color">Battery indicators color (doesn\'t affect ambient mode)</string>

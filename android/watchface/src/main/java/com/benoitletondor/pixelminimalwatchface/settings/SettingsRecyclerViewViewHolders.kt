@@ -1,5 +1,5 @@
 /*
- *   Copyright 2021 Benoit LETONDOR
+ *   Copyright 2022 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -388,20 +388,37 @@ class ShowComplicationsAmbientViewHolder(
     }
 }
 
-class ShowFilledTimeAmbientViewHolder(
+class UseNormalTimeStyleInAmbientModeViewHolder(
     view: View,
-    showFilledTimeClickListener: (Boolean) -> Unit,
+    useNormalTimeStyleInAmbientModeClickListener: (Boolean) -> Unit,
 ) : RecyclerView.ViewHolder(view) {
-    private val showFilledTimeSwitch: Switch = view as Switch
+    private val useNormalTimeStyleInAmbientSwitch: Switch = view as Switch
 
     init {
-        showFilledTimeSwitch.setOnCheckedChangeListener { _, checked ->
-            showFilledTimeClickListener(!checked)
+        useNormalTimeStyleInAmbientSwitch.setOnCheckedChangeListener { _, checked ->
+            useNormalTimeStyleInAmbientModeClickListener(checked)
         }
     }
 
-    fun setShowFilledTimeSwitchChecked(checked: Boolean) {
-        showFilledTimeSwitch.isChecked = !checked
+    fun setUseNormalTimeStyleInAmbientSwitchChecked(checked: Boolean) {
+        useNormalTimeStyleInAmbientSwitch.isChecked = checked
+    }
+}
+
+class UseThinTimeStyleInRegularModeViewHolder(
+    view: View,
+    useThinTimeStyleInRegularModeClickListener: (Boolean) -> Unit,
+) : RecyclerView.ViewHolder(view) {
+    private val useThinTimeStyleInRegularSwitch: Switch = view as Switch
+
+    init {
+        useThinTimeStyleInRegularSwitch.setOnCheckedChangeListener { _, checked ->
+            useThinTimeStyleInRegularModeClickListener(checked)
+        }
+    }
+
+    fun setUseThinTimeInRegularSwitchChecked(checked: Boolean) {
+        useThinTimeStyleInRegularSwitch.isChecked = checked
     }
 }
 

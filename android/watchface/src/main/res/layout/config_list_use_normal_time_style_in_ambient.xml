@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-   Copyright 2021 Benoit LETONDOR
+   Copyright 2022 Benoit LETONDOR
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -21,4 +21,4 @@
     android:layout_height="wrap_content"
     style="@style/ButtonConfigurationStyle"
     android:text="@string/config_show_filled_time_ambient"
-    android:drawableStart="@drawable/ic_baseline_invert_colors"/>
+    android:drawableStart="@drawable/ic_baseline_invert_colors_off"/>
