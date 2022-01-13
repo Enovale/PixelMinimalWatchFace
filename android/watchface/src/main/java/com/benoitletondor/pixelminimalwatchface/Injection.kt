@@ -20,7 +20,11 @@ import com.benoitletondor.pixelminimalwatchface.model.Storage
 import com.benoitletondor.pixelminimalwatchface.model.StorageImpl
 
 object Injection {
-    private val storage = StorageImpl()
+    private var storage: Storage? = null
 
-    fun storage(context: Context): Storage = storage.init(context)
+    fun storage(context: Context): Storage = storage ?: kotlin.run {
+        val newInstance = StorageImpl(context)
+        storage = newInstance
+        return@run newInstance
+    }
 }

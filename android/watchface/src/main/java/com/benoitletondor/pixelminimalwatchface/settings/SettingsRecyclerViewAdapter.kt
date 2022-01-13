@@ -171,7 +171,7 @@ class ComplicationConfigRecyclerViewAdapter(
             )
             TYPE_USE_THIN_TIME_STYLE_IN_REGULAR_MODE -> return UseThinTimeStyleInRegularModeViewHolder(
                 LayoutInflater.from(parent.context).inflate(
-                    R.layout.config_list_show_thin_time_regular,
+                    R.layout.config_list_use_thin_time_style_in_regular,
                     parent,
                     false
                 ),
@@ -204,7 +204,7 @@ class ComplicationConfigRecyclerViewAdapter(
             )
             TYPE_USE_NORMAL_TIME_STYLE_IN_AMBIENT_MODE -> return UseNormalTimeStyleInAmbientModeViewHolder(
                 LayoutInflater.from(parent.context).inflate(
-                    R.layout.config_list_show_filled_time_ambient,
+                    R.layout.config_list_use_normal_time_style_in_ambient,
                     parent,
                     false
                 ),
