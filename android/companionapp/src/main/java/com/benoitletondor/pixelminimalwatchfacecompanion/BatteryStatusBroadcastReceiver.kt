@@ -18,11 +18,14 @@ package com.benoitletondor.pixelminimalwatchfacecompanion
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.Intent.*
 import android.content.IntentFilter
 import android.os.BatteryManager
 import android.util.Log
+import com.benoitletondor.pixelminimalwatchfacecompanion.storage.Storage
 import com.benoitletondor.pixelminimalwatchfacecompanion.sync.Sync
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.lang.IllegalArgumentException
@@ -31,22 +34,43 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class BatteryStatusBroadcastReceiver : BroadcastReceiver() {
     @Inject lateinit var sync: Sync
+    @Inject lateinit var storage: Storage
 
     private var lastBatteryLevelPercentSent: Int? = null
 
     override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action == Intent.ACTION_BATTERY_CHANGED) {
+        if (!storage.isBatterySyncActivated()) {
+            return
+        }
+
+        try {
+            val maybeBatteryPercentage = when(intent.action) {
+                ACTION_BATTERY_CHANGED -> intent.getBatteryLevelPercent()
+                ACTION_POWER_CONNECTED, ACTION_POWER_DISCONNECTED, ACTION_BATTERY_LOW, ACTION_BATTERY_OKAY -> context.registerReceiver(null, IntentFilter(ACTION_BATTERY_CHANGED))?.getBatteryLevelPercent()
+                else -> null
+            }
+
+            if (maybeBatteryPercentage == null) {
+                Log.w("BatteryStatusBroadcastReceiver", "Unable to extract battery level")
+                return
+            }
+
             GlobalScope.launch {
                 try {
-                    val batteryLevelPercent = intent.getBatteryLevelPercent()
-                    if (batteryLevelPercent != lastBatteryLevelPercentSent) {
-                        sync.sendBatteryStatus(batteryLevelPercent)
-                        lastBatteryLevelPercentSent = batteryLevelPercent
+                    if (maybeBatteryPercentage != lastBatteryLevelPercentSent) {
+                        sync.sendBatteryStatus(maybeBatteryPercentage)
+                        lastBatteryLevelPercentSent = maybeBatteryPercentage
                     }
                 } catch (t: Throwable) {
-                    Log.e("BatteryStatusBroadcastReceiver", "Error computing battery level", t)
+                    if (t is CancellationException) {
+                        throw t
+                    }
+
+                    Log.e("BatteryStatusBroadcastReceiver", "Error sending battery level", t)
                 }
             }
+        } catch (t: Throwable) {
+            Log.e("BatteryStatusBroadcastReceiver", "Error computing battery level", t)
         }
     }
 
@@ -57,7 +81,15 @@ class BatteryStatusBroadcastReceiver : BroadcastReceiver() {
         fun subscribeToUpdates(context: Context) {
             if (!isSubscribed) {
                 unsubscribeFromUpdates(context)
-                context.applicationContext.registerReceiver(receiver, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+
+                val intentFilter = IntentFilter().apply {
+                    addAction(ACTION_BATTERY_CHANGED)
+                    addAction(ACTION_POWER_CONNECTED)
+                    addAction(ACTION_POWER_DISCONNECTED)
+                    addAction(ACTION_BATTERY_LOW)
+                    addAction(ACTION_BATTERY_OKAY)
+                }
+                context.applicationContext.registerReceiver(receiver, intentFilter)
             }
 
             isSubscribed = true
@@ -74,9 +106,8 @@ class BatteryStatusBroadcastReceiver : BroadcastReceiver() {
         }
 
         fun getCurrentBatteryLevel(context: Context): Int {
-            val batteryStatus: Intent = IntentFilter(Intent.ACTION_BATTERY_CHANGED).let { filter ->
-                context.registerReceiver(null, filter)
-            } ?: throw RuntimeException("Unable to get battery status, null intent")
+            val batteryStatus: Intent = context.registerReceiver(null, IntentFilter(ACTION_BATTERY_CHANGED))
+                ?: throw RuntimeException("Unable to get battery status, null intent")
 
             return batteryStatus.getBatteryLevelPercent()
         }
