@@ -15,6 +15,8 @@
  */
 package com.benoitletondor.pixelminimalwatchfacecompanion.view.main.subviews
 
+import androidx.activity.OnBackPressedCallback
+import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -22,11 +24,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -87,6 +89,29 @@ private fun PremiumLayoutContent(
     donateButtonPressed: () -> Unit,
 ) {
     val coroutineScope = rememberCoroutineScope()
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    val callback = remember { object: OnBackPressedCallback(false) {
+        override fun handleOnBackPressed() {
+            coroutineScope.launch {
+                bottomSheetScaffoldState.bottomSheetState.collapse()
+                isEnabled = false
+            }
+        }
+    } }
+
+    SideEffect {
+        callback.isEnabled = bottomSheetScaffoldState.bottomSheetState.isExpanded
+    }
+
+    LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher?.let { backDispatcher ->
+        DisposableEffect(lifecycleOwner, backDispatcher) {
+            backDispatcher.addCallback(callback)
+            onDispose {
+                callback.remove()
+            }
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -126,7 +151,7 @@ private fun PremiumLayoutContent(
             fontSize = 18.sp,
         )
 
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         Text(
             text = stringResource(R.string.setup_watch_face_instructions),
@@ -143,7 +168,7 @@ private fun PremiumLayoutContent(
             fontSize = 18.sp,
         )
 
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         Text(
             text = "You have any issue with the watch face? Something's not working?",
@@ -152,15 +177,17 @@ private fun PremiumLayoutContent(
             color = MaterialTheme.colors.onBackground,
         )
 
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
         Button(
             onClick = {
                 coroutineScope.launch {
                     if (bottomSheetScaffoldState.bottomSheetState.isCollapsed) {
                         bottomSheetScaffoldState.bottomSheetState.expand()
+                        callback.isEnabled = true
                     } else {
                         bottomSheetScaffoldState.bottomSheetState.collapse()
+                        callback.isEnabled = false
                     }
                 }
             },
