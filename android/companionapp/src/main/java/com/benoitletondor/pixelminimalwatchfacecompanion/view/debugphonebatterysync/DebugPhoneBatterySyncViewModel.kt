@@ -16,12 +16,42 @@
 package com.benoitletondor.pixelminimalwatchfacecompanion.view.debugphonebatterysync
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.benoitletondor.pixelminimalwatchfacecompanion.device.Device
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.*
 import javax.inject.Inject
 
 @HiltViewModel
 class DebugPhoneBatterySyncViewModel @Inject constructor(
-
+    device: Device,
 ) : ViewModel() {
+    private val isBatteryOptimizationOffMutableFlow = MutableStateFlow(device.isBatteryOptimizationOff())
+    private val isForegroundServiceOnMutableFlow = MutableStateFlow(false) // TODO
 
+    val stateFlow = combine(
+        isBatteryOptimizationOffMutableFlow,
+        isForegroundServiceOnMutableFlow,
+        ::buildState
+    ).stateIn(viewModelScope, SharingStarted.Eagerly, buildState(
+        isBatteryOptimizationOff = isBatteryOptimizationOffMutableFlow.value,
+        isForegroundServiceOn = isForegroundServiceOnMutableFlow.value,
+    ))
+
+    data class State(
+        val isBatteryOptimizationOff: Boolean,
+        val isForegroundServiceOn: Boolean,
+    )
+
+    companion object {
+        private fun buildState(
+            isBatteryOptimizationOff: Boolean,
+            isForegroundServiceOn: Boolean,
+        ): State {
+            return State(
+                isBatteryOptimizationOff = isBatteryOptimizationOff,
+                isForegroundServiceOn = isForegroundServiceOn,
+            )
+        }
+    }
 }

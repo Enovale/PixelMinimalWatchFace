@@ -16,6 +16,8 @@
 package com.benoitletondor.pixelminimalwatchfacecompanion.view.debugphonebatterysync
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
 import com.benoitletondor.pixelminimalwatchfacecompanion.ui.AppMaterialTheme
@@ -26,25 +28,44 @@ fun DebugPhoneBatterySync(
     navController: NavController,
     viewModel: DebugPhoneBatterySyncViewModel,
 ) {
+    val state: DebugPhoneBatterySyncViewModel.State
+        by viewModel.stateFlow.collectAsState()
+
     AppTopBarScaffold(
         navController = navController,
         showBackButton = true,
         title = "Debug phone battery sync",
         content = {
-            DebugPhoneBatterySyncLayout()
+            DebugPhoneBatterySyncLayout(
+                isBatteryOptimizationOff = state.isBatteryOptimizationOff,
+            )
         }
     )
 }
 
 @Composable
-private fun DebugPhoneBatterySyncLayout() {
+private fun DebugPhoneBatterySyncLayout(
+    isBatteryOptimizationOff: Boolean,
+) {
 
 }
 
 @Composable
-@Preview(showSystemUi = true)
-private fun Preview() {
+@Preview(showSystemUi = true, name = "Battery optimization off")
+private fun PreviewBatteryOptimOff() {
     AppMaterialTheme {
-        DebugPhoneBatterySyncLayout()
+        DebugPhoneBatterySyncLayout(
+            isBatteryOptimizationOff = true,
+        )
+    }
+}
+
+@Composable
+@Preview(showSystemUi = true, name = "Battery optimization on")
+private fun PreviewBatteryOptimOn() {
+    AppMaterialTheme {
+        DebugPhoneBatterySyncLayout(
+            isBatteryOptimizationOff = false,
+        )
     }
 }

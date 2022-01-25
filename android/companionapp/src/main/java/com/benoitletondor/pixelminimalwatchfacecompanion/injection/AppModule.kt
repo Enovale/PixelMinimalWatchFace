@@ -20,6 +20,8 @@ import com.benoitletondor.pixelminimalwatchfacecompanion.billing.Billing
 import com.benoitletondor.pixelminimalwatchfacecompanion.billing.BillingImpl
 import com.benoitletondor.pixelminimalwatchfacecompanion.config.Config
 import com.benoitletondor.pixelminimalwatchfacecompanion.config.ConfigImpl
+import com.benoitletondor.pixelminimalwatchfacecompanion.device.Device
+import com.benoitletondor.pixelminimalwatchfacecompanion.device.DeviceImpl
 import com.benoitletondor.pixelminimalwatchfacecompanion.storage.Storage
 import com.benoitletondor.pixelminimalwatchfacecompanion.storage.StorageImpl
 import com.benoitletondor.pixelminimalwatchfacecompanion.sync.Sync
@@ -56,6 +58,12 @@ abstract class SingletonBindingModule {
     abstract fun bindStorage(
         storageImpl: StorageImpl
     ): Storage
+
+    @Binds
+    @Singleton
+    abstract fun bindDevice(
+        deviceImpl: DeviceImpl
+    ): Device
 }
 
 @Module
