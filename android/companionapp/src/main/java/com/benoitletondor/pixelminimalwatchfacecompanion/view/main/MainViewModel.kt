@@ -25,6 +25,7 @@ import com.benoitletondor.pixelminimalwatchfacecompanion.billing.PremiumPurchase
 import com.benoitletondor.pixelminimalwatchfacecompanion.config.Config
 import com.benoitletondor.pixelminimalwatchfacecompanion.config.getVouchers
 import com.benoitletondor.pixelminimalwatchfacecompanion.helper.MutableLiveFlow
+import com.benoitletondor.pixelminimalwatchfacecompanion.helper.combine
 import com.benoitletondor.pixelminimalwatchfacecompanion.storage.Storage
 import com.benoitletondor.pixelminimalwatchfacecompanion.sync.Sync
 import com.google.android.gms.wearable.CapabilityClient
@@ -63,6 +64,7 @@ class MainViewModel @Inject constructor(
         appInstalledStatusStateFlow,
         isSyncingStateFlow,
         userForcedInstallStatusFlow,
+        storage.isBatterySyncActivatedFlow(),
         ::computeStep,
     ).stateIn(viewModelScope, SharingStarted.Eagerly, Step.Loading)
     val stepFlow: Flow<Step> = currentStepFlow
@@ -105,7 +107,7 @@ class MainViewModel @Inject constructor(
 
                 lastSyncedPremiumStatusStateFlow.value = userPremium
 
-                if(userPremium && (step == Step.Premium || step == Step.Syncing)) {
+                if(userPremium && (step is Step.Premium || step == Step.Syncing)) {
                     eventMutableFlow.emit(EventType.SYNC_WITH_WATCH_SUCCEED)
                 }
             } catch (t: Throwable) {
@@ -113,7 +115,7 @@ class MainViewModel @Inject constructor(
                     throw t
                 }
 
-                if (userPremium && (step == Step.Premium || step == Step.Syncing)) {
+                if (userPremium && (step is Step.Premium || step == Step.Syncing)) {
                     errorEventMutableFlow.emit(ErrorType.ErrorWhileSyncingWithWatch(t))
                 }
             } finally {
@@ -196,6 +198,12 @@ class MainViewModel @Inject constructor(
         }
     }
 
+    fun onDebugPhoneBatteryIndicatorButtonPressed() {
+        viewModelScope.launch {
+            navigationEventMutableFlow.emit(NavigationDestination.DebugBatterySync)
+        }
+    }
+
     fun onInstallWatchFaceButtonPressed() {
         viewModelScope.launch {
             try {
@@ -240,13 +248,14 @@ class MainViewModel @Inject constructor(
         class Error(val error: Throwable) : Step()
         class InstallWatchFace(val appInstalledStatus: AppInstalledStatus) : Step()
         object NotPremium : Step()
-        object Premium : Step()
+        class Premium(val isBatterySyncActivated: Boolean) : Step()
     }
 
     sealed class NavigationDestination {
         object Onboarding : NavigationDestination()
         class VoucherRedeem(val voucherCode: String) : NavigationDestination()
         object Donate : NavigationDestination()
+        object DebugBatterySync : NavigationDestination()
     }
 
     sealed class ErrorType {
@@ -279,6 +288,7 @@ class MainViewModel @Inject constructor(
             appInstalledStatus: AppInstalledStatus,
             isSyncing: Boolean,
             userForcedInstallStatus: UserForcedInstallStatus,
+            isBatterySyncActivated: Boolean,
         ) : Step {
             if (userIsBuyingPremium) {
                 return Step.Loading
@@ -297,7 +307,7 @@ class MainViewModel @Inject constructor(
                 is PremiumCheckStatus.Error -> Step.Error(premiumStatus.error)
                 PremiumCheckStatus.Initializing -> Step.Loading
                 PremiumCheckStatus.NotPremium -> Step.NotPremium
-                PremiumCheckStatus.Premium -> Step.Premium
+                PremiumCheckStatus.Premium -> Step.Premium(isBatterySyncActivated)
             }
         }
     }

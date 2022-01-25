@@ -17,10 +17,7 @@ package com.benoitletondor.pixelminimalwatchfacecompanion
 
 import android.app.Application
 import android.util.Log
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleObserver
-import androidx.lifecycle.OnLifecycleEvent
-import androidx.lifecycle.ProcessLifecycleOwner
+import androidx.lifecycle.*
 import com.benoitletondor.pixelminimalwatchfacecompanion.billing.Billing
 import com.benoitletondor.pixelminimalwatchfacecompanion.config.Config
 import com.benoitletondor.pixelminimalwatchfacecompanion.storage.Storage
@@ -29,13 +26,13 @@ import kotlinx.coroutines.*
 import javax.inject.Inject
 
 @HiltAndroidApp
-class App : Application(), LifecycleObserver, CoroutineScope by CoroutineScope(SupervisorJob() + Dispatchers.Default) {
+class App : Application(), DefaultLifecycleObserver, CoroutineScope by CoroutineScope(SupervisorJob() + Dispatchers.Default) {
     @Inject lateinit var billing: Billing
     @Inject lateinit var config: Config
     @Inject lateinit var storage: Storage
 
     override fun onCreate() {
-        super.onCreate()
+        super<Application>.onCreate()
 
         ProcessLifecycleOwner.get()
             .lifecycle
@@ -47,9 +44,7 @@ class App : Application(), LifecycleObserver, CoroutineScope by CoroutineScope(S
         }
     }
 
-    @OnLifecycleEvent(Lifecycle.Event.ON_START)
-    @Suppress("UNUSED")
-    private fun onAppForeground() {
+    override fun onStart(owner: LifecycleOwner) {
         billing.updatePremiumStatusIfNeeded()
 
         launch {
@@ -59,5 +54,11 @@ class App : Application(), LifecycleObserver, CoroutineScope by CoroutineScope(S
                 Log.e("App", "Error syncing config", t)
             }
         }
+    }
+
+    override fun onDestroy(owner: LifecycleOwner) {
+        super.onDestroy(owner)
+
+        cancel()
     }
 }
