@@ -15,11 +15,14 @@
  */
 package com.benoitletondor.pixelminimalwatchfacecompanion.storage
 
+import kotlinx.coroutines.flow.Flow
+
 interface Storage {
     fun isUserPremium(): Boolean
     fun setUserPremium(premium: Boolean)
     fun setOnboardingFinished(finished: Boolean)
     fun isOnboardingFinished(): Boolean
+    fun isBatterySyncActivatedFlow(): Flow<Boolean>
     fun isBatterySyncActivated(): Boolean
     fun setBatterySyncActivated(activated: Boolean)
 }

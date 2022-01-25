@@ -18,6 +18,8 @@ package com.benoitletondor.pixelminimalwatchfacecompanion.storage
 import android.content.Context
 import androidx.core.content.edit
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import javax.inject.Inject
 
 private const val SHARED_PREFERENCES_FILE_NAME = "sharedPref"
@@ -28,6 +30,7 @@ private const val BATTERY_SYNC_ACTIVATED = "onboarding_finished"
 
 class StorageImpl @Inject constructor(@ApplicationContext context: Context) : Storage {
     private val sharedPreferences = context.getSharedPreferences(SHARED_PREFERENCES_FILE_NAME, Context.MODE_PRIVATE)
+    private val batterySyncActivatedMutableFlow = MutableStateFlow(isBatterySyncActivated())
 
     override fun isUserPremium(): Boolean
         = sharedPreferences.getBoolean(PREMIUM_KEY, false)
@@ -47,6 +50,8 @@ class StorageImpl @Inject constructor(@ApplicationContext context: Context) : St
     override fun isOnboardingFinished(): Boolean
         = sharedPreferences.getBoolean(ONBOARDING_FINISHED_KEY, false)
 
+    override fun isBatterySyncActivatedFlow(): Flow<Boolean> = batterySyncActivatedMutableFlow
+
     override fun isBatterySyncActivated(): Boolean
         = sharedPreferences.getBoolean(BATTERY_SYNC_ACTIVATED, false)
 
@@ -54,6 +59,8 @@ class StorageImpl @Inject constructor(@ApplicationContext context: Context) : St
         sharedPreferences.edit {
             putBoolean(BATTERY_SYNC_ACTIVATED, activated)
         }
+
+        batterySyncActivatedMutableFlow.value = activated
     }
 
 }
