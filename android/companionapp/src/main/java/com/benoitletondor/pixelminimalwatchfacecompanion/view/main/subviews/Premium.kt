@@ -15,8 +15,7 @@
  */
 package com.benoitletondor.pixelminimalwatchfacecompanion.view.main.subviews
 
-import androidx.activity.OnBackPressedCallback
-import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -28,7 +27,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -70,6 +68,7 @@ private fun PremiumLayout(
     val bottomSheetScaffoldState = rememberBottomSheetScaffoldState(
         bottomSheetState = BottomSheetState(BottomSheetValue.Collapsed)
     )
+
     BottomSheetScaffold(
         scaffoldState = bottomSheetScaffoldState,
         sheetContent = {
@@ -98,27 +97,10 @@ private fun PremiumLayoutContent(
     donateButtonPressed: () -> Unit,
 ) {
     val coroutineScope = rememberCoroutineScope()
-    val lifecycleOwner = LocalLifecycleOwner.current
 
-    val backButtonCallback = remember { object: OnBackPressedCallback(false) {
-        override fun handleOnBackPressed() {
-            coroutineScope.launch {
-                bottomSheetScaffoldState.bottomSheetState.collapse()
-                isEnabled = false
-            }
-        }
-    } }
-
-    SideEffect {
-        backButtonCallback.isEnabled = bottomSheetScaffoldState.bottomSheetState.isExpanded
-    }
-
-    LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher?.let { backDispatcher ->
-        DisposableEffect(lifecycleOwner, backDispatcher) {
-            backDispatcher.addCallback(backButtonCallback)
-            onDispose {
-                backButtonCallback.remove()
-            }
+    BackHandler(bottomSheetScaffoldState.bottomSheetState.isExpanded) {
+        coroutineScope.launch {
+            bottomSheetScaffoldState.bottomSheetState.collapse()
         }
     }
 
@@ -193,10 +175,8 @@ private fun PremiumLayoutContent(
                 coroutineScope.launch {
                     if (bottomSheetScaffoldState.bottomSheetState.isCollapsed) {
                         bottomSheetScaffoldState.bottomSheetState.expand()
-                        backButtonCallback.isEnabled = true
                     } else {
                         bottomSheetScaffoldState.bottomSheetState.collapse()
-                        backButtonCallback.isEnabled = false
                     }
                 }
             },

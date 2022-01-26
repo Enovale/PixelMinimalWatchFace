@@ -73,6 +73,8 @@ class DeviceImpl @Inject constructor(
         }
     }
 
+    override fun getBatteryOptimizationOptOutIntents(): List<Intent> = getIgnoreBatteryOptimizationIntents(context)
+
     private fun hasActivityToResolveIgnoreBatteryOptimization(context: Context): Boolean {
         val powerIntents = getIgnoreBatteryOptimizationIntents(context)
         for (intent in powerIntents) {
@@ -94,9 +96,7 @@ class DeviceImpl @Inject constructor(
         val miuiIntent = Intent("miui.intent.action.HIDDEN_APPS_CONFIG_ACTIVITY")
         miuiIntent.putExtra("package_name", context.packageName)
         miuiIntent.putExtra("package_label", context.getString(R.string.app_name))
-        val systemIntent = Intent()
-        systemIntent.action = Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
-        systemIntent.data = Uri.parse("package:${context.packageName}")
+        val systemIntent = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
         val powerIntents = arrayListOf(miuiIntent, systemIntent)
         powerIntents.addAll(powerManagerIntents)
         return powerIntents

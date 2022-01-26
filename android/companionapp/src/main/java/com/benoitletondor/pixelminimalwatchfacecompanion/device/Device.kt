@@ -15,6 +15,9 @@
  */
 package com.benoitletondor.pixelminimalwatchfacecompanion.device
 
+import android.content.Intent
+
 interface Device {
     fun isBatteryOptimizationOff(): Boolean
+    fun getBatteryOptimizationOptOutIntents(): List<Intent>
 }

@@ -18,16 +18,21 @@ package com.benoitletondor.pixelminimalwatchfacecompanion.view.debugphonebattery
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.benoitletondor.pixelminimalwatchfacecompanion.device.Device
+import com.benoitletondor.pixelminimalwatchfacecompanion.helper.MutableLiveFlow
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class DebugPhoneBatterySyncViewModel @Inject constructor(
-    device: Device,
+    val device: Device,
 ) : ViewModel() {
     private val isBatteryOptimizationOffMutableFlow = MutableStateFlow(device.isBatteryOptimizationOff())
     private val isForegroundServiceOnMutableFlow = MutableStateFlow(false) // TODO
+
+    private val eventMutableLiveFlow = MutableLiveFlow<Event>()
+    val eventLiveFlow: Flow<Event> = eventMutableLiveFlow
 
     val stateFlow = combine(
         isBatteryOptimizationOffMutableFlow,
@@ -38,10 +43,22 @@ class DebugPhoneBatterySyncViewModel @Inject constructor(
         isForegroundServiceOn = isForegroundServiceOnMutableFlow.value,
     ))
 
+    fun onDisableBatteryOptimizationButtonPressed() {
+        viewModelScope.launch { eventMutableLiveFlow.emit(Event.NavigateToDisableOptimizationActivity) }
+    }
+
+    fun onBatteryOptimizationOptOutResult() {
+        isBatteryOptimizationOffMutableFlow.value = device.isBatteryOptimizationOff()
+    }
+
     data class State(
         val isBatteryOptimizationOff: Boolean,
         val isForegroundServiceOn: Boolean,
     )
+
+    sealed class Event {
+        object NavigateToDisableOptimizationActivity : Event()
+    }
 
     companion object {
         private fun buildState(
