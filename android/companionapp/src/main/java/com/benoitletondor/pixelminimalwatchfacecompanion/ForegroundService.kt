@@ -9,12 +9,14 @@ import android.content.Intent
 import android.os.Binder
 import android.os.Build
 import android.os.IBinder
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationCompat.PRIORITY_LOW
 import com.benoitletondor.pixelminimalwatchfacecompanion.device.Device
 import com.benoitletondor.pixelminimalwatchfacecompanion.view.main.MainActivity
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
+import kotlin.Exception
 
 @AndroidEntryPoint
 class ForegroundService : Service() {
@@ -121,14 +123,18 @@ class ForegroundService : Service() {
         fun isActivated(): Boolean = activated
 
         fun start(context: Context) {
-            val intent = Intent(context, ForegroundService::class.java).apply {
-                action = ACTION_START
-            }
+            try {
+                val intent = Intent(context, ForegroundService::class.java).apply {
+                    action = ACTION_START
+                }
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                context.startForegroundService(intent)
-            } else {
-                context.startService(intent)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    context.startForegroundService(intent)
+                } else {
+                    context.startService(intent)
+                }
+            } catch (e: Exception) {
+                Log.e("ForegroundService", "Unable to start service", e)
             }
         }
 
@@ -137,11 +143,15 @@ class ForegroundService : Service() {
                 return
             }
 
-            val intent = Intent(context, ForegroundService::class.java).apply {
-                action = ACTION_STOP
-            }
+            try {
+                val intent = Intent(context, ForegroundService::class.java).apply {
+                    action = ACTION_STOP
+                }
 
-            context.startService(intent)
+                context.startService(intent)
+            } catch (e: Exception) {
+                Log.e("ForegroundService", "Unable to stop service", e)
+            }
         }
     }
 }
