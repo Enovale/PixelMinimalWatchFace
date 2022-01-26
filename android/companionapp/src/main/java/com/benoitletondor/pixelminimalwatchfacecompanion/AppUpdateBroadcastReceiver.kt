@@ -18,6 +18,7 @@ package com.benoitletondor.pixelminimalwatchfacecompanion
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import com.benoitletondor.pixelminimalwatchfacecompanion.device.Device
 import com.benoitletondor.pixelminimalwatchfacecompanion.storage.Storage
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -25,6 +26,7 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class AppUpdateBroadcastReceiver : BroadcastReceiver() {
     @Inject lateinit var storage: Storage
+    @Inject lateinit var device: Device
 
     override fun onReceive(context: Context, intent: Intent?) {
         if( intent?.action != "android.intent.action.MY_PACKAGE_REPLACED" ) {
@@ -34,6 +36,8 @@ class AppUpdateBroadcastReceiver : BroadcastReceiver() {
         if (storage.isBatterySyncActivated()) {
             BatteryStatusBroadcastReceiver.subscribeToUpdates(context)
         }
+
+        device.relaunchForegroundServiceIfNeeded()
     }
 
 }

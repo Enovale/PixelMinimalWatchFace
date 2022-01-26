@@ -20,6 +20,7 @@ import android.util.Log
 import androidx.lifecycle.*
 import com.benoitletondor.pixelminimalwatchfacecompanion.billing.Billing
 import com.benoitletondor.pixelminimalwatchfacecompanion.config.Config
+import com.benoitletondor.pixelminimalwatchfacecompanion.device.Device
 import com.benoitletondor.pixelminimalwatchfacecompanion.storage.Storage
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.*
@@ -30,6 +31,7 @@ class App : Application(), DefaultLifecycleObserver, CoroutineScope by Coroutine
     @Inject lateinit var billing: Billing
     @Inject lateinit var config: Config
     @Inject lateinit var storage: Storage
+    @Inject lateinit var device: Device
 
     override fun onCreate() {
         super<Application>.onCreate()
@@ -42,6 +44,8 @@ class App : Application(), DefaultLifecycleObserver, CoroutineScope by Coroutine
         if (storage.isBatterySyncActivated()) {
             BatteryStatusBroadcastReceiver.subscribeToUpdates(this)
         }
+
+        device.relaunchForegroundServiceIfNeeded()
     }
 
     override fun onStart(owner: LifecycleOwner) {

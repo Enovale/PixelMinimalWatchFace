@@ -23,6 +23,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Button
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Switch
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -60,7 +61,10 @@ fun DebugPhoneBatterySync(
                 DebugPhoneBatterySyncViewModel.Event.NavigateToDisableOptimizationActivity -> {
                     val intents = viewModel.device.getBatteryOptimizationOptOutIntents()
                     for(intent in intents) {
-                        val resolveInfo = intent.resolveActivityInfo(context.packageManager, PackageManager.MATCH_DEFAULT_ONLY)
+                        val resolveInfo = intent.resolveActivityInfo(
+                            context.packageManager,
+                            PackageManager.MATCH_DEFAULT_ONLY,
+                        )
                         if (resolveInfo?.exported == true) {
                             batteryOptimizationOptOutActivityResultLauncher.launch(intent)
                             break
@@ -78,7 +82,9 @@ fun DebugPhoneBatterySync(
         content = {
             DebugPhoneBatterySyncLayout(
                 isBatteryOptimizationOff = state.isBatteryOptimizationOff,
-                onDisableBatteryOptimizationButtonPressed = viewModel::onDisableBatteryOptimizationButtonPressed
+                onDisableBatteryOptimizationButtonPressed = viewModel::onDisableBatteryOptimizationButtonPressed,
+                isForegroundServiceOn = state.isForegroundServiceOn,
+                onForegroundServiceSwitchedChanged = viewModel::onForegroundServiceSwitchedChanged,
             )
         }
     )
@@ -88,6 +94,8 @@ fun DebugPhoneBatterySync(
 private fun DebugPhoneBatterySyncLayout(
     isBatteryOptimizationOff: Boolean,
     onDisableBatteryOptimizationButtonPressed: () -> Unit,
+    isForegroundServiceOn: Boolean,
+    onForegroundServiceSwitchedChanged: (Boolean) -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -146,7 +154,7 @@ private fun DebugPhoneBatterySyncLayout(
         Spacer(modifier = Modifier.height(40.dp))
 
         Text(
-            text = "Aggressive always-on mode",
+            text = "Always-on notification",
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth(),
             color = MaterialTheme.colors.onBackground,
@@ -170,27 +178,44 @@ private fun DebugPhoneBatterySyncLayout(
             modifier = Modifier.fillMaxWidth(),
             color = MaterialTheme.colors.onBackground,
         )
-    }
-}
 
-@Composable
-@Preview(showSystemUi = true, name = "Battery optimization off")
-private fun PreviewBatteryOptimOff() {
-    AppMaterialTheme {
-        DebugPhoneBatterySyncLayout(
-            isBatteryOptimizationOff = true,
-            onDisableBatteryOptimizationButtonPressed = {},
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Switch(
+            checked = isForegroundServiceOn,
+            onCheckedChange = onForegroundServiceSwitchedChanged,
+        )
+
+        Text(
+            text = if (isForegroundServiceOn) { "Always-on notification activated" } else { "Always-on notification deactivated" },
+            color = MaterialTheme.colors.onBackground,
+            fontSize = 14.sp,
         )
     }
 }
 
 @Composable
-@Preview(showSystemUi = true, name = "Battery optimization on")
+@Preview(showSystemUi = true, name = "Battery optimization off, foreground on")
+private fun PreviewBatteryOptimOff() {
+    AppMaterialTheme {
+        DebugPhoneBatterySyncLayout(
+            isBatteryOptimizationOff = true,
+            onDisableBatteryOptimizationButtonPressed = {},
+            isForegroundServiceOn = true,
+            onForegroundServiceSwitchedChanged = {},
+        )
+    }
+}
+
+@Composable
+@Preview(showSystemUi = true, name = "Battery optimization on, foreground off")
 private fun PreviewBatteryOptimOn() {
     AppMaterialTheme {
         DebugPhoneBatterySyncLayout(
             isBatteryOptimizationOff = false,
             onDisableBatteryOptimizationButtonPressed = {},
+            isForegroundServiceOn = false,
+            onForegroundServiceSwitchedChanged = {},
         )
     }
 }

@@ -16,8 +16,14 @@
 package com.benoitletondor.pixelminimalwatchfacecompanion.device
 
 import android.content.Intent
+import kotlinx.coroutines.flow.Flow
 
 interface Device {
     fun isBatteryOptimizationOff(): Boolean
     fun getBatteryOptimizationOptOutIntents(): List<Intent>
+    fun isForegroundServiceEnabled(): Boolean
+    fun isForegroundServiceEnabledFlow(): Flow<Boolean>
+    fun activateForegroundService()
+    fun deactivateForegroundService(killServiceIfOn: Boolean = true)
+    fun relaunchForegroundServiceIfNeeded()
 }

@@ -29,7 +29,8 @@ class DebugPhoneBatterySyncViewModel @Inject constructor(
     val device: Device,
 ) : ViewModel() {
     private val isBatteryOptimizationOffMutableFlow = MutableStateFlow(device.isBatteryOptimizationOff())
-    private val isForegroundServiceOnMutableFlow = MutableStateFlow(false) // TODO
+    private val isForegroundServiceOnMutableFlow = device.isForegroundServiceEnabledFlow()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, device.isForegroundServiceEnabled())
 
     private val eventMutableLiveFlow = MutableLiveFlow<Event>()
     val eventLiveFlow: Flow<Event> = eventMutableLiveFlow
@@ -49,6 +50,14 @@ class DebugPhoneBatterySyncViewModel @Inject constructor(
 
     fun onBatteryOptimizationOptOutResult() {
         isBatteryOptimizationOffMutableFlow.value = device.isBatteryOptimizationOff()
+    }
+
+    fun onForegroundServiceSwitchedChanged(activate: Boolean) {
+        if (activate) {
+            device.activateForegroundService()
+        } else {
+            device.deactivateForegroundService()
+        }
     }
 
     data class State(
