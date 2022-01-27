@@ -19,7 +19,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.TextView
 import androidx.appcompat.widget.SwitchCompat
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.benoitletondor.pixelminimalwatchface.R
 
@@ -124,14 +126,17 @@ sealed class PhoneBatteryConfigurationViewHolder(view: View) : RecyclerView.View
     class PhoneBatteryConfigurationSyncingViewHolder(view: View) : PhoneBatteryConfigurationViewHolder(view)
     class PhoneBatteryConfigurationConnectedViewHolder(view: View) : PhoneBatteryConfigurationViewHolder(view) {
         private val syncActivatedSwitch: SwitchCompat = view.findViewById(R.id.phone_battery_sync_activate_switch)
+        private val connectedTroubleShootTextView: TextView = view.findViewById(R.id.phone_battery_configuration_connected_troubleshoot_textview)
 
         fun setSyncActivated(activated: Boolean) {
             syncActivatedSwitch.isChecked = activated
+            connectedTroubleShootTextView.isVisible = activated
         }
 
         fun setListener(listener: (Boolean) -> Unit) {
             syncActivatedSwitch.setOnCheckedChangeListener { _, isChecked ->
                 listener(isChecked)
+                connectedTroubleShootTextView.isVisible = isChecked
             }
         }
     }

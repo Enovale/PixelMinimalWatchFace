@@ -321,7 +321,10 @@ private fun TroubleshootingContent(
                 onClick = installWatchFaceButtonPressed,
                 colors = blueButtonColors(),
             ) {
-                Text(text = "Install watch face".uppercase())
+                Text(
+                    text = "Install watch face".uppercase(),
+                    textAlign = TextAlign.Center,
+                )
             }
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -340,7 +343,10 @@ private fun TroubleshootingContent(
                 onClick = syncPremiumStatusButtonPressed,
                 colors = blueButtonColors(),
             ) {
-                Text(text = "Sync premium with Watch".uppercase())
+                Text(
+                    text = "Sync premium with Watch".uppercase(),
+                    textAlign = TextAlign.Center,
+                )
             }
 
             if (isBatterySyncActivated) {
@@ -360,7 +366,10 @@ private fun TroubleshootingContent(
                     onClick = debugPhoneBatteryIndicatorButtonPressed,
                     colors = blueButtonColors(),
                 ) {
-                    Text(text = "Debug phone battery indicator".uppercase())
+                    Text(
+                        text = "Debug phone battery indicator".uppercase(),
+                        textAlign = TextAlign.Center,
+                    )
                 }
             }
 
@@ -379,7 +388,10 @@ private fun TroubleshootingContent(
             Button(
                 onClick = onSupportButtonPressed,
             ) {
-                Text(text = "Contact me for support".uppercase())
+                Text(
+                    text = "Contact me for support".uppercase(),
+                    textAlign = TextAlign.Center,
+                )
             }
 
             Spacer(modifier = Modifier.height(5.dp))
