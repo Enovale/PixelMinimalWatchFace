@@ -60,6 +60,10 @@ class DebugPhoneBatterySyncViewModel @Inject constructor(
         }
     }
 
+    fun onNotificationSettingsButtonPressed() {
+        viewModelScope.launch { eventMutableLiveFlow.emit(Event.ManageForegroundNotificationVisibility) }
+    }
+
     data class State(
         val isBatteryOptimizationOff: Boolean,
         val isForegroundServiceOn: Boolean,
@@ -67,6 +71,7 @@ class DebugPhoneBatterySyncViewModel @Inject constructor(
 
     sealed class Event {
         object NavigateToDisableOptimizationActivity : Event()
+        object ManageForegroundNotificationVisibility : Event()
     }
 
     companion object {

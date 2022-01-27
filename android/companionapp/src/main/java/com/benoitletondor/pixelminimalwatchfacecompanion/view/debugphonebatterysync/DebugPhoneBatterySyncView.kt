@@ -15,31 +15,39 @@
  */
 package com.benoitletondor.pixelminimalwatchfacecompanion.view.debugphonebatterysync
 
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Build
+import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Button
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Switch
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat.startActivity
 import androidx.navigation.NavController
+import com.benoitletondor.pixelminimalwatchfacecompanion.ForegroundService
 import com.benoitletondor.pixelminimalwatchfacecompanion.ui.AppMaterialTheme
 import com.benoitletondor.pixelminimalwatchfacecompanion.ui.blueButtonColors
 import com.benoitletondor.pixelminimalwatchfacecompanion.ui.components.AppTopBarScaffold
+import com.benoitletondor.pixelminimalwatchfacecompanion.ui.primaryBlue
+import com.benoitletondor.pixelminimalwatchfacecompanion.ui.primaryGreen
+
 
 @Composable
 fun DebugPhoneBatterySync(
@@ -71,6 +79,14 @@ fun DebugPhoneBatterySync(
                         }
                     }
                 }
+                DebugPhoneBatterySyncViewModel.Event.ManageForegroundNotificationVisibility -> {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        val intent = Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS)
+                        intent.putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+                        intent.putExtra(Settings.EXTRA_CHANNEL_ID, ForegroundService.channelId)
+                        context.startActivity(intent)
+                    }
+                }
             }
         }
     }
@@ -85,6 +101,7 @@ fun DebugPhoneBatterySync(
                 onDisableBatteryOptimizationButtonPressed = viewModel::onDisableBatteryOptimizationButtonPressed,
                 isForegroundServiceOn = state.isForegroundServiceOn,
                 onForegroundServiceSwitchedChanged = viewModel::onForegroundServiceSwitchedChanged,
+                onNotificationSettingsButtonPressed = viewModel::onNotificationSettingsButtonPressed,
             )
         }
     )
@@ -96,6 +113,7 @@ private fun DebugPhoneBatterySyncLayout(
     onDisableBatteryOptimizationButtonPressed: () -> Unit,
     isForegroundServiceOn: Boolean,
     onForegroundServiceSwitchedChanged: (Boolean) -> Unit,
+    onNotificationSettingsButtonPressed: () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -147,7 +165,10 @@ private fun DebugPhoneBatterySyncLayout(
                 onClick = onDisableBatteryOptimizationButtonPressed,
                 colors = blueButtonColors(),
             ) {
-                Text(text = "Disable battery optimization".uppercase())
+                Text(
+                    text = "Open battery optimization settings".uppercase(),
+                    textAlign = TextAlign.Center,
+                )
             }
         }
 
@@ -191,6 +212,42 @@ private fun DebugPhoneBatterySyncLayout(
             color = MaterialTheme.colors.onBackground,
             fontSize = 14.sp,
         )
+
+        if (isForegroundServiceOn && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Column(
+                modifier = Modifier.fillMaxWidth()
+                    .background(color = Color.Gray.copy(alpha = 0.7f), shape = RoundedCornerShape(10))
+                    .padding(horizontal = 10.dp, vertical = 6.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Text(
+                    text = "Annoyed by the persistent notification? You can choose to hide it by disabling it from the notifications settings",
+                    fontSize = 16.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth(),
+                    color = MaterialTheme.colors.onBackground,
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Button(
+                    onClick = onNotificationSettingsButtonPressed,
+                    colors = ButtonDefaults.buttonColors(
+                        backgroundColor = Color.White,
+                        contentColor = primaryBlue,
+                    ),
+                ) {
+                    Text(
+                        text = "Edit always-on notification settings".uppercase(),
+                        textAlign = TextAlign.Center,
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
     }
 }
 
@@ -203,6 +260,7 @@ private fun PreviewBatteryOptimOff() {
             onDisableBatteryOptimizationButtonPressed = {},
             isForegroundServiceOn = true,
             onForegroundServiceSwitchedChanged = {},
+            onNotificationSettingsButtonPressed = {},
         )
     }
 }
@@ -216,6 +274,7 @@ private fun PreviewBatteryOptimOn() {
             onDisableBatteryOptimizationButtonPressed = {},
             isForegroundServiceOn = false,
             onForegroundServiceSwitchedChanged = {},
+            onNotificationSettingsButtonPressed = {},
         )
     }
 }

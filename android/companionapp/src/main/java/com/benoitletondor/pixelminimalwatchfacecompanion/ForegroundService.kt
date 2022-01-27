@@ -13,6 +13,7 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationCompat.PRIORITY_LOW
 import com.benoitletondor.pixelminimalwatchfacecompanion.device.Device
+import com.benoitletondor.pixelminimalwatchfacecompanion.storage.Storage
 import com.benoitletondor.pixelminimalwatchfacecompanion.view.main.MainActivity
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -21,6 +22,7 @@ import kotlin.Exception
 @AndroidEntryPoint
 class ForegroundService : Service() {
     @Inject lateinit var device: Device
+    @Inject lateinit var storage: Storage
 
     override fun onBind(intent: Intent): IBinder = LocalBinder
 
@@ -48,15 +50,14 @@ class ForegroundService : Service() {
         activated = true
 
         // Create notification channel if needed
-        val channelId = "foreground"
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val importance = NotificationManager.IMPORTANCE_LOW
             val mChannel = NotificationChannel(
                 channelId,
-                "Optional always-on mode notification",
+                "Always-on mode notification",
                 importance
             )
-            mChannel.description = "Used to display a persistent notification in case of issues with phone synchronization"
+            mChannel.description = "Used to display a persistent notification for always-on mode"
 
             val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.createNotificationChannel(mChannel)
@@ -96,6 +97,10 @@ class ForegroundService : Service() {
             .build()
 
         startForeground(183729, notification)
+
+        if (storage.isBatterySyncActivated()) {
+            BatteryStatusBroadcastReceiver.subscribeToUpdates(this)
+        }
     }
 
     private fun stop() {
@@ -117,6 +122,8 @@ class ForegroundService : Service() {
         private const val ACTION_STOP = "stop"
         private const val ACTION_START = "start"
         private const val ACTION_FORCE_STOP = "forceStop"
+
+        const val channelId = "foreground"
 
         private var activated = false
 
