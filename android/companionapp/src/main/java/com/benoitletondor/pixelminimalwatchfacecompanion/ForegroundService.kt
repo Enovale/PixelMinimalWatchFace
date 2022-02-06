@@ -37,7 +37,7 @@ class ForegroundService : Service() {
                 return START_STICKY
             }
             ACTION_FORCE_STOP -> {
-                device.deactivateForegroundService(killServiceIfOn = false)
+                storage.setForegroundServiceEnabled(false)
                 stop()
                 return START_NOT_STICKY
             }

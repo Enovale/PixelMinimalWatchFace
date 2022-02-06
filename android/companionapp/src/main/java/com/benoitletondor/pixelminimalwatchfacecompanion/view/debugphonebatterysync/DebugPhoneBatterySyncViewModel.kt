@@ -19,6 +19,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.benoitletondor.pixelminimalwatchfacecompanion.device.Device
 import com.benoitletondor.pixelminimalwatchfacecompanion.helper.MutableLiveFlow
+import com.benoitletondor.pixelminimalwatchfacecompanion.storage.Storage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -27,10 +28,10 @@ import javax.inject.Inject
 @HiltViewModel
 class DebugPhoneBatterySyncViewModel @Inject constructor(
     val device: Device,
+    private val storage: Storage,
 ) : ViewModel() {
     private val isBatteryOptimizationOffMutableFlow = MutableStateFlow(device.isBatteryOptimizationOff())
-    private val isForegroundServiceOnMutableFlow = device.isForegroundServiceEnabledFlow()
-        .stateIn(viewModelScope, SharingStarted.Eagerly, device.isForegroundServiceEnabled())
+    private val isForegroundServiceOnMutableFlow = MutableStateFlow(isForegroundServiceEnabled())
 
     private val eventMutableLiveFlow = MutableLiveFlow<Event>()
     val eventLiveFlow: Flow<Event> = eventMutableLiveFlow
@@ -53,16 +54,21 @@ class DebugPhoneBatterySyncViewModel @Inject constructor(
     }
 
     fun onForegroundServiceSwitchedChanged(activate: Boolean) {
+        isForegroundServiceOnMutableFlow.value = activate
+        storage.setForegroundServiceEnabled(activate)
+
         if (activate) {
-            device.activateForegroundService()
+            device.startForegroundService()
         } else {
-            device.deactivateForegroundService()
+            device.finishForegroundService()
         }
     }
 
     fun onNotificationSettingsButtonPressed() {
         viewModelScope.launch { eventMutableLiveFlow.emit(Event.ManageForegroundNotificationVisibility) }
     }
+
+    private fun isForegroundServiceEnabled() = storage.isForegroundServiceEnabled() && device.isForegroundServiceStarted()
 
     data class State(
         val isBatteryOptimizationOff: Boolean,

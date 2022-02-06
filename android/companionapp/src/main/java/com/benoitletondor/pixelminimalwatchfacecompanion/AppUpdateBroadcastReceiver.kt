@@ -37,7 +37,9 @@ class AppUpdateBroadcastReceiver : BroadcastReceiver() {
             BatteryStatusBroadcastReceiver.subscribeToUpdates(context)
         }
 
-        device.relaunchForegroundServiceIfNeeded()
+        if (storage.isForegroundServiceEnabled()) {
+            device.startForegroundService()
+        }
     }
 
 }

@@ -34,7 +34,9 @@ class BootCompleteBroadcastReceiver : BroadcastReceiver() {
                 BatteryStatusBroadcastReceiver.subscribeToUpdates(context)
             }
 
-            device.relaunchForegroundServiceIfNeeded()
+            if (storage.isForegroundServiceEnabled()) {
+                device.startForegroundService()
+            }
         }
     }
 }

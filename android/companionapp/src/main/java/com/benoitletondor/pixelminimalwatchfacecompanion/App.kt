@@ -45,7 +45,9 @@ class App : Application(), DefaultLifecycleObserver, CoroutineScope by Coroutine
             BatteryStatusBroadcastReceiver.subscribeToUpdates(this)
         }
 
-        device.relaunchForegroundServiceIfNeeded()
+        if (storage.isForegroundServiceEnabled()) {
+            device.startForegroundService()
+        }
     }
 
     override fun onStart(owner: LifecycleOwner) {

@@ -27,6 +27,7 @@ private const val SHARED_PREFERENCES_FILE_NAME = "sharedPref"
 private const val PREMIUM_KEY = "premium"
 private const val ONBOARDING_FINISHED_KEY = "onboarding_finished"
 private const val BATTERY_SYNC_ACTIVATED = "onboarding_finished"
+private const val FOREGROUND_SERVICE_ENABLED_KEY = "foreground_service_enabled"
 
 class StorageImpl @Inject constructor(@ApplicationContext context: Context) : Storage {
     private val sharedPreferences = context.getSharedPreferences(SHARED_PREFERENCES_FILE_NAME, Context.MODE_PRIVATE)
@@ -61,6 +62,14 @@ class StorageImpl @Inject constructor(@ApplicationContext context: Context) : St
         }
 
         batterySyncActivatedMutableFlow.value = activated
+    }
+
+    override fun isForegroundServiceEnabled(): Boolean = sharedPreferences.getBoolean(FOREGROUND_SERVICE_ENABLED_KEY, false)
+
+    override fun setForegroundServiceEnabled(enabled: Boolean) {
+        sharedPreferences.edit {
+            putBoolean(FOREGROUND_SERVICE_ENABLED_KEY, enabled)
+        }
     }
 
 }
