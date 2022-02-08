@@ -13,18 +13,15 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  */
-package com.benoitletondor.pixelminimalwatchfacecompanion.storage
+package com.benoitletondor.pixelminimalwatchfacecompanion.device
 
+import android.content.Intent
 import kotlinx.coroutines.flow.Flow
 
-interface Storage {
-    fun isUserPremium(): Boolean
-    fun setUserPremium(premium: Boolean)
-    fun setOnboardingFinished(finished: Boolean)
-    fun isOnboardingFinished(): Boolean
-    fun isBatterySyncActivatedFlow(): Flow<Boolean>
-    fun isBatterySyncActivated(): Boolean
-    fun setBatterySyncActivated(activated: Boolean)
-    fun isForegroundServiceEnabled(): Boolean
-    fun setForegroundServiceEnabled(enabled: Boolean)
+interface Device {
+    fun isBatteryOptimizationOff(): Boolean
+    fun getBatteryOptimizationOptOutIntents(): List<Intent>
+    fun startForegroundService()
+    fun isForegroundServiceStarted(): Boolean
+    fun finishForegroundService()
 }

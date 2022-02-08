@@ -48,6 +48,12 @@
 
     </LinearLayout>
 
-
+    <TextView
+        android:id="@+id/phone_battery_configuration_connected_troubleshoot_textview"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="@string/phone_battery_configuration_connected_troubleshoot"
+        android:textColor="@color/white" />
 
 </LinearLayout>

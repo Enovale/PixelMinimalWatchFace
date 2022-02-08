@@ -140,6 +140,7 @@
     <string name="phone_battery_configuration_connecting">Connecting to your phone…</string>
     <string name="phone_battery_configuration_syncing">Syncing state with phone…</string>
     <string name="phone_battery_configuration_connected">Connected to your phone\'s companion app</string>
+    <string name="phone_battery_configuration_connected_troubleshoot">Experiencing issues?\nOpen the companion app on your phone and tap \"Troubleshoot\" button then \"Debug phone battery indicator\"</string>
     <string name="phone_battery_configuration_connected_sync">Phone battery as bottom widget</string>
     <string name="phone_battery_configuration_error_title">Connection error</string>
     <string name="phone_battery_configuration_error">Unable to connect to the companion app on your phone</string>

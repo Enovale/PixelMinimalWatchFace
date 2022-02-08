@@ -43,17 +43,18 @@ import com.benoitletondor.pixelminimalwatchfacecompanion.helper.startSupportEmai
 import com.benoitletondor.pixelminimalwatchfacecompanion.ui.AppMaterialTheme
 import com.benoitletondor.pixelminimalwatchfacecompanion.ui.components.AppTopBarMoreMenuItem
 import com.benoitletondor.pixelminimalwatchfacecompanion.ui.components.AppTopBarScaffold
+import com.benoitletondor.pixelminimalwatchfacecompanion.view.debugphonebatterysync.DebugPhoneBatterySync
 import com.benoitletondor.pixelminimalwatchfacecompanion.view.donation.Donation
 import com.benoitletondor.pixelminimalwatchfacecompanion.view.onboarding.OnboardingActivity
 import com.benoitletondor.pixelminimalwatchfacecompanion.view.main.subviews.*
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import java.net.URLEncoder
 
 private const val NAV_MAIN_ROUTE = "main"
 private const val NAV_DONATION_ROUTE = "donation"
 private const val NAV_ONBOARDING_ROUTE = "onboarding"
+private const val NAV_DEBUG_PHONE_BATTERY_SYNC_ROUTE = "phoneBatterySyncDebug"
 private const val DEEPLINK_SCHEME = "pixelminimalwatchface"
 
 @AndroidEntryPoint
@@ -83,6 +84,11 @@ private fun MainView() {
                 deepLinks = listOf(navDeepLink { uriPattern = "$DEEPLINK_SCHEME://donate" }),
             ) {
                 Donation(navController, hiltViewModel())
+            }
+            composable(
+                route = NAV_DEBUG_PHONE_BATTERY_SYNC_ROUTE,
+            ) {
+                DebugPhoneBatterySync(navController, hiltViewModel())
             }
             activity(route = NAV_ONBOARDING_ROUTE) {
                 activityClass = OnboardingActivity::class
@@ -114,6 +120,9 @@ private fun Main(navController: NavController, mainViewModel: MainViewModel) {
                                 .setPositiveButton(android.R.string.ok, null)
                                 .show()
                         }
+                    }
+                    MainViewModel.NavigationDestination.DebugBatterySync -> {
+                        navController.navigate(NAV_DEBUG_PHONE_BATTERY_SYNC_ROUTE)
                     }
                 }
             }
@@ -203,7 +212,7 @@ private fun Main(navController: NavController, mainViewModel: MainViewModel) {
                 is MainViewModel.Step.InstallWatchFace -> InstallWatchFace(step = currentStep, viewModel = mainViewModel)
                 MainViewModel.Step.Loading -> Loading()
                 is MainViewModel.Step.NotPremium -> NotPremium(viewModel = mainViewModel)
-                is MainViewModel.Step.Premium -> Premium(viewModel = mainViewModel)
+                is MainViewModel.Step.Premium -> Premium(step = currentStep, viewModel = mainViewModel)
                 MainViewModel.Step.Syncing -> Syncing()
             }
         }

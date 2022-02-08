@@ -15,6 +15,7 @@
  */
 package com.benoitletondor.pixelminimalwatchfacecompanion.view.main.subviews
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -22,8 +23,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -41,12 +41,17 @@ import com.benoitletondor.pixelminimalwatchfacecompanion.view.main.MainViewModel
 import kotlinx.coroutines.launch
 
 @Composable
-fun Premium(viewModel: MainViewModel) {
+fun Premium(
+    step: MainViewModel.Step.Premium,
+    viewModel: MainViewModel,
+) {
     PremiumLayout(
         installWatchFaceButtonPressed = viewModel::onGoToInstallWatchFaceButtonPressed,
         syncPremiumStatusButtonPressed = viewModel::triggerSync,
         donateButtonPressed = viewModel::onDonateButtonPressed,
         onSupportButtonPressed = viewModel::onSupportButtonPressed,
+        isBatterySyncActivated = step.isBatterySyncActivated,
+        debugPhoneBatteryIndicatorButtonPressed = viewModel::onDebugPhoneBatteryIndicatorButtonPressed,
     )
 }
 
@@ -57,10 +62,13 @@ private fun PremiumLayout(
     syncPremiumStatusButtonPressed: () -> Unit,
     donateButtonPressed: () -> Unit,
     onSupportButtonPressed: () -> Unit,
+    isBatterySyncActivated: Boolean,
+    debugPhoneBatteryIndicatorButtonPressed: () -> Unit,
 ) {
     val bottomSheetScaffoldState = rememberBottomSheetScaffoldState(
         bottomSheetState = BottomSheetState(BottomSheetValue.Collapsed)
     )
+
     BottomSheetScaffold(
         scaffoldState = bottomSheetScaffoldState,
         sheetContent = {
@@ -69,6 +77,8 @@ private fun PremiumLayout(
                 installWatchFaceButtonPressed = installWatchFaceButtonPressed,
                 onSupportButtonPressed = onSupportButtonPressed,
                 syncPremiumStatusButtonPressed = syncPremiumStatusButtonPressed,
+                isBatterySyncActivated = isBatterySyncActivated,
+                debugPhoneBatteryIndicatorButtonPressed = debugPhoneBatteryIndicatorButtonPressed,
             )
         },
         sheetPeekHeight = 0.dp,
@@ -87,6 +97,12 @@ private fun PremiumLayoutContent(
     donateButtonPressed: () -> Unit,
 ) {
     val coroutineScope = rememberCoroutineScope()
+
+    BackHandler(bottomSheetScaffoldState.bottomSheetState.isExpanded) {
+        coroutineScope.launch {
+            bottomSheetScaffoldState.bottomSheetState.collapse()
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -126,7 +142,7 @@ private fun PremiumLayoutContent(
             fontSize = 18.sp,
         )
 
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         Text(
             text = stringResource(R.string.setup_watch_face_instructions),
@@ -143,7 +159,7 @@ private fun PremiumLayoutContent(
             fontSize = 18.sp,
         )
 
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         Text(
             text = "You have any issue with the watch face? Something's not working?",
@@ -152,7 +168,7 @@ private fun PremiumLayoutContent(
             color = MaterialTheme.colors.onBackground,
         )
 
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
         Button(
             onClick = {
@@ -209,6 +225,8 @@ private fun TroubleShootBottomSheet(
     installWatchFaceButtonPressed: () -> Unit,
     syncPremiumStatusButtonPressed: () -> Unit,
     onSupportButtonPressed: () -> Unit,
+    isBatterySyncActivated: Boolean,
+    debugPhoneBatteryIndicatorButtonPressed: () -> Unit,
 ) {
     val coroutineScope = rememberCoroutineScope()
 
@@ -235,7 +253,9 @@ private fun TroubleShootBottomSheet(
             coroutineScope.launch {
                 bottomSheetScaffoldState.bottomSheetState.collapse()
             }
-        }
+        },
+        isBatterySyncActivated = isBatterySyncActivated,
+        debugPhoneBatteryIndicatorButtonPressed = debugPhoneBatteryIndicatorButtonPressed,
     )
 }
 
@@ -245,6 +265,8 @@ private fun TroubleshootingContent(
     syncPremiumStatusButtonPressed: () -> Unit,
     onSupportButtonPressed: () -> Unit,
     onCloseButtonPressed: () -> Unit,
+    isBatterySyncActivated: Boolean,
+    debugPhoneBatteryIndicatorButtonPressed: () -> Unit,
 ) {
     Box(
         modifier = Modifier
@@ -299,10 +321,13 @@ private fun TroubleshootingContent(
                 onClick = installWatchFaceButtonPressed,
                 colors = blueButtonColors(),
             ) {
-                Text(text = "Install watch face".uppercase())
+                Text(
+                    text = "Install watch face".uppercase(),
+                    textAlign = TextAlign.Center,
+                )
             }
 
-            Spacer(modifier = Modifier.height(15.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             Text(
                 text = "Watch face doesn't recognize you as premium?",
@@ -318,10 +343,37 @@ private fun TroubleshootingContent(
                 onClick = syncPremiumStatusButtonPressed,
                 colors = blueButtonColors(),
             ) {
-                Text(text = "Sync premium with Watch".uppercase())
+                Text(
+                    text = "Sync premium with Watch".uppercase(),
+                    textAlign = TextAlign.Center,
+                )
             }
 
-            Spacer(modifier = Modifier.height(15.dp))
+            if (isBatterySyncActivated) {
+                Spacer(modifier = Modifier.height(20.dp))
+
+                Text(
+                    text = "Phone battery indicator sync issue?",
+                    textAlign = TextAlign.Start,
+                    modifier = Modifier.fillMaxWidth(),
+                    color = MaterialTheme.colors.onBackground,
+                    fontWeight = FontWeight.Bold,
+                )
+
+                Spacer(modifier = Modifier.height(5.dp))
+
+                TextButton(
+                    onClick = debugPhoneBatteryIndicatorButtonPressed,
+                    colors = blueButtonColors(),
+                ) {
+                    Text(
+                        text = "Debug phone battery indicator".uppercase(),
+                        textAlign = TextAlign.Center,
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
 
             Text(
                 text = "Sync doesn't work? Have another issue? I'm here to help",
@@ -336,7 +388,10 @@ private fun TroubleshootingContent(
             Button(
                 onClick = onSupportButtonPressed,
             ) {
-                Text(text = "Contact me for support".uppercase())
+                Text(
+                    text = "Contact me for support".uppercase(),
+                    textAlign = TextAlign.Center,
+                )
             }
 
             Spacer(modifier = Modifier.height(5.dp))
@@ -363,6 +418,8 @@ private fun Preview() {
             syncPremiumStatusButtonPressed = {},
             donateButtonPressed = {},
             onSupportButtonPressed = {},
+            isBatterySyncActivated = true,
+            debugPhoneBatteryIndicatorButtonPressed = {},
         )
     }
 }
@@ -376,6 +433,23 @@ private fun TroubleshootPreview() {
             installWatchFaceButtonPressed = {},
             syncPremiumStatusButtonPressed = {},
             onCloseButtonPressed = {},
+            isBatterySyncActivated = false,
+            debugPhoneBatteryIndicatorButtonPressed = {},
+        )
+    }
+}
+
+@Composable
+@Preview(name = "Troubleshooting battery sync activated")
+private fun TroubleshootPreviewBatterySyncActivated() {
+    AppMaterialTheme {
+        TroubleshootingContent(
+            onSupportButtonPressed = {},
+            installWatchFaceButtonPressed = {},
+            syncPremiumStatusButtonPressed = {},
+            onCloseButtonPressed = {},
+            isBatterySyncActivated = true,
+            debugPhoneBatteryIndicatorButtonPressed = {},
         )
     }
 }
