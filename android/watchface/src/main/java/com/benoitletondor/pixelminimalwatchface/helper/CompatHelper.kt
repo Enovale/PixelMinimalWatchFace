@@ -85,21 +85,25 @@ private fun ComplicationData.isSamsungHealthBadComplicationData(context: Context
         return false
     }
 
-    if (sHealthVersion != S_HEALTH_6_20_0_016) {
-        return false
+    return when(sHealthVersion) {
+        S_HEALTH_6_20_0_016 -> isSamsungDailyActivityBadComplicationData(sHealthVersion) ||
+            isSamsungStepsBadComplicationData(context) ||
+            isSamsungSleepBadComplicationData() ||
+            isSamsungWaterBadComplicationData()
+        S_HEALTH_6_21_0_051 -> isSamsungDailyActivityBadComplicationData(sHealthVersion)
+        else -> false
     }
-
-    return isSamsungDailyActivityBadComplicationData() ||
-        isSamsungStepsBadComplicationData(context) ||
-        isSamsungSleepBadComplicationData() ||
-        isSamsungWaterBadComplicationData()
 }
 
-private fun ComplicationData.isSamsungDailyActivityBadComplicationData(): Boolean {
+private fun ComplicationData.isSamsungDailyActivityBadComplicationData(sHealthVersion: Long): Boolean {
     return icon != null &&
         icon.type == Icon.TYPE_RESOURCE &&
         icon.resPackage == S_HEALTH_PACKAGE_NAME &&
-        icon.resId == 2131231593
+        icon.resId == when(sHealthVersion) {
+            S_HEALTH_6_21_0_051 -> 2131231581
+            else -> 2131231593
+        }
+    }
 }
 
 private fun ComplicationData.isSamsungStepsBadComplicationData(context: Context): Boolean {
@@ -145,8 +149,9 @@ private fun Int.matchesHR(context: Context): Boolean {
         null
     }
 
-    return when {
-        sHealthVersion != null && sHealthVersion >= S_HEALTH_6_20_0_016 -> this == 2131231607
+    return when (sHealthVersion) {
+        S_HEALTH_6_20_0_016 -> this == 2131231607
+        S_HEALTH_6_21_0_051 -> this == 2131231595
         else -> this == 2131231612
     }
 }
@@ -186,6 +191,7 @@ private fun getSamsungHealthHomeComponentName() = ComponentName(
 
 private const val S_HEALTH_PACKAGE_NAME = "com.samsung.android.wear.shealth"
 private const val S_HEALTH_6_20_0_016 = 6200016L
+private const val S_HEALTH_6_21_0_051 = 6210051L
 
 private val samsungStepComplicationShortTextValues = setOf(
     "Steps",
