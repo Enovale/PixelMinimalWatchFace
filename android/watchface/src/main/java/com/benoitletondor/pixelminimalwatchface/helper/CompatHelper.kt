@@ -148,9 +148,9 @@ private fun Int.matchesHR(context: Context): Boolean {
         null
     }
 
-    return when (sHealthVersion) {
-        S_HEALTH_6_20_0_016 -> this == 2131231607
-        S_HEALTH_6_21_0_051 -> this == 2131231595
+    return when {
+        sHealthVersion == S_HEALTH_6_21_0_051 -> this == 2131231595
+        sHealthVersion != null && sHealthVersion >= S_HEALTH_6_20_0_016 -> this == 2131231607
         else -> this == 2131231612
     }
 }
