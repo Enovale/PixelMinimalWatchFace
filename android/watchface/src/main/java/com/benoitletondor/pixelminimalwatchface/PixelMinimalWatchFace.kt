@@ -15,10 +15,7 @@
  */
 package com.benoitletondor.pixelminimalwatchface
 
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.PendingIntent
-import android.app.WallpaperManager
+import android.app.*
 import android.content.*
 import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
 import android.graphics.Canvas
@@ -40,23 +37,23 @@ import android.view.WindowInsets
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import com.benoitletondor.pixelminimalwatchface.drawer.digital.android12.Android12DigitalWatchFaceDrawer
 import com.benoitletondor.pixelminimalwatchface.drawer.WatchFaceDrawer
+import com.benoitletondor.pixelminimalwatchface.drawer.digital.android12.Android12DigitalWatchFaceDrawer
 import com.benoitletondor.pixelminimalwatchface.drawer.digital.regular.RegularDigitalWatchFaceDrawer
 import com.benoitletondor.pixelminimalwatchface.helper.*
 import com.benoitletondor.pixelminimalwatchface.model.ComplicationColors
+import com.benoitletondor.pixelminimalwatchface.model.ComplicationLocation
 import com.benoitletondor.pixelminimalwatchface.model.DEFAULT_APP_VERSION
 import com.benoitletondor.pixelminimalwatchface.model.Storage
 import com.benoitletondor.pixelminimalwatchface.rating.FeedbackActivity
-import com.benoitletondor.pixelminimalwatchface.model.ComplicationLocation
 import com.benoitletondor.pixelminimalwatchface.settings.phonebattery.*
 import com.google.android.gms.wearable.*
 import kotlinx.coroutines.*
-import java.lang.Exception
-import java.lang.Runnable
 import java.lang.ref.WeakReference
+import java.time.LocalDateTime
 import java.util.*
 import kotlin.math.max
+
 
 const val MISC_NOTIFICATION_CHANNEL_ID = "rating"
 private const val DATA_KEY_PREMIUM = "premium"
@@ -287,7 +284,49 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
             }
 
             invalidate()
+
+            handleGalaxyWatch4WearOSJanuaryBug()
         }
+
+        // ------------------------------------
+        // Samsung January WearOS update bug fix
+        // Don't forget to remove SCHEDULE_EXACT_ALARM permission when removing this ****
+        // ------------------------------------
+        private val galaxyWatch4BugPendingIntent = PendingIntent.getService(
+            this@PixelMinimalWatchFace,
+            1,
+            Intent(this@PixelMinimalWatchFace, PixelMinimalWatchFace::class.java),
+            PendingIntent.FLAG_IMMUTABLE,
+        )
+        private val alarmManager = getSystemService(ALARM_SERVICE) as AlarmManager
+        private var nextGalaxyWatch4BugAlarmTargetMinute: Int? = null
+        private fun handleGalaxyWatch4WearOSJanuaryBug() {
+            try {
+                if (Device.isSamsungGalaxyWatch && Build.VERSION.SECURITY_PATCH.startsWith("2022") && ambient) {
+                    val now = LocalDateTime.now()
+                    val seconds = now.second
+                    val targetMinute = now.minute + 1
+
+                    if (nextGalaxyWatch4BugAlarmTargetMinute != targetMinute) {
+                        nextGalaxyWatch4BugAlarmTargetMinute = targetMinute
+
+                        val delay = (60 - seconds)*1000L
+                        if (DEBUG_LOGS) Log.w(TAG, "schedule onTimeTick in $delay ms")
+
+                        alarmManager.setAlarmClock(
+                            AlarmManager.AlarmClockInfo(
+                                System.currentTimeMillis() + delay,
+                                galaxyWatch4BugPendingIntent,
+                            ),
+                            galaxyWatch4BugPendingIntent,
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error while handling january wearos bug", e)
+            }
+        }
+        // ------------------------------------
 
         private fun ensureBatteryDataIsUpToDateOrReload(lastWatchBatteryStatus: WatchBatteryStatus.DataReceived) {
             if (DEBUG_LOGS) Log.d(TAG, "ensureBatteryDataIsUpToDateOrReload comparing $lastWatchBatteryStatus")
@@ -322,12 +361,12 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
             }
         }
 
-        override fun onAmbientModeChanged(inAmbientMode: Boolean) {
-            super.onAmbientModeChanged(inAmbientMode)
+        override fun onAmbientModeChanged(inAmbient: Boolean) {
+            super.onAmbientModeChanged(inAmbient)
 
-            if (DEBUG_LOGS) Log.d(TAG, "onAmbientModeChanged, ambient: ${isAmbientMode()}")
+            if (DEBUG_LOGS) Log.d(TAG, "onAmbientModeChanged, ambient: $inAmbient")
 
-            ambient = inAmbientMode
+            ambient = inAmbient
 
             invalidate()
         }
