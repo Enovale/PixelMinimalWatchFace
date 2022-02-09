@@ -103,7 +103,6 @@ private fun ComplicationData.isSamsungDailyActivityBadComplicationData(sHealthVe
             S_HEALTH_6_21_0_051 -> 2131231581
             else -> 2131231593
         }
-    }
 }
 
 private fun ComplicationData.isSamsungStepsBadComplicationData(context: Context): Boolean {
