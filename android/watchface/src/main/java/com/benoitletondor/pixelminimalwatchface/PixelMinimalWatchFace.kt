@@ -1,5 +1,5 @@
 /*
- *   Copyright 2021 Benoit LETONDOR
+ *   Copyright 2022 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -64,7 +64,7 @@ private const val DATA_KEY_BATTERY_STATUS_PERCENT = "/batterySync/batteryStatus"
 private const val THREE_DAYS_MS: Long = 1000 * 60 * 60 * 24 * 3L
 private const val THIRTY_MINS_MS: Long = 1000 * 60 * 30L
 private const val MINIMUM_COMPLICATION_UPDATE_INTERVAL_MS = 1000L
-const val DEBUG_LOGS = false
+val DEBUG_LOGS = BuildConfig.DEBUG
 private const val TAG = "PixelMinimalWatchFace"
 
 class PixelMinimalWatchFace : CanvasWatchFaceService() {
@@ -107,6 +107,7 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
 
         private var shouldShowWeather = false
         private var shouldShowBattery = false
+        private var didForceGalaxyWatch4BatterySubscription = false
         private var weatherComplicationData: ComplicationData? = null
         private var batteryComplicationData: ComplicationData? = null
 
@@ -175,6 +176,7 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
 
             shouldShowWeather = false
             shouldShowBattery = false
+            didForceGalaxyWatch4BatterySubscription = false
 
             setActiveComplications(*activeComplicationIds.plus(WEATHER_COMPLICATION_ID).plus(BATTERY_COMPLICATION_ID))
 
@@ -270,7 +272,7 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
             }
 
             val lastPhoneSyncRequestTimestamp = lastPhoneSyncRequestTimestamp
-            if( storage.shouldShowPhoneBattery() &&
+            if( storage.showPhoneBattery() &&
                 phoneBatteryStatus.isStale(System.currentTimeMillis()) &&
                 (lastPhoneSyncRequestTimestamp == null || System.currentTimeMillis() - lastPhoneSyncRequestTimestamp > THIRTY_MINS_MS) ) {
                 this.lastPhoneSyncRequestTimestamp = System.currentTimeMillis()
@@ -279,7 +281,7 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
 
             val lastWatchBatteryStatus = lastWatchBatteryStatus
             if (Device.isSamsungGalaxyWatch &&
-                storage.shouldShowBattery() &&
+                storage.showWatchBattery() &&
                 lastWatchBatteryStatus is WatchBatteryStatus.DataReceived) {
                 ensureBatteryDataIsUpToDateOrReload(lastWatchBatteryStatus)
             }
@@ -394,7 +396,10 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
                     Log.e(TAG, "onComplicationDataUpdate, error while parsing battery data from complication", e)
                 }
 
-                invalidate()
+                if (shouldShowBattery) {
+                    invalidate()
+                }
+
                 return
             }
 
@@ -413,7 +418,7 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
 
             timeDependentUpdateHandler.cancelUpdate()
 
-            if( !ambient || storage.shouldShowComplicationsInAmbientMode() ) {
+            if( !ambient || storage.showComplicationsInAmbientMode() ) {
                 invalidate()
             }
         }
@@ -443,7 +448,7 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
                             return
                         }
                     }
-                    if ( storage.shouldShowPhoneBattery() && phoneBatteryStatus.isStale(System.currentTimeMillis()) && watchFaceDrawer.tapIsOnBattery(x, y)) {
+                    if ( storage.showPhoneBattery() && phoneBatteryStatus.isStale(System.currentTimeMillis()) && watchFaceDrawer.tapIsOnBattery(x, y)) {
                         startActivity(Intent(this@PixelMinimalWatchFace, PhoneBatteryConfigurationActivity::class.java).apply {
                             flags = FLAG_ACTIVITY_NEW_TASK
                         })
@@ -461,8 +466,8 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
             }
 
             // Update weather subscription if needed
-            if( storage.shouldShowWeather() != shouldShowWeather && storage.isUserPremium() ) {
-                shouldShowWeather = storage.shouldShowWeather()
+            if( storage.showWeather() != shouldShowWeather && storage.isUserPremium() ) {
+                shouldShowWeather = storage.showWeather()
 
                 if( shouldShowWeather ) {
                     subscribeToWeatherComplicationData()
@@ -473,10 +478,12 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
             }
 
             // Update battery subscription if needed
-            if( storage.shouldShowBattery() != shouldShowBattery && storage.isUserPremium() ) {
-                shouldShowBattery = storage.shouldShowBattery()
+            if( storage.isUserPremium() &&
+                (storage.showWatchBattery() != shouldShowBattery || (Device.isSamsungGalaxyWatch && !didForceGalaxyWatch4BatterySubscription)) ) {
+                shouldShowBattery = storage.showWatchBattery()
+                didForceGalaxyWatch4BatterySubscription = true
 
-                if( shouldShowBattery ) {
+                if( shouldShowBattery || Device.isSamsungGalaxyWatch ) {
                     subscribeToBatteryComplicationData()
                 } else {
                     unsubscribeToBatteryComplicationData()
@@ -495,7 +502,7 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
                 burnInProtection,
                 if( shouldShowWeather ) { weatherComplicationData } else { null },
                 if( shouldShowBattery ) { batteryComplicationData } else { null },
-                if (storage.shouldShowPhoneBattery()) { phoneBatteryStatus } else { null },
+                if (storage.showPhoneBattery()) { phoneBatteryStatus } else { null },
             )
 
             if( !ambient && isVisible && !timeDependentUpdateHandler.hasUpdateScheduled() ) {
@@ -508,7 +515,7 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
 
         @Suppress("SameParameterValue")
         private fun getNextComplicationUpdateDelay(): Long? {
-            if( storage.shouldShowSecondsRing() ) {
+            if( storage.showSecondsRing() ) {
                 return 1000
             }
 
@@ -600,7 +607,7 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
                         val previousPhoneBatteryStatus = phoneBatteryStatus as? PhoneBatteryStatus.DataReceived
                         phoneBatteryStatus = PhoneBatteryStatus.DataReceived(phoneBatteryPercentage, System.currentTimeMillis())
 
-                        if (storage.shouldShowPhoneBattery() &&
+                        if (storage.showPhoneBattery() &&
                             (phoneBatteryPercentage != previousPhoneBatteryStatus?.batteryPercentage || previousPhoneBatteryStatus.isStale(System.currentTimeMillis()))) {
                             invalidate()
                         }
@@ -634,7 +641,7 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
         }
 
         override fun invalidateDrawable(who: Drawable) {
-            if( !ambient || storage.shouldShowComplicationsInAmbientMode() ) {
+            if( !ambient || storage.showComplicationsInAmbientMode() ) {
                 invalidate()
             }
         }
@@ -682,7 +689,7 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
                         Wearable.getCapabilityClient(service).getCapability(BuildConfig.COMPANION_APP_CAPABILITY, CapabilityClient.FILTER_REACHABLE).await()
                     }
 
-                    if (storage.shouldShowPhoneBattery()) {
+                    if (storage.showPhoneBattery()) {
                         capabilityInfo.nodes.findBestNode()?.startPhoneBatterySync(this@PixelMinimalWatchFace)
                     } else {
                         capabilityInfo.nodes.findBestNode()?.stopPhoneBatterySync(this@PixelMinimalWatchFace)

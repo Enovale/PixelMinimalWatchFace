@@ -1,5 +1,5 @@
 /*
- *   Copyright 2021 Benoit LETONDOR
+ *   Copyright 2022 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -15,11 +15,16 @@
  */
 package com.benoitletondor.pixelminimalwatchfacecompanion.storage
 
+import kotlinx.coroutines.flow.Flow
+
 interface Storage {
     fun isUserPremium(): Boolean
     fun setUserPremium(premium: Boolean)
     fun setOnboardingFinished(finished: Boolean)
     fun isOnboardingFinished(): Boolean
+    fun isBatterySyncActivatedFlow(): Flow<Boolean>
     fun isBatterySyncActivated(): Boolean
     fun setBatterySyncActivated(activated: Boolean)
+    fun isForegroundServiceEnabled(): Boolean
+    fun setForegroundServiceEnabled(enabled: Boolean)
 }

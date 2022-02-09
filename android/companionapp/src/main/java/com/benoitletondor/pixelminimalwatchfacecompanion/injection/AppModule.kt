@@ -1,5 +1,5 @@
 /*
- *   Copyright 2021 Benoit LETONDOR
+ *   Copyright 2022 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@ import com.benoitletondor.pixelminimalwatchfacecompanion.billing.Billing
 import com.benoitletondor.pixelminimalwatchfacecompanion.billing.BillingImpl
 import com.benoitletondor.pixelminimalwatchfacecompanion.config.Config
 import com.benoitletondor.pixelminimalwatchfacecompanion.config.ConfigImpl
+import com.benoitletondor.pixelminimalwatchfacecompanion.device.Device
+import com.benoitletondor.pixelminimalwatchfacecompanion.device.DeviceImpl
 import com.benoitletondor.pixelminimalwatchfacecompanion.storage.Storage
 import com.benoitletondor.pixelminimalwatchfacecompanion.storage.StorageImpl
 import com.benoitletondor.pixelminimalwatchfacecompanion.sync.Sync
@@ -56,6 +58,12 @@ abstract class SingletonBindingModule {
     abstract fun bindStorage(
         storageImpl: StorageImpl
     ): Storage
+
+    @Binds
+    @Singleton
+    abstract fun bindDevice(
+        deviceImpl: DeviceImpl
+    ): Device
 }
 
 @Module

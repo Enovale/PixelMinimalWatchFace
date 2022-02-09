@@ -1,5 +1,5 @@
 /*
- *   Copyright 2021 Benoit LETONDOR
+ *   Copyright 2022 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 package com.benoitletondor.pixelminimalwatchface.model
 
 import android.content.Context
-import android.content.SharedPreferences
-import android.graphics.PorterDuff
-import android.graphics.PorterDuffColorFilter
+import android.graphics.ColorFilter
 import androidx.annotation.ColorInt
 import com.benoitletondor.pixelminimalwatchface.R
 import com.benoitletondor.pixelminimalwatchface.helper.DEFAULT_TIME_SIZE
@@ -44,12 +42,13 @@ private const val KEY_RATING_NOTIFICATION_SENT = "ratingNotificationSent"
 private const val KEY_APP_VERSION = "appVersion"
 private const val KEY_SHOW_WEAR_OS_LOGO = "showWearOSLogo"
 private const val KEY_SHOW_COMPLICATIONS_AMBIENT = "showComplicationsAmbient"
-private const val KEY_FILLED_TIME_AMBIENT = "filledTimeAmbient"
+private const val KEY_USE_NORMAL_TIME_STYLE_IN_AMBIENT = "filledTimeAmbient"
+private const val KEY_USE_THIN_TIME_STYLE_IN_REGULAR = "thinTimeRegularMode"
 private const val KEY_TIME_SIZE = "timeSize"
 private const val KEY_DATE_AND_BATTERY_SIZE = "dateSize"
 private const val KEY_SECONDS_RING = "secondsRing"
 private const val KEY_SHOW_WEATHER = "showWeather"
-private const val KEY_SHOW_BATTERY = "showBattery"
+private const val KEY_SHOW_WATCH_BATTERY = "showBattery"
 private const val KEY_SHOW_PHONE_BATTERY = "showPhoneBattery"
 private const val KEY_FEATURE_DROP_2021_NOTIFICATION = "featureDrop2021Notification_5"
 private const val KEY_USE_SHORT_DATE_FORMAT = "useShortDateFormat"
@@ -73,108 +72,83 @@ interface Storage {
     fun setRatingDisplayed(sent: Boolean)
     fun getAppVersion(): Int
     fun setAppVersion(version: Int)
-    fun shouldShowWearOSLogo(): Boolean
-    fun setShouldShowWearOSLogo(shouldShowWearOSLogo: Boolean)
-    fun shouldShowComplicationsInAmbientMode(): Boolean
-    fun setShouldShowComplicationsInAmbientMode(show: Boolean)
-    fun shouldShowFilledTimeInAmbientMode(): Boolean
-    fun setShouldShowFilledTimeInAmbientMode(showFilledTime: Boolean)
+    fun showWearOSLogo(): Boolean
+    fun setShowWearOSLogo(shouldShowWearOSLogo: Boolean)
+    fun showComplicationsInAmbientMode(): Boolean
+    fun setShowComplicationsInAmbientMode(show: Boolean)
+    fun useNormalTimeStyleInAmbientMode(): Boolean
+    fun setUseNormalTimeStyleInAmbientMode(useNormalTime: Boolean)
+    fun useThinTimeStyleInRegularMode(): Boolean
+    fun setUseThinTimeStyleInRegularMode(useThinTime: Boolean)
     fun getTimeSize(): Int
     fun setTimeSize(timeSize: Int)
     fun getDateAndBatterySize(): Int
     fun setDateAndBatterySize(size: Int)
-    fun shouldShowSecondsRing(): Boolean
-    fun setShouldShowSecondsRing(showSecondsRing: Boolean)
-    fun shouldShowWeather(): Boolean
-    fun setShouldShowWeather(show: Boolean)
-    fun shouldShowBattery(): Boolean
-    fun setShouldShowBattery(show: Boolean)
+    fun showSecondsRing(): Boolean
+    fun setShowSecondsRing(showSecondsRing: Boolean)
+    fun showWeather(): Boolean
+    fun setShowWeather(show: Boolean)
+    fun showWatchBattery(): Boolean
+    fun setShowWatchBattery(show: Boolean)
     fun hasFeatureDropSummer2021NotificationBeenShown(): Boolean
     fun setFeatureDropSummer2021NotificationShown()
     fun getUseShortDateFormat(): Boolean
     fun setUseShortDateFormat(useShortDateFormat: Boolean)
     fun setShowDateInAmbient(showDateInAmbient: Boolean)
     fun getShowDateInAmbient(): Boolean
-    fun shouldShowPhoneBattery(): Boolean
-    fun setShouldShowPhoneBattery(show: Boolean)
+    fun showPhoneBattery(): Boolean
+    fun setShowPhoneBattery(show: Boolean)
     @ColorInt fun getTimeAndDateColor(): Int
-    fun getTimeAndDateColorFilter(): PorterDuffColorFilter
+    fun getTimeAndDateColorFilter(): ColorFilter
     fun setTimeAndDateColor(@ColorInt color: Int)
     @ColorInt fun getBatteryIndicatorColor(): Int
-    fun getBatteryIndicatorColorFilter(): PorterDuffColorFilter
+    fun getBatteryIndicatorColorFilter(): ColorFilter
     fun setBatteryIndicatorColor(@ColorInt color: Int)
     fun useAndroid12Style(): Boolean
     fun setUseAndroid12Style(useAndroid12Style: Boolean)
-    fun shouldHideBatteryInAmbient(): Boolean
-    fun setShouldHideBatteryInAmbient(hide: Boolean)
-    fun getSecondRingColor(): PorterDuffColorFilter
+    fun hideBatteryInAmbient(): Boolean
+    fun setHideBatteryInAmbient(hide: Boolean)
+    fun getSecondRingColor(): ColorFilter
     fun setSecondRingColor(@ColorInt color: Int)
     fun getWidgetsSize(): Int
     fun setWidgetsSize(widgetsSize: Int)
 }
 
-class StorageImpl : Storage {
-    private var initialized: Boolean = false
-
-    private lateinit var appContext: Context
-    private lateinit var sharedPreferences: SharedPreferences
+class StorageImpl(
+    context: Context,
+) : Storage {
+    private val appContext = context.applicationContext
+    private val sharedPreferences = appContext.getSharedPreferences(SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE)
 
     // Those values will be called up to 60 times a minute when not in ambient mode
     // SharedPreferences uses a map so we cache the values to avoid map lookups
-    private var timeSizeCached = false
-    private var cacheTimeSize = 0
-    private var dateAndBatterySizeCached = false
-    private var cacheDateAndBatterySize = 0
-    private var isUserPremiumCached = false
-    private var cacheIsUserPremium = false
-    private var isUse24hFormatCached = false
-    private var cacheUse24hFormat = false
-    private var shouldShowWearOSLogoCached = false
-    private var cacheShouldShowWearOSLogo = false
-    private var shouldShowComplicationsInAmbientModeCached = false
-    private var cacheShouldShowComplicationsInAmbientMode = false
-    private var shouldShowSecondsSettingCached = false
-    private var cacheShouldShowSecondsSetting = false
-    private var shouldShowWeatherCached = false
-    private var cacheShouldShowWeather = false
-    private var shouldShowBatteryCached = false
-    private var cacheShouldShowBattery = false
-    private var useShortDateFormatCached = false
-    private var cacheUseShortDateFormat = false
-    private var showDateAmbientCached = false
-    private var cacheShowDateAmbient = false
+    private val timeSizeCache = StorageCachedIntValue(sharedPreferences, KEY_TIME_SIZE, DEFAULT_TIME_SIZE)
+    private val dateAndBatterySizeCache = StorageCachedIntValue(sharedPreferences, KEY_DATE_AND_BATTERY_SIZE, getTimeSize())
+    private val isPremiumUserCache = StorageCachedBoolValue(sharedPreferences, KEY_USER_PREMIUM, false)
+    private val use24hFormatCache = StorageCachedBoolValue(sharedPreferences, KEY_USE_24H_TIME_FORMAT, true)
+    private val showWearOSLogoCache = StorageCachedBoolValue(sharedPreferences, KEY_SHOW_WEAR_OS_LOGO, true)
+    private val showComplicationsInAmbientModeCache = StorageCachedBoolValue(sharedPreferences, KEY_SHOW_COMPLICATIONS_AMBIENT, false)
+    private val showSecondsRingCache = StorageCachedBoolValue(sharedPreferences, KEY_SECONDS_RING, false)
+    private val showWeatherCache = StorageCachedBoolValue(sharedPreferences, KEY_SHOW_WEATHER, false)
+    private val showWatchBattery = StorageCachedBoolValue(sharedPreferences, KEY_SHOW_WATCH_BATTERY, false)
+    private val useShortDateFormatCache = StorageCachedBoolValue(sharedPreferences, KEY_USE_SHORT_DATE_FORMAT, false)
+    private val showDateInAmbientCache = StorageCachedBoolValue(sharedPreferences, KEY_SHOW_DATE_AMBIENT, true)
+    private val showPhoneBatteryCache = StorageCachedBoolValue(sharedPreferences, KEY_SHOW_PHONE_BATTERY, false)
+    private val timeAndDateColorCache = StorageCachedColorValue(sharedPreferences, appContext, KEY_TIME_AND_DATE_COLOR, R.color.white)
+    private val batteryIndicatorColorCache = StorageCachedColorValue(sharedPreferences, appContext, KEY_BATTERY_COLOR, R.color.white)
     private var cacheComplicationsColor: ComplicationColors? = null
-    private var shouldShowPhoneBatteryCached = false
-    private var cacheShouldShowPhoneBattery = false
-    private var timeAndDateColorCached = false
-    private var cacheTimeAndDatePorterDuffColorFilter = PorterDuffColorFilter(0, PorterDuff.Mode.SRC_IN)
-    private var cacheTimeAndDateColor = 0
-    private var batteryIndicatorColorCached = false
-    private var cacheBatteryPorterDuffColorFilter = PorterDuffColorFilter(0, PorterDuff.Mode.SRC_IN)
-    private var cacheBatteryIndicatorColor = 0
-    private var cacheUseAndroid12Style = false
-    private var useAndroid12StyleCached = false
-    private var cacheHideBatteryInAmbient = false
-    private var hideBatteryInAmbientCached = false
-    private var secondRingColorCached = false
-    private var cacheSecondRingColor = 0
-    private var cacheSecondRingPorterDuffColorFilter = PorterDuffColorFilter(0, PorterDuff.Mode.SRC_IN)
-    private var widgetsSizeCached = false
-    private var cacheWidgetsSize = 0
+    private val useAndroid12StyleCache = StorageCachedBoolValue(sharedPreferences, KEY_USE_ANDROID_12_STYLE, false)
+    private val hideBatteryInAmbientCache = StorageCachedBoolValue(sharedPreferences, KEY_HIDE_BATTERY_IN_AMBIENT, false)
+    private val secondRingColorCache = StorageCachedColorValue(sharedPreferences, appContext, KEY_SECONDS_RING_COLOR, R.color.white)
+    private val widgetsSizeCache = StorageCachedIntValue(sharedPreferences, KEY_WIDGETS_SIZE, DEFAULT_TIME_SIZE)
+    private val useNormalTimeStyleInAmbientModeCache = StorageCachedBoolValue(sharedPreferences, KEY_USE_NORMAL_TIME_STYLE_IN_AMBIENT, false)
+    private val useThinTimeStyleInNormalModeCache = StorageCachedBoolValue(sharedPreferences, KEY_USE_THIN_TIME_STYLE_IN_REGULAR, false)
+    private val hasRatingBeenDisplayedCache = StorageCachedBoolValue(sharedPreferences, KEY_RATING_NOTIFICATION_SENT, false)
 
-    fun init(context: Context): Storage {
-        if( !initialized ) {
-            appContext = context.applicationContext
-            sharedPreferences = context.getSharedPreferences(SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE)
-
-            if( getInstallTimestamp() < 0 ) {
-                sharedPreferences.edit().putLong(KEY_INSTALL_TIMESTAMP, System.currentTimeMillis()).apply()
-            }
-
-            initialized = true
+    init {
+        if( getInstallTimestamp() < 0 ) {
+            sharedPreferences.edit().putLong(KEY_INSTALL_TIMESTAMP, System.currentTimeMillis()).apply()
         }
-
-        return this
     }
 
     override fun getComplicationColors(): ComplicationColors {
@@ -299,49 +273,21 @@ class StorageImpl : Storage {
             .apply()
     }
 
-    override fun isUserPremium(): Boolean {
-        if( !isUserPremiumCached ) {
-            cacheIsUserPremium = sharedPreferences.getBoolean(KEY_USER_PREMIUM, false)
-            isUserPremiumCached = true
-        }
+    override fun isUserPremium(): Boolean = isPremiumUserCache.get()
 
-        return cacheIsUserPremium
-    }
+    override fun setUserPremium(premium: Boolean) = isPremiumUserCache.set(premium)
 
-    override fun setUserPremium(premium: Boolean) {
-        cacheIsUserPremium = premium
-        isUserPremiumCached = true
+    override fun setUse24hTimeFormat(use: Boolean) = use24hFormatCache.set(use)
 
-        sharedPreferences.edit().putBoolean(KEY_USER_PREMIUM, premium).apply()
-    }
-
-    override fun setUse24hTimeFormat(use: Boolean) {
-        cacheUse24hFormat = use
-        isUse24hFormatCached = true
-
-        sharedPreferences.edit().putBoolean(KEY_USE_24H_TIME_FORMAT, use).apply()
-    }
-
-    override fun getUse24hTimeFormat(): Boolean {
-        if( !isUse24hFormatCached ) {
-            cacheUse24hFormat = sharedPreferences.getBoolean(KEY_USE_24H_TIME_FORMAT, true)
-            isUse24hFormatCached = true
-        }
-
-        return cacheUse24hFormat
-    }
+    override fun getUse24hTimeFormat(): Boolean = use24hFormatCache.get()
 
     override fun getInstallTimestamp(): Long {
         return sharedPreferences.getLong(KEY_INSTALL_TIMESTAMP, -1)
     }
 
-    override fun hasRatingBeenDisplayed(): Boolean {
-        return sharedPreferences.getBoolean(KEY_RATING_NOTIFICATION_SENT, false)
-    }
+    override fun hasRatingBeenDisplayed(): Boolean = hasRatingBeenDisplayedCache.get()
 
-    override fun setRatingDisplayed(sent: Boolean) {
-        sharedPreferences.edit().putBoolean(KEY_RATING_NOTIFICATION_SENT, sent).apply()
-    }
+    override fun setRatingDisplayed(sent: Boolean) = hasRatingBeenDisplayedCache.set(sent)
 
     override fun getAppVersion(): Int {
         return sharedPreferences.getInt(KEY_APP_VERSION, DEFAULT_APP_VERSION)
@@ -351,263 +297,73 @@ class StorageImpl : Storage {
         sharedPreferences.edit().putInt(KEY_APP_VERSION, version).apply()
     }
 
-    override fun shouldShowWearOSLogo(): Boolean {
-        if( !shouldShowWearOSLogoCached ) {
-            cacheShouldShowWearOSLogo = sharedPreferences.getBoolean(KEY_SHOW_WEAR_OS_LOGO, true)
-            shouldShowWearOSLogoCached = true
-        }
+    override fun showWearOSLogo(): Boolean = showWearOSLogoCache.get()
 
-        return cacheShouldShowWearOSLogo
-    }
+    override fun setShowWearOSLogo(shouldShowWearOSLogo: Boolean) = showWearOSLogoCache.set(shouldShowWearOSLogo)
 
-    override fun setShouldShowWearOSLogo(shouldShowWearOSLogo: Boolean) {
-        cacheShouldShowWearOSLogo = shouldShowWearOSLogo
-        shouldShowWearOSLogoCached = true
+    override fun showComplicationsInAmbientMode(): Boolean = showComplicationsInAmbientModeCache.get()
 
-        sharedPreferences.edit().putBoolean(KEY_SHOW_WEAR_OS_LOGO, shouldShowWearOSLogo).apply()
-    }
+    override fun setShowComplicationsInAmbientMode(show: Boolean) = showComplicationsInAmbientModeCache.set(show)
 
-    override fun shouldShowComplicationsInAmbientMode(): Boolean {
-        if( !shouldShowComplicationsInAmbientModeCached ) {
-            cacheShouldShowComplicationsInAmbientMode = sharedPreferences.getBoolean(KEY_SHOW_COMPLICATIONS_AMBIENT, false)
-            shouldShowComplicationsInAmbientModeCached = true
-        }
+    override fun useNormalTimeStyleInAmbientMode(): Boolean = useNormalTimeStyleInAmbientModeCache.get()
 
-        return cacheShouldShowComplicationsInAmbientMode
-    }
+    override fun setUseNormalTimeStyleInAmbientMode(useNormalTime: Boolean) = useNormalTimeStyleInAmbientModeCache.set(useNormalTime)
 
-    override fun setShouldShowComplicationsInAmbientMode(show: Boolean) {
-        cacheShouldShowComplicationsInAmbientMode = show
-        shouldShowComplicationsInAmbientModeCached = true
+    override fun useThinTimeStyleInRegularMode(): Boolean = useThinTimeStyleInNormalModeCache.get()
 
-        sharedPreferences.edit().putBoolean(KEY_SHOW_COMPLICATIONS_AMBIENT, show).apply()
-    }
+    override fun setUseThinTimeStyleInRegularMode(useThinTime: Boolean) = useThinTimeStyleInNormalModeCache.set(useThinTime)
 
-    override fun shouldShowFilledTimeInAmbientMode(): Boolean {
-        return sharedPreferences.getBoolean(KEY_FILLED_TIME_AMBIENT, false)
-    }
+    override fun getTimeSize(): Int = timeSizeCache.get()
 
-    override fun setShouldShowFilledTimeInAmbientMode(showFilledTime: Boolean) {
-        sharedPreferences.edit().putBoolean(KEY_FILLED_TIME_AMBIENT, showFilledTime).apply()
-    }
+    override fun setTimeSize(timeSize: Int) = timeSizeCache.set(timeSize)
 
-    override fun getTimeSize(): Int {
-        if( !timeSizeCached ) {
-            cacheTimeSize = sharedPreferences.getInt(KEY_TIME_SIZE, DEFAULT_TIME_SIZE)
-            timeSizeCached = true
-        }
+    override fun getDateAndBatterySize(): Int = dateAndBatterySizeCache.get()
 
-        return cacheTimeSize
-    }
+    override fun setDateAndBatterySize(size: Int) = dateAndBatterySizeCache.set(size)
 
-    override fun setTimeSize(timeSize: Int) {
-        cacheTimeSize = timeSize
-        timeSizeCached = true
+    override fun showSecondsRing(): Boolean = showSecondsRingCache.get()
 
-        sharedPreferences.edit().putInt(KEY_TIME_SIZE, timeSize).apply()
-    }
+    override fun setShowSecondsRing(showSecondsRing: Boolean) = showSecondsRingCache.set(showSecondsRing)
 
-    override fun getDateAndBatterySize(): Int {
-        if( !dateAndBatterySizeCached ) {
-            cacheDateAndBatterySize = sharedPreferences.getInt(KEY_DATE_AND_BATTERY_SIZE, getTimeSize())
-            dateAndBatterySizeCached = true
-        }
+    override fun showWeather(): Boolean = showWeatherCache.get()
 
-        return cacheDateAndBatterySize
-    }
+    override fun setShowWeather(show: Boolean) = showWeatherCache.set(show)
 
-    override fun setDateAndBatterySize(size: Int) {
-        cacheDateAndBatterySize = size
-        dateAndBatterySizeCached = true
+    override fun showWatchBattery(): Boolean = showWatchBattery.get()
 
-        sharedPreferences.edit().putInt(KEY_DATE_AND_BATTERY_SIZE, size).apply()
-    }
+    override fun setShowWatchBattery(show: Boolean) = showWatchBattery.set(show)
 
-    override fun shouldShowSecondsRing(): Boolean {
-        if( !shouldShowSecondsSettingCached ) {
-            cacheShouldShowSecondsSetting = sharedPreferences.getBoolean(KEY_SECONDS_RING, false)
-            shouldShowSecondsSettingCached = true
-        }
+    override fun showPhoneBattery(): Boolean = showPhoneBatteryCache.get()
 
-        return cacheShouldShowSecondsSetting
-    }
+    override fun setShowPhoneBattery(show: Boolean) = showPhoneBatteryCache.set(show)
 
-    override fun setShouldShowSecondsRing(showSecondsRing: Boolean) {
-        cacheShouldShowSecondsSetting = showSecondsRing
-        shouldShowSecondsSettingCached = true
+    override fun getTimeAndDateColor(): Int = timeAndDateColorCache.get().color
 
-        sharedPreferences.edit().putBoolean(KEY_SECONDS_RING, showSecondsRing).apply()
-    }
+    override fun getTimeAndDateColorFilter(): ColorFilter = timeAndDateColorCache.get().colorFilter
 
-    override fun shouldShowWeather(): Boolean {
-        if( !shouldShowWeatherCached ) {
-            cacheShouldShowWeather = sharedPreferences.getBoolean(KEY_SHOW_WEATHER, false)
-            shouldShowWeatherCached = true
-        }
+    override fun setTimeAndDateColor(color: Int) = timeAndDateColorCache.set(color)
 
-        return cacheShouldShowWeather
-    }
+    override fun getBatteryIndicatorColor(): Int = batteryIndicatorColorCache.get().color
 
-    override fun setShouldShowWeather(show: Boolean) {
-        cacheShouldShowWeather = show
-        shouldShowWeatherCached = true
+    override fun getBatteryIndicatorColorFilter(): ColorFilter = batteryIndicatorColorCache.get().colorFilter
 
-        sharedPreferences.edit().putBoolean(KEY_SHOW_WEATHER, show).apply()
-    }
+    override fun setBatteryIndicatorColor(color: Int) = batteryIndicatorColorCache.set(color)
 
-    override fun shouldShowBattery(): Boolean {
-        if( !shouldShowBatteryCached ) {
-            cacheShouldShowBattery = sharedPreferences.getBoolean(KEY_SHOW_BATTERY, false)
-            shouldShowBatteryCached = true
-        }
+    override fun useAndroid12Style(): Boolean = useAndroid12StyleCache.get()
 
-        return cacheShouldShowBattery
-    }
+    override fun setUseAndroid12Style(useAndroid12Style: Boolean) = useAndroid12StyleCache.set(useAndroid12Style)
 
-    override fun setShouldShowBattery(show: Boolean) {
-        cacheShouldShowBattery = show
-        shouldShowBatteryCached = true
+    override fun hideBatteryInAmbient(): Boolean = hideBatteryInAmbientCache.get()
 
-        sharedPreferences.edit().putBoolean(KEY_SHOW_BATTERY, show).apply()
-    }
+    override fun setHideBatteryInAmbient(hide: Boolean) = hideBatteryInAmbientCache.set(hide)
 
-    override fun shouldShowPhoneBattery(): Boolean {
-        if( !shouldShowPhoneBatteryCached ) {
-            cacheShouldShowPhoneBattery = sharedPreferences.getBoolean(KEY_SHOW_PHONE_BATTERY, false)
-            shouldShowPhoneBatteryCached = true
-        }
+    override fun getSecondRingColor(): ColorFilter = secondRingColorCache.get().colorFilter
 
-        return cacheShouldShowPhoneBattery
-    }
+    override fun setSecondRingColor(@ColorInt color: Int) = secondRingColorCache.set(color)
 
-    override fun setShouldShowPhoneBattery(show: Boolean) {
-        cacheShouldShowPhoneBattery = show
-        shouldShowPhoneBatteryCached = true
+    override fun getWidgetsSize(): Int = widgetsSizeCache.get()
 
-        sharedPreferences.edit().putBoolean(KEY_SHOW_PHONE_BATTERY, show).apply()
-    }
-
-    override fun getTimeAndDateColor(): Int {
-        if( !timeAndDateColorCached ) {
-            cacheTimeAndDateColor = sharedPreferences.getInt(KEY_TIME_AND_DATE_COLOR, appContext.getColor(R.color.white))
-            cacheTimeAndDatePorterDuffColorFilter = PorterDuffColorFilter(cacheTimeAndDateColor, PorterDuff.Mode.SRC_IN)
-            timeAndDateColorCached = true
-        }
-
-        return cacheTimeAndDateColor
-    }
-
-    override fun getTimeAndDateColorFilter(): PorterDuffColorFilter {
-        if( !timeAndDateColorCached ) {
-            cacheTimeAndDateColor = sharedPreferences.getInt(KEY_TIME_AND_DATE_COLOR, appContext.getColor(R.color.white))
-            cacheTimeAndDatePorterDuffColorFilter = PorterDuffColorFilter(cacheTimeAndDateColor, PorterDuff.Mode.SRC_IN)
-            timeAndDateColorCached = true
-        }
-
-        return cacheTimeAndDatePorterDuffColorFilter
-    }
-
-    override fun setTimeAndDateColor(color: Int) {
-        cacheTimeAndDateColor = color
-        cacheTimeAndDatePorterDuffColorFilter = PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN)
-        timeAndDateColorCached = true
-
-        sharedPreferences.edit().putInt(KEY_TIME_AND_DATE_COLOR, color).apply()
-    }
-
-    override fun getBatteryIndicatorColor(): Int {
-        if( !batteryIndicatorColorCached ) {
-            cacheBatteryIndicatorColor = sharedPreferences.getInt(KEY_BATTERY_COLOR, appContext.getColor(R.color.white))
-            cacheBatteryPorterDuffColorFilter = PorterDuffColorFilter(cacheBatteryIndicatorColor, PorterDuff.Mode.SRC_IN)
-            batteryIndicatorColorCached = true
-        }
-
-        return cacheBatteryIndicatorColor
-    }
-
-    override fun getBatteryIndicatorColorFilter(): PorterDuffColorFilter {
-        if( !batteryIndicatorColorCached ) {
-            cacheBatteryIndicatorColor = sharedPreferences.getInt(KEY_BATTERY_COLOR, appContext.getColor(R.color.white))
-            cacheBatteryPorterDuffColorFilter = PorterDuffColorFilter(cacheBatteryIndicatorColor, PorterDuff.Mode.SRC_IN)
-            batteryIndicatorColorCached = true
-        }
-
-        return cacheBatteryPorterDuffColorFilter
-    }
-
-    override fun setBatteryIndicatorColor(color: Int) {
-        cacheBatteryIndicatorColor = color
-        cacheBatteryPorterDuffColorFilter = PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN)
-        batteryIndicatorColorCached = true
-
-        sharedPreferences.edit().putInt(KEY_BATTERY_COLOR, color).apply()
-    }
-
-    override fun useAndroid12Style(): Boolean {
-        if( !useAndroid12StyleCached ) {
-            cacheUseAndroid12Style = sharedPreferences.getBoolean(KEY_USE_ANDROID_12_STYLE, false)
-            useAndroid12StyleCached = true
-        }
-
-        return cacheUseAndroid12Style
-    }
-
-    override fun setUseAndroid12Style(useAndroid12Style: Boolean) {
-        cacheUseAndroid12Style = useAndroid12Style
-        useAndroid12StyleCached = true
-
-        sharedPreferences.edit().putBoolean(KEY_USE_ANDROID_12_STYLE, useAndroid12Style).apply()
-    }
-
-    override fun shouldHideBatteryInAmbient(): Boolean {
-        if( !hideBatteryInAmbientCached ) {
-            cacheHideBatteryInAmbient = sharedPreferences.getBoolean(KEY_HIDE_BATTERY_IN_AMBIENT, false)
-            hideBatteryInAmbientCached = true
-        }
-
-        return cacheHideBatteryInAmbient
-    }
-
-    override fun setShouldHideBatteryInAmbient(hide: Boolean) {
-        cacheHideBatteryInAmbient = hide
-        hideBatteryInAmbientCached = true
-
-        sharedPreferences.edit().putBoolean(KEY_HIDE_BATTERY_IN_AMBIENT, hide).apply()
-    }
-
-    override fun getSecondRingColor(): PorterDuffColorFilter {
-        if( !secondRingColorCached ) {
-            cacheSecondRingColor = sharedPreferences.getInt(KEY_SECONDS_RING_COLOR, appContext.getColor(R.color.white))
-            cacheSecondRingPorterDuffColorFilter = PorterDuffColorFilter(cacheSecondRingColor, PorterDuff.Mode.SRC_IN)
-            secondRingColorCached = true
-        }
-
-        return cacheSecondRingPorterDuffColorFilter
-    }
-
-    override fun setSecondRingColor(@ColorInt color: Int) {
-        cacheSecondRingColor = color
-        cacheSecondRingPorterDuffColorFilter = PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN)
-        secondRingColorCached = true
-
-        sharedPreferences.edit().putInt(KEY_SECONDS_RING_COLOR, color).apply()
-    }
-
-    override fun getWidgetsSize(): Int {
-        if( !widgetsSizeCached ) {
-            cacheWidgetsSize = sharedPreferences.getInt(KEY_WIDGETS_SIZE, DEFAULT_TIME_SIZE)
-            widgetsSizeCached = true
-        }
-
-        return cacheWidgetsSize
-    }
-
-    override fun setWidgetsSize(widgetsSize: Int) {
-        cacheWidgetsSize = widgetsSize
-        widgetsSizeCached = true
-
-        sharedPreferences.edit().putInt(KEY_WIDGETS_SIZE, widgetsSize).apply()
-    }
+    override fun setWidgetsSize(widgetsSize: Int) = widgetsSizeCache.set(widgetsSize)
 
     override fun hasFeatureDropSummer2021NotificationBeenShown(): Boolean {
         return sharedPreferences.getBoolean(KEY_FEATURE_DROP_2021_NOTIFICATION, false)
@@ -617,35 +373,11 @@ class StorageImpl : Storage {
         sharedPreferences.edit().putBoolean(KEY_FEATURE_DROP_2021_NOTIFICATION, true).apply()
     }
 
-    override fun getUseShortDateFormat(): Boolean {
-        if( !useShortDateFormatCached ) {
-            cacheUseShortDateFormat = sharedPreferences.getBoolean(KEY_USE_SHORT_DATE_FORMAT, false)
-            useShortDateFormatCached = true
-        }
+    override fun getUseShortDateFormat(): Boolean = useShortDateFormatCache.get()
 
-        return cacheUseShortDateFormat
-    }
+    override fun setUseShortDateFormat(useShortDateFormat: Boolean) = useShortDateFormatCache.set(useShortDateFormat)
 
-    override fun setUseShortDateFormat(useShortDateFormat: Boolean) {
-        cacheUseShortDateFormat = useShortDateFormat
-        useShortDateFormatCached = true
+    override fun setShowDateInAmbient(showDateInAmbient: Boolean) = showDateInAmbientCache.set(showDateInAmbient)
 
-        sharedPreferences.edit().putBoolean(KEY_USE_SHORT_DATE_FORMAT, useShortDateFormat).apply()
-    }
-
-    override fun setShowDateInAmbient(showDateInAmbient: Boolean) {
-        cacheShowDateAmbient = showDateInAmbient
-        showDateAmbientCached = true
-
-        sharedPreferences.edit().putBoolean(KEY_SHOW_DATE_AMBIENT, showDateInAmbient).apply()
-    }
-
-    override fun getShowDateInAmbient(): Boolean {
-        if( !showDateAmbientCached ) {
-            cacheShowDateAmbient = sharedPreferences.getBoolean(KEY_SHOW_DATE_AMBIENT, true)
-            showDateAmbientCached = true
-        }
-
-        return cacheShowDateAmbient
-    }
+    override fun getShowDateInAmbient(): Boolean = showDateInAmbientCache.get()
 }

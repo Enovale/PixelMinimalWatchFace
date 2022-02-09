@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="companionapp-deeplink-open" type="AndroidRunConfigurationType" factoryName="Android App" activateToolWindowBeforeRun="false">
+  <configuration default="false" name="companionapp-deeplink-open" type="AndroidRunConfigurationType" factoryName="Android App">
     <module name="PixelMinimalWatchFace.companionapp" />
     <option name="DEPLOY" value="true" />
     <option name="DEPLOY_APK_FROM_BUNDLE" value="false" />

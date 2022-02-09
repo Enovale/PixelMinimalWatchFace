@@ -25,6 +25,7 @@ Part of this project is inspired by [Cole Gerdemann](https://github.com/Corvette
 
 - [Jimmy Xiao](https://github.com/jimmyjxiao): seconds ring for round watches
 - [Márton Maráz](https://github.com/marazmarci): ranged complication layout optimization & remove borders around complications
+- [t-st92](https://github.com/t-st92): thin time when watch is on option
 
 ### Contact
 

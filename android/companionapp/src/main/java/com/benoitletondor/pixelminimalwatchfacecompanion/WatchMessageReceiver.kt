@@ -1,5 +1,5 @@
 /*
- *   Copyright 2021 Benoit LETONDOR
+ *   Copyright 2022 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package com.benoitletondor.pixelminimalwatchfacecompanion
 
 import android.util.Log
 import com.benoitletondor.pixelminimalwatchfacecompanion.BuildConfig.WATCH_CAPABILITY
+import com.benoitletondor.pixelminimalwatchfacecompanion.device.Device
 import com.benoitletondor.pixelminimalwatchfacecompanion.storage.Storage
 import com.benoitletondor.pixelminimalwatchfacecompanion.sync.Sync
 import com.google.android.gms.wearable.CapabilityInfo
@@ -31,6 +32,7 @@ import javax.inject.Inject
 class WatchMessageReceiver : WearableListenerService(), CoroutineScope by CoroutineScope(SupervisorJob() + Dispatchers.Default) {
     @Inject lateinit var sync: Sync
     @Inject lateinit var storage: Storage
+    @Inject lateinit var device: Device
 
     override fun onDestroy() {
         cancel()
@@ -85,6 +87,9 @@ class WatchMessageReceiver : WearableListenerService(), CoroutineScope by Corout
     private fun deactivateSync() {
         storage.setBatterySyncActivated(false)
         BatteryStatusBroadcastReceiver.unsubscribeFromUpdates(this)
+
+        storage.setForegroundServiceEnabled(false)
+        device.finishForegroundService()
 
         launch {
             try {

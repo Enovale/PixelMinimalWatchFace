@@ -1,5 +1,5 @@
 /*
- *   Copyright 2021 Benoit LETONDOR
+ *   Copyright 2022 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -58,27 +58,29 @@ class SettingsActivity : Activity() {
             storage.setRatingDisplayed(true)
             startActivity(Intent(this, FeedbackActivity::class.java))
         }, { showWearOSLogo ->
-            storage.setShouldShowWearOSLogo(showWearOSLogo)
+            storage.setShowWearOSLogo(showWearOSLogo)
         }, { showComplicationsAmbient ->
-            storage.setShouldShowComplicationsInAmbientMode(showComplicationsAmbient)
-        }, { showFilledTimeAmbient ->
-            storage.setShouldShowFilledTimeInAmbientMode(showFilledTimeAmbient)
+            storage.setShowComplicationsInAmbientMode(showComplicationsAmbient)
+        }, { useNormalTimeStyleInAmbientMode ->
+            storage.setUseNormalTimeStyleInAmbientMode(useNormalTimeStyleInAmbientMode)
+        }, { useThinTimeStyleInRegularMode ->
+            storage.setUseThinTimeStyleInRegularMode(useThinTimeStyleInRegularMode)
         }, { timeSize ->
             storage.setTimeSize(timeSize)
         }, { dateAndBatterySize ->
             storage.setDateAndBatterySize(dateAndBatterySize)
         }, { showSecondsRing ->
-            storage.setShouldShowSecondsRing(showSecondsRing)
+            storage.setShowSecondsRing(showSecondsRing)
         }, { showWeather ->
-            storage.setShouldShowWeather(showWeather)
+            storage.setShowWeather(showWeather)
         }, {
             getWeatherProviderInfo()?.let { weatherProviderInfo ->
                 openActivity(weatherProviderInfo.appPackage, weatherProviderInfo.weatherActivityName)
             }
         }, { showBattery ->
-            storage.setShouldShowBattery(showBattery)
+            storage.setShowWatchBattery(showBattery)
         }, { showBatteryInAmbient ->
-            storage.setShouldHideBatteryInAmbient(!showBatteryInAmbient)
+            storage.setHideBatteryInAmbient(!showBatteryInAmbient)
         }, { useShortDateFormat ->
             storage.setUseShortDateFormat(useShortDateFormat)
         }, { showDateAmbient ->
