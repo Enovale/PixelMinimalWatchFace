@@ -29,7 +29,14 @@ import org.json.JSONObject
 import kotlin.math.roundToInt
 import android.content.ComponentName
 import android.content.Intent
+import android.os.Build
+import android.support.wearable.complications.ComplicationData.TYPE_NO_DATA
 import androidx.core.content.pm.PackageInfoCompat
+import com.benoitletondor.pixelminimalwatchface.PixelMinimalWatchFace
+import java.text.SimpleDateFormat
+import java.util.*
+
+val isGalaxyWatch4BuggyWearOSVersion = Device.isSamsungGalaxyWatch && Build.VERSION.SECURITY_PATCH.startsWith("2022")
 
 fun Context.getTopAndBottomMargins(): Float {
     return when {
@@ -40,7 +47,9 @@ fun Context.getTopAndBottomMargins(): Float {
     }
 }
 
-fun ComplicationData.sanitize(context: Context): ComplicationData {
+private val timeDateFormatter = SimpleDateFormat("HH:mm", Locale.US)
+
+fun ComplicationData.sanitize(context: Context, watchFaceComplicationId: Int): ComplicationData {
     try {
         if (!Device.isSamsungGalaxyWatch) {
             return this
@@ -70,6 +79,30 @@ fun ComplicationData.sanitize(context: Context): ComplicationData {
                     )
                     .build()
             }
+            isSamsungCalendarBadComplicationData() -> {
+                val nextEvent = context.getNextCalendarEvent() ?: return this
+                val isLargeWidget = PixelMinimalWatchFace.BOTTOM_COMPLICATION_ID == watchFaceComplicationId
+
+                val builder = ComplicationData.Builder(if (isLargeWidget) { ComplicationData.TYPE_LONG_TEXT } else { ComplicationData.TYPE_SHORT_TEXT })
+                    .setTapAction(PendingIntent.getActivity(
+                        context,
+                        0,
+                        Intent().apply {
+                            component = getSamsungCalendarHomeComponentName()
+                        },
+                        PendingIntent.FLAG_IMMUTABLE,
+                    ))
+                    .setIcon(Icon.createWithResource(context, R.drawable.ic_calendar_complication))
+
+                if (isLargeWidget) {
+                    builder.setLongText(ComplicationText.plainText(nextEvent.title))
+                } else {
+                    val formattedTime = timeDateFormatter.format(Date(nextEvent.startTimestamp))
+                    builder.setShortText(ComplicationText.plainText(formattedTime))
+                }
+
+                builder.build()
+            }
             else -> this
         }
     } catch (t: Throwable) {
@@ -95,6 +128,7 @@ private fun ComplicationData.isSamsungHealthBadComplicationData(context: Context
     }
 }
 
+@SuppressLint("NewApi")
 private fun ComplicationData.isSamsungDailyActivityBadComplicationData(sHealthVersion: Long): Boolean {
     return icon != null &&
         icon.type == Icon.TYPE_RESOURCE &&
@@ -105,12 +139,17 @@ private fun ComplicationData.isSamsungDailyActivityBadComplicationData(sHealthVe
         }
 }
 
+private fun ComplicationData.isSamsungCalendarBadComplicationData(): Boolean {
+    return isGalaxyWatch4BuggyWearOSVersion && type == TYPE_NO_DATA
+}
+
 private fun ComplicationData.isSamsungStepsBadComplicationData(context: Context): Boolean {
     return shortTitle != null &&
         samsungStepComplicationShortTextValues.contains(shortTitle.getText(context, System.currentTimeMillis())) &&
         imageContentDescription != null
 }
 
+@SuppressLint("NewApi")
 private fun ComplicationData.isSamsungSleepBadComplicationData(): Boolean {
     return icon != null &&
         icon.type == Icon.TYPE_RESOURCE &&
@@ -118,6 +157,7 @@ private fun ComplicationData.isSamsungSleepBadComplicationData(): Boolean {
         icon.resId == 2131231610
 }
 
+@SuppressLint("NewApi")
 private fun ComplicationData.isSamsungWaterBadComplicationData(): Boolean {
     return icon != null &&
         icon.type == Icon.TYPE_RESOURCE &&
@@ -160,6 +200,37 @@ private fun Context.getShealthAppVersion(): Long {
     return PackageInfoCompat.getLongVersionCode(packageInfo)
 }
 
+@SuppressLint("NewApi", "Range")
+private fun Context.getNextCalendarEvent(): CalendarEvent? {
+    try {
+        val uri = "content://com.samsung.android.calendar.watch/nextEvents"
+
+        contentResolver.query(Uri.parse(uri), null, null, null)?.use { query ->
+            if (query.count == 0) {
+                return null
+            }
+
+            query.moveToFirst()
+            val eventTitle = query.getString(query.getColumnIndex("title"))
+            val eventStartTimestamp = query.getLong(query.getColumnIndex("begin"))
+            val isAllDay = query.getInt(query.getColumnIndex("allDay")) != 1
+
+            return CalendarEvent(eventTitle, eventStartTimestamp, isAllDay)
+        }
+
+        return null
+    } catch (e: Exception) {
+        Log.e("CompatHelper", "Error while getting next event", e)
+        return null
+    }
+}
+
+private data class CalendarEvent(
+    val title: String,
+    val startTimestamp: Long,
+    val isAllDay: Boolean,
+)
+
 private fun Context.getSamsungHeartRateData(): String? {
     val uri = "content://$S_HEALTH_PACKAGE_NAME.healthdataprovider"
 
@@ -188,7 +259,13 @@ private fun getSamsungHealthHomeComponentName() = ComponentName(
     "com.samsung.android.wear.shealth.app.home.HomeActivity"
 )
 
+private fun getSamsungCalendarHomeComponentName() = ComponentName(
+    S_CALENDAR_PACKAGE_NAME,
+    "com.samsung.android.app.calendar.view.daily.DailyActivity"
+)
+
 private const val S_HEALTH_PACKAGE_NAME = "com.samsung.android.wear.shealth"
+private const val S_CALENDAR_PACKAGE_NAME = "com.samsung.android.calendar"
 private const val S_HEALTH_6_20_0_016 = 6200016L
 private const val S_HEALTH_6_21_0_051 = 6210051L
 
