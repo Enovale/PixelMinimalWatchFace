@@ -25,9 +25,7 @@ import android.graphics.drawable.Drawable
 import android.os.BatteryManager
 import android.os.Build
 import android.os.Bundle
-import android.support.wearable.complications.ComplicationData
-import android.support.wearable.complications.ComplicationText
-import android.support.wearable.complications.SystemProviders
+import android.support.wearable.complications.*
 import android.support.wearable.watchface.CanvasWatchFaceService
 import android.support.wearable.watchface.WatchFaceService
 import android.support.wearable.watchface.WatchFaceStyle
@@ -53,6 +51,7 @@ import kotlinx.coroutines.*
 import java.lang.ref.WeakReference
 import java.time.LocalDateTime
 import java.util.*
+import java.util.concurrent.Executors
 import kotlin.math.max
 
 
@@ -90,13 +89,17 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
 
         private lateinit var watchFaceDrawer: WatchFaceDrawer
 
+        private val complicationProviderInfoRetriever = ProviderInfoRetriever(this@PixelMinimalWatchFace, Executors.newSingleThreadExecutor())
+        private val complicationProviderSparseArray: SparseArray<ComplicationProviderInfo> = SparseArray(COMPLICATION_IDS.size)
         private var complicationsColors: ComplicationColors = storage.getComplicationColors()
+        private val rawComplicationDataSparseArray: SparseArray<ComplicationData> = SparseArray(COMPLICATION_IDS.size)
         private val complicationDataSparseArray: SparseArray<ComplicationData> = SparseArray(COMPLICATION_IDS.size)
 
         private var muteMode = false
         private var ambient = false
         private var lowBitAmbient = false
         private var burnInProtection = false
+        private var visible = false
 
         private val timeDependentUpdateHandler = ComplicationTimeDependentUpdateHandler(WeakReference(this))
         private val timeDependentTexts = SparseArray<ComplicationText>()
@@ -144,6 +147,7 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
             Wearable.getDataClient(service).addListener(this)
             Wearable.getMessageClient(service).addListener(this)
             syncPhoneBatteryStatus()
+            complicationProviderInfoRetriever.init()
         }
 
         private fun initWatchFaceDrawer() {
@@ -179,6 +183,42 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
             setActiveComplications(*activeComplicationIds.plus(WEATHER_COMPLICATION_ID).plus(BATTERY_COMPLICATION_ID))
 
             watchFaceDrawer.onComplicationColorsUpdate(complicationsColors, complicationDataSparseArray)
+
+            updateComplicationProvidersInfoAsync()
+        }
+
+        private fun updateComplicationProvidersInfoAsync() {
+            if (DEBUG_LOGS) Log.d(TAG, "updateComplicationProvidersInfoAsync, requesting data")
+
+            complicationProviderInfoRetriever.retrieveProviderInfo(
+                object : ProviderInfoRetriever.OnProviderInfoReceivedCallback() {
+                    override fun onProviderInfoReceived(watchFaceComplicationId: Int, complicationProviderInfo: ComplicationProviderInfo?) {
+                        if (DEBUG_LOGS) Log.d(TAG, "updateComplicationProvidersInfoAsync, watchFaceComplicationId: $watchFaceComplicationId -> provider: $complicationProviderInfo")
+
+                        val currentValue = complicationProviderSparseArray.get(watchFaceComplicationId, null)
+
+                        if(complicationProviderInfo != null) {
+                            complicationProviderSparseArray.put(watchFaceComplicationId, complicationProviderInfo)
+                        } else {
+                            complicationProviderSparseArray.remove(watchFaceComplicationId)
+                        }
+
+                        if (currentValue?.toString() != complicationProviderInfo?.toString()) {
+                            if (DEBUG_LOGS) Log.d(TAG, "updateComplicationProvidersInfoAsync, updating data from complicationId: $watchFaceComplicationId")
+
+                            onComplicationDataUpdate(
+                                watchFaceComplicationId,
+                                rawComplicationDataSparseArray.get(
+                                    watchFaceComplicationId,
+                                    ComplicationData.Builder(ComplicationData.TYPE_EMPTY).build(),
+                                )
+                            )
+                        }
+                    }
+                },
+                ComponentName(this@PixelMinimalWatchFace, PixelMinimalWatchFace::class.java),
+                *COMPLICATION_IDS,
+            )
         }
 
         private fun subscribeToWeatherComplicationData() {
@@ -229,6 +269,7 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
             Wearable.getDataClient(service).removeListener(this)
             Wearable.getMessageClient(service).removeListener(this)
             timeDependentUpdateHandler.cancelUpdate()
+            complicationProviderInfoRetriever.release()
             cancel()
 
             super.onDestroy()
@@ -237,16 +278,23 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
         override fun onPropertiesChanged(properties: Bundle) {
             super.onPropertiesChanged(properties)
 
-            if (DEBUG_LOGS) Log.d(TAG, "onPropertiesChanged")
-
-            lowBitAmbient = properties.getBoolean(
+            val newLowBitAmbient = properties.getBoolean(
                 WatchFaceService.PROPERTY_LOW_BIT_AMBIENT, false
             )
-            burnInProtection = properties.getBoolean(
+
+            val newBurnInProtection = properties.getBoolean(
                 WatchFaceService.PROPERTY_BURN_IN_PROTECTION, false
             )
 
-            invalidate()
+            if (newBurnInProtection != burnInProtection || newLowBitAmbient != lowBitAmbient) {
+                if (DEBUG_LOGS) Log.d(TAG, "onPropertiesChanged, invalidating")
+                invalidate()
+            } else {
+                if (DEBUG_LOGS) Log.d(TAG, "onPropertiesChanged, nothing changed")
+            }
+
+            lowBitAmbient = newLowBitAmbient
+            burnInProtection = newBurnInProtection
         }
 
         override fun onApplyWindowInsets(insets: WindowInsets) {
@@ -279,7 +327,6 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
 
             val lastWatchBatteryStatus = lastWatchBatteryStatus
             if (Device.isSamsungGalaxyWatch &&
-                storage.showWatchBattery() &&
                 lastWatchBatteryStatus is WatchBatteryStatus.DataReceived) {
                 ensureBatteryDataIsUpToDateOrReload(lastWatchBatteryStatus)
             }
@@ -378,24 +425,29 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
 
             val inMuteMode = interruptionFilter == WatchFaceService.INTERRUPTION_FILTER_NONE
 
-            if (DEBUG_LOGS) Log.d(TAG, "onInterruptionFilterChanged, inMuteMode: $inMuteMode")
-
             if (muteMode != inMuteMode) {
+                if (DEBUG_LOGS) Log.d(TAG, "onInterruptionFilterChanged, new value -> inMuteMode: $inMuteMode")
                 muteMode = inMuteMode
 
                 invalidate()
+            } else {
+                if (DEBUG_LOGS) Log.d(TAG, "onInterruptionFilterChanged, nothing changed -> inMuteMode: $inMuteMode")
             }
         }
 
         override fun onSurfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
             super.onSurfaceChanged(holder, format, width, height)
 
-            if (DEBUG_LOGS) Log.d(TAG, "onSurfaceChanged, width: $width, height: $height")
+            if (width != screenWidth || height != screenHeight) {
+                if (DEBUG_LOGS) Log.d(TAG, "onSurfaceChanged, new value -> width: $width, height: $height")
 
-            screenWidth = width
-            screenHeight = height
+                screenWidth = width
+                screenHeight = height
 
-            watchFaceDrawer.onSurfaceChanged(width, height)
+                watchFaceDrawer.onSurfaceChanged(width, height)
+            } else {
+                if (DEBUG_LOGS) Log.d(TAG, "onSurfaceChanged, nothing changed -> width: $width, height: $height")
+            }
         }
 
         override fun onComplicationDataUpdate(watchFaceComplicationId: Int, complicationData: ComplicationData) {
@@ -444,7 +496,13 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
                 return
             }
 
-            val data = complicationData.sanitize(this@PixelMinimalWatchFace, watchFaceComplicationId)
+            rawComplicationDataSparseArray.put(watchFaceComplicationId, complicationData)
+
+            val data = complicationData.sanitize(
+                this@PixelMinimalWatchFace,
+                watchFaceComplicationId,
+                complicationProviderSparseArray.get(watchFaceComplicationId),
+            )
 
             complicationDataSparseArray.put(watchFaceComplicationId, data)
             watchFaceDrawer.onComplicationDataUpdate(watchFaceComplicationId, data, complicationsColors)
@@ -584,27 +642,34 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
 
         fun isAmbientMode(): Boolean = ambient
 
-        override fun onVisibilityChanged(visible: Boolean) {
-            super.onVisibilityChanged(visible)
+        override fun onVisibilityChanged(isVisible: Boolean) {
+            super.onVisibilityChanged(isVisible)
 
-            if (DEBUG_LOGS) Log.d(TAG, "onVisibilityChanged: $visible")
+            if (isVisible != visible) {
+                if (DEBUG_LOGS) Log.d(TAG, "onVisibilityChanged: $isVisible, changed")
 
-            if (visible) {
-                registerReceiver()
+                if (isVisible) {
+                    registerReceiver()
+                    updateComplicationProvidersInfoAsync()
 
-                /* Update time zone in case it changed while we weren't visible. */
-                calendar.timeZone = TimeZone.getDefault()
+                    /* Update time zone in case it changed while we weren't visible. */
+                    calendar.timeZone = TimeZone.getDefault()
 
-                val newComplicationColors = storage.getComplicationColors()
-                if( newComplicationColors != complicationsColors ) {
-                    complicationsColors = newComplicationColors
-                    setComplicationsActiveAndAmbientColors(complicationsColors)
+                    val newComplicationColors = storage.getComplicationColors()
+                    if( newComplicationColors != complicationsColors ) {
+                        complicationsColors = newComplicationColors
+                        setComplicationsActiveAndAmbientColors(complicationsColors)
+                    }
+
+                    invalidate()
+                } else {
+                    unregisterReceiver()
                 }
-
-                invalidate()
             } else {
-                unregisterReceiver()
+                if (DEBUG_LOGS) Log.d(TAG, "onVisibilityChanged: $isVisible, nothing changed")
             }
+
+            visible = isVisible
         }
 
         private fun registerReceiver() {
