@@ -15,6 +15,7 @@
  */
 package com.benoitletondor.pixelminimalwatchface
 
+import android.annotation.SuppressLint
 import android.app.*
 import android.content.*
 import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
@@ -300,9 +301,10 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
         )
         private val alarmManager = getSystemService(ALARM_SERVICE) as AlarmManager
         private var nextGalaxyWatch4BugAlarmTargetMinute: Int? = null
+        @SuppressLint("NewApi")
         private fun handleGalaxyWatch4WearOSJanuaryBug() {
             try {
-                if (Device.isSamsungGalaxyWatch && Build.VERSION.SECURITY_PATCH.startsWith("2022") && ambient) {
+                if (isGalaxyWatch4BuggyWearOSVersion && ambient) {
                     val now = LocalDateTime.now()
                     val seconds = now.second
                     val targetMinute = now.minute + 1
@@ -442,7 +444,7 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
                 return
             }
 
-            val data = complicationData.sanitize(this@PixelMinimalWatchFace)
+            val data = complicationData.sanitize(this@PixelMinimalWatchFace, watchFaceComplicationId)
 
             complicationDataSparseArray.put(watchFaceComplicationId, data)
             watchFaceDrawer.onComplicationDataUpdate(watchFaceComplicationId, data, complicationsColors)
