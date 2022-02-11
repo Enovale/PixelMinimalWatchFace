@@ -32,7 +32,6 @@ import android.content.ContentResolver
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.support.wearable.complications.ComplicationData.TYPE_NO_DATA
 import android.support.wearable.complications.ComplicationProviderInfo
 import androidx.core.content.pm.PackageInfoCompat
 import com.benoitletondor.pixelminimalwatchface.PixelMinimalWatchFace
@@ -71,7 +70,7 @@ fun ComplicationData.sanitize(
         }
 
         return when {
-            providerInfo.isSamsungHeartRateBadComplicationData() -> {
+            providerInfo.isSamsungHeartRateProvider() -> {
                 val shortText = context.getSamsungHeartRateData() ?: "?"
 
                 val builder = ComplicationData.Builder(ComplicationData.TYPE_SHORT_TEXT)
@@ -94,7 +93,7 @@ fun ComplicationData.sanitize(
                     )
                     .build()
             }
-            providerInfo.isSamsungCalendarBadComplicationData(this) -> {
+            providerInfo.isSamsungCalendarBuggyProvider() -> {
                 val nextEvent = context.getNextCalendarEvent() ?: return this
                 val isLargeWidget = PixelMinimalWatchFace.BOTTOM_COMPLICATION_ID == watchFaceComplicationId
 
@@ -135,9 +134,9 @@ private fun ComplicationProviderInfo.isSamsungHealthBadComplicationData(context:
 
     return when(sHealthVersion) {
         S_HEALTH_6_20_0_016 -> isSamsungDailyActivityBadComplicationData() ||
-            isSamsungStepsBadComplicationData() ||
-            isSamsungSleepBadComplicationData() ||
-            isSamsungWaterBadComplicationData()
+            isSamsungStepsProvider() ||
+            isSamsungSleepProvider() ||
+            isSamsungWaterSleepProvider()
         S_HEALTH_6_21_0_051 -> isSamsungDailyActivityBadComplicationData()
         else -> false
     }
@@ -147,26 +146,25 @@ private fun ComplicationProviderInfo.isSamsungDailyActivityBadComplicationData()
     return appName in samsungHealthAppNames && providerName in dailyActivityProviderNames
 }
 
-private fun ComplicationProviderInfo.isSamsungCalendarBadComplicationData(complicationData: ComplicationData): Boolean {
+fun ComplicationProviderInfo.isSamsungCalendarBuggyProvider(): Boolean {
     return isGalaxyWatch4BuggyWearOSVersion
         && appName in oneUIWatchHomeAppNames
         && providerName in calendarProviderNames
-        && complicationData.type == TYPE_NO_DATA
 }
 
-private fun ComplicationProviderInfo.isSamsungStepsBadComplicationData(): Boolean {
+private fun ComplicationProviderInfo.isSamsungStepsProvider(): Boolean {
     return appName in samsungHealthAppNames && providerName in stepsProviderNames
 }
 
-private fun ComplicationProviderInfo.isSamsungSleepBadComplicationData(): Boolean {
+private fun ComplicationProviderInfo.isSamsungSleepProvider(): Boolean {
     return appName in samsungHealthAppNames && providerName in sleepProviderNames
 }
 
-private fun ComplicationProviderInfo.isSamsungWaterBadComplicationData(): Boolean {
+private fun ComplicationProviderInfo.isSamsungWaterSleepProvider(): Boolean {
     return appName in samsungHealthAppNames && providerName in waterProviderNames
 }
 
-private fun ComplicationProviderInfo.isSamsungHeartRateBadComplicationData(): Boolean {
+private fun ComplicationProviderInfo.isSamsungHeartRateProvider(): Boolean {
     return appName in samsungHealthAppNames && providerName in heartRateProviderNames
 }
 

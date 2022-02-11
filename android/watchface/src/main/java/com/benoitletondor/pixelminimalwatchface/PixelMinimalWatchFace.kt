@@ -118,6 +118,9 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
         private var phoneBatteryStatus: PhoneBatteryStatus = PhoneBatteryStatus.Unknown
         private var lastWatchBatteryStatus: WatchBatteryStatus = WatchBatteryStatus.Unknown
 
+        private var lastGalaxyWatch4CalendarWidgetForcedRefreshTs: Long? = null
+        private val calendarBuggyComplicationsIds = mutableSetOf<Int>()
+
         private var screenWidth = -1
         private var screenHeight = -1
         private var windowInsets: WindowInsets? = null
@@ -176,6 +179,7 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
 
             if (DEBUG_LOGS) Log.d(TAG, "initializeComplications, activeComplicationIds: $activeComplicationIds")
 
+            calendarBuggyComplicationsIds.clear()
             shouldShowWeather = false
             shouldShowBattery = false
             didForceGalaxyWatch4BatterySubscription = false
@@ -201,6 +205,14 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
                             complicationProviderSparseArray.put(watchFaceComplicationId, complicationProviderInfo)
                         } else {
                             complicationProviderSparseArray.remove(watchFaceComplicationId)
+                        }
+
+                        val isCalendarBuggyComplication = complicationProviderInfo?.isSamsungCalendarBuggyProvider() == true
+                        if (isCalendarBuggyComplication) {
+                            if (DEBUG_LOGS) Log.d(TAG, "updateComplicationProvidersInfoAsync, buggy calendar complication detected, id: $watchFaceComplicationId")
+                            calendarBuggyComplicationsIds.add(watchFaceComplicationId)
+                        } else {
+                            calendarBuggyComplicationsIds.remove(watchFaceComplicationId)
                         }
 
                         if (currentValue?.toString() != complicationProviderInfo?.toString()) {
@@ -331,6 +343,12 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
                 ensureBatteryDataIsUpToDateOrReload(lastWatchBatteryStatus)
             }
 
+            val lastGalaxyWatch4CalendarWidgetForcedRefreshTs = lastGalaxyWatch4CalendarWidgetForcedRefreshTs
+            if (calendarBuggyComplicationsIds.isNotEmpty() &&
+                (lastGalaxyWatch4CalendarWidgetForcedRefreshTs == null || System.currentTimeMillis() - lastGalaxyWatch4CalendarWidgetForcedRefreshTs >= HALF_HOUR_MS)) {
+                forceCalendarWidgetRefresh()
+            }
+
             invalidate()
 
             handleGalaxyWatch4WearOSJanuaryBug()
@@ -373,6 +391,18 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Error while handling january wearos bug", e)
+            }
+        }
+
+        private fun forceCalendarWidgetRefresh() {
+            this.lastGalaxyWatch4CalendarWidgetForcedRefreshTs = System.currentTimeMillis()
+
+            if (DEBUG_LOGS) Log.w(TAG, "Forcing a complication refresh for calendar refresh")
+
+            for(id in calendarBuggyComplicationsIds) {
+                rawComplicationDataSparseArray.get(id, null)?.let { complicationData ->
+                    onComplicationDataUpdate(id, complicationData)
+                }
             }
         }
         // ------------------------------------
@@ -809,6 +839,8 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
     }
 
     companion object {
+        private const val HALF_HOUR_MS = 1000*60*30
+
         const val LEFT_COMPLICATION_ID = 100
         const val RIGHT_COMPLICATION_ID = 101
         const val MIDDLE_COMPLICATION_ID = 102
