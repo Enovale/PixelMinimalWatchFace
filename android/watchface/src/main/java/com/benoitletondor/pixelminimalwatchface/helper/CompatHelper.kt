@@ -28,9 +28,12 @@ import com.benoitletondor.pixelminimalwatchface.R
 import org.json.JSONObject
 import kotlin.math.roundToInt
 import android.content.ComponentName
+import android.content.ContentResolver
 import android.content.Intent
 import android.os.Build
+import android.os.Bundle
 import android.support.wearable.complications.ComplicationData.TYPE_NO_DATA
+import android.support.wearable.complications.ComplicationProviderInfo
 import androidx.core.content.pm.PackageInfoCompat
 import com.benoitletondor.pixelminimalwatchface.PixelMinimalWatchFace
 import java.text.SimpleDateFormat
@@ -49,14 +52,26 @@ fun Context.getTopAndBottomMargins(): Float {
 
 private val timeDateFormatter = SimpleDateFormat("HH:mm", Locale.US)
 
-fun ComplicationData.sanitize(context: Context, watchFaceComplicationId: Int): ComplicationData {
+fun ComplicationData.sanitize(
+    context: Context,
+    watchFaceComplicationId: Int,
+    providerInfo: ComplicationProviderInfo?,
+): ComplicationData {
     try {
         if (!Device.isSamsungGalaxyWatch) {
             return this
         }
 
+        if (providerInfo == null) {
+            return this
+        }
+
+        if (type == ComplicationData.TYPE_EMPTY) {
+            return this
+        }
+
         return when {
-            isSamsungHeartRateBadComplicationData(context) -> {
+            providerInfo.isSamsungHeartRateBadComplicationData() -> {
                 val shortText = context.getSamsungHeartRateData() ?: "?"
 
                 val builder = ComplicationData.Builder(ComplicationData.TYPE_SHORT_TEXT)
@@ -65,7 +80,7 @@ fun ComplicationData.sanitize(context: Context, watchFaceComplicationId: Int): C
                     .setIcon(Icon.createWithResource(context, R.drawable.ic_heart_complication))
                 builder.build()
             }
-            isSamsungHealthBadComplicationData(context) -> {
+            providerInfo.isSamsungHealthBadComplicationData(context) -> {
                 ComplicationData.Builder(this)
                     .setTapAction(
                         PendingIntent.getActivity(
@@ -79,7 +94,7 @@ fun ComplicationData.sanitize(context: Context, watchFaceComplicationId: Int): C
                     )
                     .build()
             }
-            isSamsungCalendarBadComplicationData() -> {
+            providerInfo.isSamsungCalendarBadComplicationData(this) -> {
                 val nextEvent = context.getNextCalendarEvent() ?: return this
                 val isLargeWidget = PixelMinimalWatchFace.BOTTOM_COMPLICATION_ID == watchFaceComplicationId
 
@@ -111,7 +126,7 @@ fun ComplicationData.sanitize(context: Context, watchFaceComplicationId: Int): C
     }
 }
 
-private fun ComplicationData.isSamsungHealthBadComplicationData(context: Context): Boolean {
+private fun ComplicationProviderInfo.isSamsungHealthBadComplicationData(context: Context): Boolean {
     val sHealthVersion = try {
         context.getShealthAppVersion()
     } catch (e: Throwable) {
@@ -119,80 +134,40 @@ private fun ComplicationData.isSamsungHealthBadComplicationData(context: Context
     }
 
     return when(sHealthVersion) {
-        S_HEALTH_6_20_0_016 -> isSamsungDailyActivityBadComplicationData(sHealthVersion) ||
-            isSamsungStepsBadComplicationData(context) ||
+        S_HEALTH_6_20_0_016 -> isSamsungDailyActivityBadComplicationData() ||
+            isSamsungStepsBadComplicationData() ||
             isSamsungSleepBadComplicationData() ||
             isSamsungWaterBadComplicationData()
-        S_HEALTH_6_21_0_051 -> isSamsungDailyActivityBadComplicationData(sHealthVersion)
+        S_HEALTH_6_21_0_051 -> isSamsungDailyActivityBadComplicationData()
         else -> false
     }
 }
 
-@SuppressLint("NewApi")
-private fun ComplicationData.isSamsungDailyActivityBadComplicationData(sHealthVersion: Long): Boolean {
-    return icon != null &&
-        icon.type == Icon.TYPE_RESOURCE &&
-        icon.resPackage == S_HEALTH_PACKAGE_NAME &&
-        icon.resId == when(sHealthVersion) {
-            S_HEALTH_6_21_0_051 -> 2131231581
-            else -> 2131231593
-        }
+private fun ComplicationProviderInfo.isSamsungDailyActivityBadComplicationData(): Boolean {
+    return appName in samsungHealthAppNames && providerName in dailyActivityProviderNames
 }
 
-private fun ComplicationData.isSamsungCalendarBadComplicationData(): Boolean {
-    return isGalaxyWatch4BuggyWearOSVersion && type == TYPE_NO_DATA
+private fun ComplicationProviderInfo.isSamsungCalendarBadComplicationData(complicationData: ComplicationData): Boolean {
+    return isGalaxyWatch4BuggyWearOSVersion
+        && appName in oneUIWatchHomeAppNames
+        && providerName in calendarProviderNames
+        && complicationData.type == TYPE_NO_DATA
 }
 
-private fun ComplicationData.isSamsungStepsBadComplicationData(context: Context): Boolean {
-    return shortTitle != null &&
-        samsungStepComplicationShortTextValues.contains(shortTitle.getText(context, System.currentTimeMillis())) &&
-        imageContentDescription != null
+private fun ComplicationProviderInfo.isSamsungStepsBadComplicationData(): Boolean {
+    return appName in samsungHealthAppNames && providerName in stepsProviderNames
 }
 
-@SuppressLint("NewApi")
-private fun ComplicationData.isSamsungSleepBadComplicationData(): Boolean {
-    return icon != null &&
-        icon.type == Icon.TYPE_RESOURCE &&
-        icon.resPackage == S_HEALTH_PACKAGE_NAME &&
-        icon.resId == 2131231610
+private fun ComplicationProviderInfo.isSamsungSleepBadComplicationData(): Boolean {
+    return appName in samsungHealthAppNames && providerName in sleepProviderNames
 }
 
-@SuppressLint("NewApi")
-private fun ComplicationData.isSamsungWaterBadComplicationData(): Boolean {
-    return icon != null &&
-        icon.type == Icon.TYPE_RESOURCE &&
-        icon.resPackage == S_HEALTH_PACKAGE_NAME &&
-        icon.resId == 2131231614
+private fun ComplicationProviderInfo.isSamsungWaterBadComplicationData(): Boolean {
+    return appName in samsungHealthAppNames && providerName in waterProviderNames
 }
 
-@SuppressLint("NewApi")
-private fun ComplicationData.isSamsungHeartRateBadComplicationData(context: Context): Boolean {
-    if (shortText != null && samsungHeartRateComplicationShortTextValues.contains(shortText.getText(context, System.currentTimeMillis()))) {
-        return true
-    }
-
-    if (icon != null &&
-        icon.type == Icon.TYPE_RESOURCE &&
-        icon.resPackage == S_HEALTH_PACKAGE_NAME &&
-        icon.resId.matchesHR(context)) {
-        return true
-    }
-
-    return false
-}
-
-private fun Int.matchesHR(context: Context): Boolean {
-    val sHealthVersion = try {
-        context.getShealthAppVersion()
-    } catch (e: Throwable) {
-        null
-    }
-
-    return when {
-        sHealthVersion == S_HEALTH_6_21_0_051 -> this == 2131231595
-        sHealthVersion != null && sHealthVersion >= S_HEALTH_6_20_0_016 -> this == 2131231607
-        else -> this == 2131231612
-    }
+private fun ComplicationProviderInfo.isSamsungHeartRateBadComplicationData(): Boolean {
+    return appName in samsungHealthAppNames && providerName in heartRateProviderNames
 }
 
 private fun Context.getShealthAppVersion(): Long {
@@ -203,9 +178,14 @@ private fun Context.getShealthAppVersion(): Long {
 @SuppressLint("NewApi", "Range")
 private fun Context.getNextCalendarEvent(): CalendarEvent? {
     try {
-        val uri = "content://com.samsung.android.calendar.watch/nextEvents"
+        val uri = "content://$S_CALENDAR_PACKAGE_NAME.watch/nextEvents"
 
-        contentResolver.query(Uri.parse(uri), null, null, null)?.use { query ->
+        contentResolver.query(
+            Uri.parse(uri),
+            null,
+            Bundle().apply { putInt(ContentResolver.QUERY_ARG_LIMIT, 1) },
+            null,
+        )?.use { query ->
             if (query.count == 0) {
                 return null
             }
@@ -213,9 +193,8 @@ private fun Context.getNextCalendarEvent(): CalendarEvent? {
             query.moveToFirst()
             val eventTitle = query.getString(query.getColumnIndex("title"))
             val eventStartTimestamp = query.getLong(query.getColumnIndex("begin"))
-            val isAllDay = query.getInt(query.getColumnIndex("allDay")) != 1
 
-            return CalendarEvent(eventTitle, eventStartTimestamp, isAllDay)
+            return CalendarEvent(eventTitle, eventStartTimestamp)
         }
 
         return null
@@ -228,7 +207,6 @@ private fun Context.getNextCalendarEvent(): CalendarEvent? {
 private data class CalendarEvent(
     val title: String,
     val startTimestamp: Long,
-    val isAllDay: Boolean,
 )
 
 private fun Context.getSamsungHeartRateData(): String? {
@@ -269,7 +247,277 @@ private const val S_CALENDAR_PACKAGE_NAME = "com.samsung.android.calendar"
 private const val S_HEALTH_6_20_0_016 = 6200016L
 private const val S_HEALTH_6_21_0_051 = 6210051L
 
-private val samsungStepComplicationShortTextValues = setOf(
+private val oneUIWatchHomeAppNames = setOf(
+    "One UI Watch Home",
+    "شاشة One UI الرئيسية للساعة",
+    "One UI ঘড়ীৰ হোম",
+    "One UI Saat Əsas ekranı",
+    "Галоўны экран One UI для гадз.",
+    "Начало на часовник с One UI",
+    "One UI ঘড়ির হোম",
+    "One UI ঘড়ির হোম",
+    "Početni ekran za One UI Watch",
+    "Inici de rellotge One UI",
+    "One UI pro chytré hodinky",
+    "Startside for One UI til ur",
+    "One UI-Uhr-Startbildschirm",
+    "Αρχική ρολογιού One UI",
+    "One UI Watch Home",
+    "Inicio de One UI Watch",
+    "Inicio de One UI Watch",
+    "One UI kella avaekraan",
+    "One UI erlojuen pant. nagusia",
+    "صفحه اصلی ساعت مچی One UI",
+    "One UI -kellon etusivu",
+    "Écran d'accueil de montre One UI",
+    "Écran d'accueil de montre One UI",
+    "Baile Uaireadóra One UI",
+    "Inicio de reloxo One UI",
+    "One UI ઘડિયાળનું હોમ",
+    "One UI घड़ी होम",
+    "Početni zaslon za One UI Watch",
+    "One UI kezdőképernyő az órán",
+    "One UI Ժամացույցի Հիմն. էկրան",
+    "Beranda One UI Watch",
+    "Heimaskjár One UI-úrs",
+    "Home di One UI Watch",
+    "בית One UI לשעון",
+    "One UI時計ホーム",
+    "One UI საათის საწყისი გვერდი",
+    "One UI сағат-ң Бастапқы пернесі",
+    "គេហ One UI Watch",
+    "One UI Watch ಹೋಮ್",
+    "One UI Watch 홈",
+    "One UI Үй Көзөмөлү",
+    "One UI Watch Home",
+    "„One UI“ laikrodžio pradžia",
+    "One UI pulksteņa sākuma ekrāns",
+    "One UI Watch Home",
+    "One UI വാച്ച് ഹോം",
+    "One UI Цагийн Гэр",
+    "One UI घड्याळ होम",
+    "One UI Watch Home",
+    "One UI Watch Home",
+    "One UI Watch Home",
+    "One UI-klokkestart",
+    "One UI वाच होम",
+    "One UI वाच होम",
+    "Startpagina One UI horloge",
+    "One UI ଘଣ୍ଟା ହୋମ୍",
+    "One UI Watch ਹੋਮ",
+    "Ekran główny One UI do zegarka",
+    "Ekran główny One UI do zegarka",
+    "Tela inicial do One UI Watch",
+    "One UI Watch Home",
+    "Tasta Acasă a ceasului One UI",
+    "One UI Watch Home",
+    "One UI ඔරලෝසු නිවහන",
+    "One UI ඔරලෝසු නිවහන",
+    "Domovská obr. One UI pre hodinky",
+    "Domača stran One UI za uro",
+    "Baza One UI për orën",
+    "One UI početni ekran sata",
+    "Hemskärm för One UI-klocka",
+    "One UI வாட்ச் முகப்பு",
+    "One UI గడియారం హోమ్",
+    "Экрани асосии One UI барои соат",
+    "หน้าหลัก One UI Watch",
+    "One UI sagat öýi",
+    "One UI Watch Home",
+    "One UI Watch Ana ekranı",
+    "One UI Watch Home",
+    "One UI واچ ہوم",
+    "One UI Soat asosiy tugmasi",
+    "Trang chủ One UI Watch",
+    "One UI 手表主屏幕",
+    "One UI Watch Home",
+    "One UI 手錶首頁",
+)
+
+private val samsungHealthAppNames = setOf(
+    "Samsung Health",
+    "三星健康",
+)
+
+private val waterProviderNames = setOf(
+    "Water",
+    "ماء",
+    "পানী",
+    "Su",
+    "Вада",
+    "Вода",
+    "পানি",
+    "জল",
+    "ཆུ།",
+    "Voda",
+    "Aigua",
+    "Voda",
+    "Vand",
+    "Wasser",
+    "Νερό",
+    "Water",
+    "Agua",
+    "Agua",
+    "Vesi",
+    "Ura",
+    "آب",
+    "Vesi",
+    "Eau",
+    "Eau",
+    "Uisce",
+    "Auga",
+    "પાણી",
+    "पानी",
+    "Voda",
+    "Víz",
+    "Ջուր",
+    "Air",
+    "Vatn",
+    "Acqua",
+    "מים",
+    "水分",
+    "წყალი",
+    "Су",
+    "ទឹក",
+    "ನೀರು",
+    "물",
+    "Суу",
+    "ນໍ້າ",
+    "Vanduo",
+    "Ūdens",
+    "Вода",
+    "വാട്ടര്‍",
+    "Ус",
+    "पाणी",
+    "Air",
+    "ရေ",
+    "ေရ",
+    "Vann",
+    "जल",
+    "जल",
+    "Water",
+    "ଜଳ",
+    "ਪਾਣੀ",
+    "Woda",
+    "Woda",
+    "Água",
+    "Água",
+    "Apă",
+    "Вода",
+    "ජලය",
+    "ජලය",
+    "Voda",
+    "Voda",
+    "Ujë",
+    "Voda",
+    "Vatten",
+    "நீர்",
+    "నీరు",
+    "Об",
+    "น้ำ",
+    "Suw",
+    "Tubig",
+    "Su",
+    "سۇ",
+    "Вода",
+    "پانی",
+    "Suv",
+    "Nước",
+    "水",
+    "水",
+    "水",
+)
+
+private val sleepProviderNames = setOf(
+    "Sleep",
+    "النوم",
+    "নিদ্ৰা",
+    "Yuxu",
+    "Сон",
+    "Сън",
+    "ঘুম",
+    "নিদ্রা",
+    "གཉིད་མལ།",
+    "Spavanje",
+    "Repòs",
+    "Spánek",
+    "Søvn",
+    "Schlaf",
+    "Ύπνος",
+    "Sleep",
+    "Sueño",
+    "Sueño",
+    "Magamine",
+    "Lo",
+    "خواب",
+    "Uni",
+    "Sommeil",
+    "Sommeil",
+    "Codladh",
+    "Sono",
+    "નિદ્રા",
+    "निद्रा",
+    "Spavanje",
+    "Alvás",
+    "Քուն",
+    "Tidur",
+    "Svefn",
+    "Sonno",
+    "שינה",
+    "睡眠",
+    "ძილი",
+    "Ұйқы",
+    "គេង",
+    "ನಿದ್ರೆ",
+    "수면",
+    "Уйку",
+    "ນອນຫຼັບ",
+    "Miegas",
+    "Miegs",
+    "Спиење",
+    "ഉറക്കം",
+    "Унтлага",
+    "झोप",
+    "Tidur",
+    "အိပ်စက်ခြင်း",
+    "အိပ္စက္ျခင္း",
+    "Søvn",
+    "शयन",
+    "शयन",
+    "Slaap",
+    "ଶୟନ",
+    "ਨੀਂਦ",
+    "Sen",
+    "Spanie",
+    "Sono",
+    "Dormir",
+    "Somn",
+    "Сон",
+    "නින්ද",
+    "නින්ද",
+    "Spánok",
+    "Spanje",
+    "Gjumë",
+    "Spavanje",
+    "Sömn",
+    "உறக்கம்",
+    "నిద్ర స్థితి",
+    "Хоб",
+    "การนอนหลับ",
+    "Uky",
+    "Pagtulog",
+    "Uyku",
+    "睡眠",
+    "Сон",
+    "سلیپ",
+    "Uyqu",
+    "Ngủ",
+    "睡眠",
+    "睡眠",
+    "睡眠",
+)
+
+private val stepsProviderNames = setOf(
     "Steps",
     "الخطوات",
     "খোজ",
@@ -285,15 +533,19 @@ private val samsungStepComplicationShortTextValues = setOf(
     "Skridt",
     "Schritte",
     "Βήματα",
+    "Steps",
     "Pasos",
     "Sammud",
     "Pausoak",
-    "قدم‌ها",
+    "قدمها",
     "Askeleet",
     "Pas",
+    "Pas",
     "Céim",
+    "Pasos",
     "પગલાં",
     "कदम",
+    "Koraci",
     "Lépések",
     "Քայլեր",
     "Langkah",
@@ -306,6 +558,7 @@ private val samsungStepComplicationShortTextValues = setOf(
     "ជំហាន",
     "ಹೆಜ್ಜೆಗಳು",
     "걸음 수",
+    "Кадамдар",
     "ກ້າວ",
     "Žingsniai",
     "Soļi",
@@ -318,14 +571,17 @@ private val samsungStepComplicationShortTextValues = setOf(
     "ေျခလွမ္းမ်ား",
     "Skritt",
     "चरणहरू",
+    "चरणहरू",
     "Stappen",
     "ପାଦଗୁଡିକ",
     "ਕਦਮ",
     "Kroki",
     "Krokōw",
     "Passos",
+    "Passos",
     "Pași",
     "Шаги",
+    "පියවර",
     "පියවර",
     "Kroky",
     "Koraki",
@@ -341,84 +597,273 @@ private val samsungStepComplicationShortTextValues = setOf(
     "Adım",
     "计步",
     "Кроки",
-    "مراحل,",
+    "مراحل",
     "Qadaml",
     "Các bước",
     "计步",
+    "步數",
+    "步數",
 )
 
-private val samsungHeartRateComplicationShortTextValues = setOf(
-    "心跳率",
-    "心率",
-    "Nhịp tim",
-    "Yurak puls",
-    "شرح قلب",
-    "Пульс",
-    "Klp atş hz",
-    "Heart rate",
-    "Ýürek ritm",
-    "อัตราการเต้นหัวใจ",
-    "Тапиши дил",
-    "హృదయ స్పందన రేటు",
-    "இ.து.விகி.",
-    "Puls",
-    "Rr. zemrës",
-    "Srč. utrip",
-    "Srdcový tep",
-    "හෘද වේගය",
-    "Пульс",
-    "Freq. card.",
-    "Freq. car.",
-    "Tyntno",
-    "ਦਿਲ ਦੀ ਗਤੀ",
-    "ହାର୍ଟ୍ ରେଟ୍",
-    "Hartslag",
-    "हृदय गति<",
-    "ႏွလုံး ခုန္ႏႈန္း",
-    "နှလုံး ခုန်နှုန်း",
-    "Kdr jntung",
-    "हृदय गती",
-    "Зүрхний цохилт",
-    "ഹൃദയമിടി.",
-    "Пулс",
-    "Sirds rit.",
-    "Šird. rit.",
-    "ອັດຕາຫົວໃຈເຕັ້ນ",
-    "Жүрөк согушу",
-    "심박수",
-    "ಹೃದಯ ಬಡಿತದ ದರ",
-    "Жүрек соғ.",
-    "პულსი",
-    "心拍数",
-    "דופק לב",
-    "Freq. card.",
-    "Púls",
-    "Dnyt jntng",
-    "Սրտխփ. հճխ",
-    "Pulzus",
-    "Otk. srca",
-    "हृदय गति",
-    "હૃદય દર",
-    "Ritmo car.",
-    "Croíráta",
-    "Fréq. car.",
-    "Cardio",
-    "Syke",
-    "ضربان قلب",
-    "Bihotz frek.",
-    "Süd. löög.",
-    "RC",
-    "FC",
-    "Καρ. παλμ.",
-    "Srd. tep",
-    "Ritme card",
-    "སྙིང་འཕར་ཚད།",
-    "হৃদয. হার",
-    "হৃদস্পন্দনের হার",
-    "Сър. ритъм",
-    "Част. пул.",
-    "Ürək ritmi",
-    "হৃদ হাৰ",
+private val dailyActivityProviderNames = setOf(
+    "Daily Activity",
+    "النشاط اليومي",
+    "দৈনিক কাৰ্যকলাপ",
+    "Gündəlik fəaliyyət",
+    "Дзённая актыўнасць",
+    "Дневна активност",
+    "দৈনিক অ্যাক্টিভিটি",
+    "দৈনিক ক্রিয়াকলাপ",
+    "ཉིན་རེའི་འགུལ་སྐྱོད་ཚད།",
+    "Dnevna aktivnost",
+    "Activitat diària",
+    "Denní aktivita",
+    "Daglig aktivitet",
+    "Tägliche Aktivität",
+    "Ημερήσια δραστηριότητα",
+    "Daily activity",
+    "Actividad diaria",
+    "Igapäevane tegevus",
+    "Eguneroko jarduera",
+    "فعالیت روزانه",
+    "Päivittäinen aktiviteetti",
+    "Activité quotidienne",
+    "Activité quotidienne",
+    "Gníomhaíocht laethúil",
+    "Actividade diaria",
+    "દૈનિક પ્રવૃત્તિ",
+    "प्रतिदिन की गतिविधि",
+    "Dnevna aktivnost",
+    "Napi tevékenység",
+    "Օրական գործունեություն",
+    "Aktivitas harian",
+    "Dagleg hreyfing",
+    "Attività giornaliera",
+    "פעילות יומית",
+    "1日の活動",
+    "ყოველდღიური აქტივობა",
+    "Күнделікті әрекет",
+    "សកម្មភាព​ប្រចាំថ្ងៃ",
+    "ದೈನಂದಿನ ಚಟುವಟಿಕೆ",
+    "일일 활동",
+    "Күнүмдүк иш-аракет",
+    "ກິດຈະກຳປະຈຳວັນ",
+    "Kasdienė veikla",
+    "Dienas aktivitātes",
+    "Дневна активност",
+    "ദൈനംദിന പ്രവർത്തനം",
+    "Өдөр бүрийн үйл хөдлөл",
+    "दररोजची क्रिया",
+    "Aktiviti harian",
+    "နေ့စဉ် လှုပ်ရှားမှု",
+    "ေန႔စဥ္ လႈပ္ရွားမႈ",
+    "Daglig aktivitet",
+    "दैनिक क्रियाकलाप",
+    "दैनिक क्रियाकलाप",
+    "Dagelijkse activiteit",
+    "ଦୈନିକ କାର୍ଯ୍ୟକଳାପ",
+    "ਰੋਜ਼ਾਨਾ ਗਤੀਵਿਧੀ",
+    "Dzienna aktywność",
+    "Dziynno aktywnoś",
+    "Atividade diária",
+    "Actividade diária",
+    "Activitate zilnică",
+    "Активность",
+    "දිනපතා ක්‍රියාකාරකම",
+    "දිනපතා ක්‍රියාකාරකම",
+    "Denná aktivita",
+    "Dnevna dejavnost",
+    "Aktiviteti ditor",
+    "Dnevna aktivnost",
+    "Daglig aktivitet",
+    "தினசரி செயல்பாடு",
+    "రోజువారీ కార్యాచరణ",
+    "Фаъолияти ҳаррӯза",
+    "กิจกรรมประจำวัน",
+    "Günlük işjeňligi",
+    "Pang-araw-araw na aktibidad",
+    "Günlük etkinlik",
+    "كۈندىلىك ھەرىكەت",
+    "Фізичні навантаження за день",
+    "روزانہ کی سرگرمی",
+    "Kundalik faoliyat",
+    "Hoạt động hàng ngày",
+    "每日活动量",
+    "每日運動量",
+    "每日活動",
+)
+
+private val heartRateProviderNames = setOf(
+    "Heartrate",
     "سرعة ضربات القلب",
-    "HeartRate",
+    "হৃদ হাৰ",
+    "Ürək ritmi",
+    "Част. пул.",
+    "Сър. ритъм",
+    "হৃদস্পন্দনের হার",
+    "হৃদয. হার",
+    "སྙིང་འཕར་ཚད།",
+    "Puls",
+    "Ritme card",
+    "Srd. tep",
+    "Puls",
+    "Puls",
+    "Καρ. παλμ.",
+    "Heart rate",
+    "FC",
+    "RC",
+    "Süd. löög.",
+    "Bihotz frek.",
+    "ضربان قلب",
+    "Syke",
+    "Cardio",
+    "Fréq. car.",
+    "Croíráta",
+    "Ritmo car.",
+    "હૃદય દર",
+    "हृदय गति",
+    "Otk. srca",
+    "Pulzus",
+    "Սրտխփ. հճխ",
+    "Dnyt jntng",
+    "Púls",
+    "Freq. card.",
+    "דופק לב",
+    "心拍数",
+    "პულსი",
+    "Жүрек соғ.",
+    "អត្រាបេះដូង",
+    "ಹೃದಯ ಬಡಿತದ ದರ",
+    "심박수",
+    "Жүрөк согушу",
+    "ອັດຕາຫົວໃຈເຕັ້ນ",
+    "Šird. rit.",
+    "Sirds rit.",
+    "Пулс",
+    "ഹൃദയമിടി.",
+    "Зүрхний цохилт",
+    "हृदय गती",
+    "Kdr jntung",
+    "နှလုံး ခုန်နှုန်း",
+    "ႏွလုံး ခုန္ႏႈန္း",
+    "Puls",
+    "हृदय गति",
+    "हृदय गति",
+    "Hartslag",
+    "ହାର୍ଟ୍ ରେଟ୍",
+    "ਦਿਲ ਦੀ ਗਤੀ",
+    "Puls",
+    "Tyntno",
+    "Freq. car.",
+    "Freq. card.",
+    "Puls",
+    "Пульс",
+    "හෘද වේගය",
+    "හෘද වේගය",
+    "Srdcový tep",
+    "Srč. utrip",
+    "Rr. zemrës",
+    "Puls",
+    "Puls",
+    "இ.து.விகி.",
+    "హృదయ స్పందన రేటు",
+    "Тапиши дил",
+    "อัตราการเต้นหัวใจ",
+    "Ýürek ritm",
+    "Heart rate",
+    "Klp atş hz",
+    "心率",
+    "Пульс",
+    "شرح قلب",
+    "Yurak puls",
+    "Nhịp tim",
+    "心率",
+    "心率",
+    "心跳率",
+)
+
+private val calendarProviderNames = setOf(
+    "التقويم",
+    "কেলেণ্ডাৰ",
+    "Təqvim",
+    "Каляндар",
+    "Календар",
+    "ক্যালেন্ডার",
+    "ক্যালেন্ডার",
+    "Kalendar",
+    "Calendari",
+    "Kalendář",
+    "Kalender",
+    "Kalender",
+    "Ημερολόγιο",
+    "Calendar",
+    "Calendario",
+    "Calendario",
+    "Kalender",
+    "Egutegia",
+    "تقویم",
+    "Kalenteri",
+    "Calendrier",
+    "Calendrier",
+    "Féilire",
+    "Calendario",
+    "કૅલેન્ડર",
+    "कैलेंडर",
+    "Kalendar",
+    "Naptár",
+    "Օրացույց",
+    "Kalender",
+    "Dagatal",
+    "Calendario",
+    "לוח שנה",
+    "カレンダー",
+    "კალენდარი",
+    "Күнтізбе",
+    "ប្រតិទិន",
+    "ಕ್ಯಾಲೆಂಡರ್",
+    "캘린더",
+    "Календарь",
+    "ປະຕິທິນ",
+    "Kalendorius",
+    "Kalendārs",
+    "Календар",
+    "കലണ്ടര്‍",
+    "Хуанли",
+    "दिनदर्शिका",
+    "Kalendar",
+    "ပြက္ခဒိန်",
+    "ျပကၡဒိန္",
+    "Kalender",
+    "पात्रो",
+    "पात्रो",
+    "Agenda",
+    "କ୍ୟାଲେଣ୍ଡର୍",
+    "ਕੈਲੇਂਡਰ",
+    "Kalendarz",
+    "Kalyndŏrz",
+    "Calendário",
+    "Agenda",
+    "Calendar",
+    "Календарь",
+    "දිනදර්ශනය",
+    "දිනදර්ශනය",
+    "Kalendár",
+    "Koledar",
+    "Kalendari",
+    "Kalendar",
+    "Kalender",
+    "நாட்காட்டி",
+    "క్యాలెండర్",
+    "Тақвим",
+    "ปฏิทิน",
+    "Senenama",
+    "Kalendaryo",
+    "Takvim",
+    "Календар",
+    "کیلنڈر",
+    "Kalendar",
+    "Lịch",
+    "日历",
+    "日曆",
+    "日曆",
 )
