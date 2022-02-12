@@ -28,6 +28,12 @@
     <!-- Read data from samsung health -->
     <uses-permission android:name="com.samsung.android.wear.shealth.healthdataprovider.permission.READ" />
 
+    <!-- Read data from samsung calendar -->
+    <uses-permission android:name="com.samsung.android.calendar.permission.READ" />
+
+    <!-- Temporary to fix Samsung WearOS january update bug, to remove when fixed -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+
     <!-- For API 30+, we need to query packages to display icons from them in complications -->
     <uses-permission
         android:name="android.permission.QUERY_ALL_PACKAGES"

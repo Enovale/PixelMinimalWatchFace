@@ -520,6 +520,7 @@ class ShowWeatherViewHolder(
 ) : RecyclerView.ViewHolder(view) {
     private val showWeatherViewSwitch: Switch = view.findViewById(R.id.config_list_show_weather_switch)
     private val goToWeatherAppButton: Button = view.findViewById(R.id.config_list_open_weather_app_button)
+    private val scaleDisclaimerTextView: TextView = view.findViewById(R.id.config_list_show_weather_scale_disclaimer)
 
     init {
         showWeatherViewSwitch.setOnCheckedChangeListener { _, checked ->
@@ -534,6 +535,7 @@ class ShowWeatherViewHolder(
     fun setShowWeatherViewSwitchChecked(checked: Boolean) {
         showWeatherViewSwitch.isChecked = checked
         goToWeatherAppButton.isVisible = checked
+        scaleDisclaimerTextView.isVisible = checked
     }
 }
 
