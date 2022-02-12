@@ -40,6 +40,7 @@
     <string name="config_date_format_short">Use short date format</string>
     <string name="config_show_wear_os_logo">Show WearOS logo</string>
     <string name="config_show_weather">Show weather after date</string>
+    <string name="config_show_weather_unit_warning">Temperature scale (°F or °C) is controlled by the Weather app. The watch face has no control over it.</string>
     <string name="config_show_filled_time_ambient">Use normal in place of thin time style in ambient mode</string>
     <string name="config_show_thin_time_regular">Use thin time style when watch is on</string>
     <string name="config_show_wear_os_logo_premium">WearOS logo as middle widget</string>
