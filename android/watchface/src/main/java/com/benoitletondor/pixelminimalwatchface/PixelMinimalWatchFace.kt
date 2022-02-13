@@ -530,6 +530,7 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
 
             val data = complicationData.sanitize(
                 this@PixelMinimalWatchFace,
+                storage,
                 watchFaceComplicationId,
                 complicationProviderSparseArray.get(watchFaceComplicationId),
             )
