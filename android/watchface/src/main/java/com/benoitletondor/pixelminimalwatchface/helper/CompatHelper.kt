@@ -35,6 +35,7 @@ import android.os.Bundle
 import android.support.wearable.complications.ComplicationProviderInfo
 import androidx.core.content.pm.PackageInfoCompat
 import com.benoitletondor.pixelminimalwatchface.PixelMinimalWatchFace
+import com.benoitletondor.pixelminimalwatchface.model.Storage
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -49,10 +50,12 @@ fun Context.getTopAndBottomMargins(): Float {
     }
 }
 
-private val timeDateFormatter = SimpleDateFormat("HH:mm", Locale.US)
+private val timeDateFormatter24h = SimpleDateFormat("HH:mm", Locale.US)
+private val timeDateFormatter12h = SimpleDateFormat("h:mm", Locale.US)
 
 fun ComplicationData.sanitize(
     context: Context,
+    storage: Storage,
     watchFaceComplicationId: Int,
     providerInfo: ComplicationProviderInfo?,
 ): ComplicationData {
@@ -111,7 +114,12 @@ fun ComplicationData.sanitize(
                 if (isLargeWidget) {
                     builder.setLongText(ComplicationText.plainText(nextEvent.title))
                 } else {
-                    val formattedTime = timeDateFormatter.format(Date(nextEvent.startTimestamp))
+                    val eventDate = Date(nextEvent.startTimestamp)
+                    val formattedTime = if (storage.getUse24hTimeFormat()) {
+                        timeDateFormatter24h.format(eventDate)
+                    } else {
+                        timeDateFormatter12h.format(eventDate)
+                    }
                     builder.setShortText(ComplicationText.plainText(formattedTime))
                 }
 
