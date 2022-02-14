@@ -140,12 +140,12 @@ private fun ComplicationProviderInfo.isSamsungHealthBadComplicationData(context:
         return false
     }
 
-    return when(sHealthVersion) {
-        S_HEALTH_6_20_0_016 -> isSamsungDailyActivityBadComplicationData() ||
+    return when {
+        sHealthVersion == S_HEALTH_6_20_0_016  -> isSamsungDailyActivityBadComplicationData() ||
             isSamsungStepsProvider() ||
             isSamsungSleepProvider() ||
             isSamsungWaterSleepProvider()
-        S_HEALTH_6_21_0_051 -> isSamsungDailyActivityBadComplicationData()
+        sHealthVersion >= S_HEALTH_6_21_0_051 -> isSamsungDailyActivityBadComplicationData()
         else -> false
     }
 }
