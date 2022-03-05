@@ -30,16 +30,26 @@ import kotlin.math.roundToInt
 import android.content.ComponentName
 import android.content.ContentResolver
 import android.content.Intent
+import android.database.ContentObserver
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.support.wearable.complications.ComplicationProviderInfo
 import androidx.core.content.pm.PackageInfoCompat
 import com.benoitletondor.pixelminimalwatchface.PixelMinimalWatchFace
 import com.benoitletondor.pixelminimalwatchface.model.Storage
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.channels.sendBlocking
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.flow
 import java.text.SimpleDateFormat
 import java.util.*
 
-val isGalaxyWatch4BuggyWearOSVersion = Device.isSamsungGalaxyWatch && Build.VERSION.SECURITY_PATCH.startsWith("2022")
+val isGalaxyWatch4AODBuggyWearOSVersion = Device.isSamsungGalaxyWatch && Build.VERSION.INCREMENTAL.equals("R860XXU1EVA8", ignoreCase = true)
+val isGalaxyWatch4CalendarBuggyWearOSVersion = Device.isSamsungGalaxyWatch && Build.VERSION.SECURITY_PATCH.startsWith("2022")
 
 fun Context.getTopAndBottomMargins(): Float {
     return when {
@@ -52,6 +62,8 @@ fun Context.getTopAndBottomMargins(): Float {
 
 private val timeDateFormatter24h = SimpleDateFormat("HH:mm", Locale.US)
 private val timeDateFormatter12h = SimpleDateFormat("h:mm", Locale.US)
+
+private var heartRateIcon: Icon? = null
 
 fun ComplicationData.sanitize(
     context: Context,
@@ -79,7 +91,11 @@ fun ComplicationData.sanitize(
                 val builder = ComplicationData.Builder(ComplicationData.TYPE_SHORT_TEXT)
                     .setTapAction(tapAction)
                     .setShortText(ComplicationText.plainText(shortText))
-                    .setIcon(Icon.createWithResource(context, R.drawable.ic_heart_complication))
+                    .setIcon(heartRateIcon ?: kotlin.run {
+                        val icon =  Icon.createWithResource(context, R.drawable.ic_heart_complication)
+                        heartRateIcon = icon
+                        icon
+                    })
                 builder.build()
             }
             providerInfo.isSamsungHealthBadComplicationData(context) -> {
@@ -141,21 +157,21 @@ private fun ComplicationProviderInfo.isSamsungHealthBadComplicationData(context:
     }
 
     return when {
-        sHealthVersion == S_HEALTH_6_20_0_016  -> isSamsungDailyActivityBadComplicationData() ||
+        sHealthVersion == S_HEALTH_6_20_0_016  -> isSamsungDailyActivityBuggyProvider() ||
             isSamsungStepsProvider() ||
             isSamsungSleepProvider() ||
             isSamsungWaterSleepProvider()
-        sHealthVersion >= S_HEALTH_6_21_0_051 -> isSamsungDailyActivityBadComplicationData()
+        sHealthVersion >= S_HEALTH_6_21_0_051 -> isSamsungDailyActivityBuggyProvider()
         else -> false
     }
 }
 
-private fun ComplicationProviderInfo.isSamsungDailyActivityBadComplicationData(): Boolean {
+private fun ComplicationProviderInfo.isSamsungDailyActivityBuggyProvider(): Boolean {
     return appName in samsungHealthAppNames && providerName in dailyActivityProviderNames
 }
 
 fun ComplicationProviderInfo.isSamsungCalendarBuggyProvider(): Boolean {
-    return isGalaxyWatch4BuggyWearOSVersion
+    return isGalaxyWatch4CalendarBuggyWearOSVersion
         && appName in oneUIWatchHomeAppNames
         && providerName in calendarProviderNames
 }
@@ -172,7 +188,7 @@ private fun ComplicationProviderInfo.isSamsungWaterSleepProvider(): Boolean {
     return appName in samsungHealthAppNames && providerName in waterProviderNames
 }
 
-private fun ComplicationProviderInfo.isSamsungHeartRateProvider(): Boolean {
+fun ComplicationProviderInfo.isSamsungHeartRateProvider(): Boolean {
     return appName in samsungHealthAppNames && providerName in heartRateProviderNames
 }
 
@@ -236,6 +252,34 @@ private fun Context.getSamsungHeartRateData(): String? {
     }
 
     return null
+}
+
+fun Context.watchSamsungHeartRateUpdates(): Flow<Unit> = callbackFlow {
+    val uri = "content://$S_HEALTH_PACKAGE_NAME.healthdataprovider/"
+    val heartRateMethod = "heart_rate"
+
+    fun unregister(observer: ContentObserver) {
+        contentResolver.unregisterContentObserver(observer)
+        contentResolver.call(Uri.parse(uri), heartRateMethod, "unregister", null)
+    }
+
+    val observer = object : ContentObserver(Handler(Looper.getMainLooper())) {
+        override fun onChange(selfChange: Boolean) {
+            super.onChange(selfChange)
+
+            try {
+                sendBlocking(Unit)
+            } catch (e: CancellationException) {
+                unregister(this)
+                throw e
+            }
+        }
+    }
+
+    contentResolver.call(Uri.parse(uri), heartRateMethod, "register", null)
+    contentResolver.registerContentObserver(Uri.parse(uri), true, observer)
+
+    awaitClose { unregister(observer) }
 }
 
 private fun getSamsungHealthHomeComponentName() = ComponentName(
