@@ -20,7 +20,8 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:paddingBottom="12dp">
+    android:paddingBottom="12dp"
+    android:paddingTop="12dp">
 
     <TextView
         android:id="@+id/app_title_text_view"
