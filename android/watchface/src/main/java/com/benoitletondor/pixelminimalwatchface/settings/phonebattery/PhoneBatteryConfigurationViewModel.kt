@@ -184,6 +184,7 @@ class PhoneBatteryConfigurationViewModel(application: Application)
                     checkPhoneStatus(node)
                 }
             }
+            is State.PhoneStatusResponse, is State.SendingStatusSyncToPhone, is State.WaitingForPhoneStatusResponse -> Unit // No-op
         }
     }
 

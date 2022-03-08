@@ -30,7 +30,7 @@
     <string name="config_color_tap_to_change">Tap to change</string>
     <string name="config_complication_tap_to_setup">Tap to setup</string>
     <string name="config_complication_tap_to_change">Tap to change/remove</string>
-    <string name="config_premium_text">To setup widgets and display weather info you have to become a premium user.\nInstall the companion app on your phone to continue</string>
+    <string name="config_premium_text">To setup widgets, display weather info and battery indicators you have to become a premium user.\nInstall the companion app on your phone to continue</string>
     <string name="config_premium_button_cta">Open companion app on phone</string>
     <string name="config_feedback_cta">Give your feedback</string>
     <string name="config_version">Version: %s</string>
@@ -40,7 +40,7 @@
     <string name="config_date_format_short">Use short date format</string>
     <string name="config_show_wear_os_logo">Show WearOS logo</string>
     <string name="config_show_weather">Show weather after date</string>
-    <string name="config_show_weather_unit_warning">Temperature scale (°F or °C) is controlled by the Weather app. The watch face has no control over it.</string>
+    <string name="config_show_weather_unit_warning">Temperature scale (°F or °C) is controlled by the Weather app.</string>
     <string name="config_show_filled_time_ambient">Use normal in place of thin time style in ambient mode</string>
     <string name="config_show_thin_time_regular">Use thin time style when watch is on</string>
     <string name="config_show_wear_os_logo_premium">WearOS logo as middle widget</string>

@@ -34,7 +34,7 @@
         android:layout_height="wrap_content"
         android:text="@string/config_show_weather_unit_warning"
         android:textSize="12.5sp"
-        android:textColor="@color/red_a200"
+        android:textColor="@color/config_footer_color"
         android:paddingHorizontal="10dp"/>
 
     <Button
