@@ -48,12 +48,12 @@ import com.benoitletondor.pixelminimalwatchface.rating.FeedbackActivity
 import com.benoitletondor.pixelminimalwatchface.settings.phonebattery.*
 import com.google.android.gms.wearable.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.collect
 import java.lang.ref.WeakReference
 import java.time.LocalDateTime
 import java.util.*
 import java.util.concurrent.Executors
 import kotlin.math.max
-
 
 const val MISC_NOTIFICATION_CHANNEL_ID = "rating"
 private const val DATA_KEY_PREMIUM = "premium"
@@ -74,7 +74,7 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
             storage.setAppVersion(BuildConfig.VERSION_CODE)
         }
 
-        if (DEBUG_LOGS) Log.d(TAG, "onCreateEngine")
+        if (DEBUG_LOGS) Log.d(TAG, "onCreateEngine. Security Patch: ${Build.VERSION.SECURITY_PATCH}, OS version : ${Build.VERSION.INCREMENTAL}")
 
         return Engine(this, storage)
     }
@@ -120,6 +120,9 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
 
         private var lastGalaxyWatch4CalendarWidgetForcedRefreshTs: Long? = null
         private val calendarBuggyComplicationsIds = mutableSetOf<Int>()
+
+        private val galaxyWatch4HeartRateComplicationsIds = mutableSetOf<Int>()
+        private var galaxyWatch4HeartRateWatcherJob: Job? = null
 
         private var screenWidth = -1
         private var screenHeight = -1
@@ -180,6 +183,8 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
             if (DEBUG_LOGS) Log.d(TAG, "initializeComplications, activeComplicationIds: $activeComplicationIds")
 
             calendarBuggyComplicationsIds.clear()
+            galaxyWatch4HeartRateComplicationsIds.clear()
+            onGalaxyWatch4HeartRateComplicationRemoved()
             shouldShowWeather = false
             shouldShowBattery = false
             didForceGalaxyWatch4BatterySubscription = false
@@ -215,6 +220,21 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
                             calendarBuggyComplicationsIds.remove(watchFaceComplicationId)
                         }
 
+                        val hasGW4HRComplication = galaxyWatch4HeartRateComplicationsIds.isNotEmpty()
+                        val isGalaxyWatch4HeartRateComplication = complicationProviderInfo?.isSamsungHeartRateProvider() == true
+                        if (isGalaxyWatch4HeartRateComplication) {
+                            if (DEBUG_LOGS) Log.d(TAG, "updateComplicationProvidersInfoAsync, GW4 HR complication detected, id: $watchFaceComplicationId")
+                            galaxyWatch4HeartRateComplicationsIds.add(watchFaceComplicationId)
+                            if (!hasGW4HRComplication && galaxyWatch4HeartRateComplicationsIds.isNotEmpty()) {
+                                onGalaxyWatch4HeartRateComplicationAdded()
+                            }
+                        } else {
+                            galaxyWatch4HeartRateComplicationsIds.remove(watchFaceComplicationId)
+                            if (hasGW4HRComplication && galaxyWatch4HeartRateComplicationsIds.isEmpty()) {
+                                onGalaxyWatch4HeartRateComplicationRemoved()
+                            }
+                        }
+
                         if (currentValue?.toString() != complicationProviderInfo?.toString()) {
                             if (DEBUG_LOGS) Log.d(TAG, "updateComplicationProvidersInfoAsync, updating data from complicationId: $watchFaceComplicationId")
 
@@ -231,6 +251,37 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
                 ComponentName(this@PixelMinimalWatchFace, PixelMinimalWatchFace::class.java),
                 *COMPLICATION_IDS,
             )
+        }
+
+        private fun onGalaxyWatch4HeartRateComplicationAdded() {
+            if (DEBUG_LOGS) Log.d(TAG, "onGalaxyWatch4HeartRateComplicationAdded")
+
+            galaxyWatch4HeartRateWatcherJob?.cancel()
+            galaxyWatch4HeartRateWatcherJob = launch {
+                this@PixelMinimalWatchFace.watchSamsungHeartRateUpdates()
+                    .collect {
+                        if (DEBUG_LOGS) Log.d(TAG, "galaxyWatch4HeartRateWatcher, new value received")
+
+                        for(complicationId in galaxyWatch4HeartRateComplicationsIds) {
+                            if (DEBUG_LOGS) Log.d(TAG, "galaxyWatch4HeartRateWatcher, refreshing for complication $complicationId")
+
+                            onComplicationDataUpdate(
+                                complicationId,
+                                rawComplicationDataSparseArray.get(
+                                    complicationId,
+                                    ComplicationData.Builder(ComplicationData.TYPE_EMPTY).build(),
+                                )
+                            )
+                        }
+                    }
+            }
+        }
+
+        private fun onGalaxyWatch4HeartRateComplicationRemoved() {
+            if (DEBUG_LOGS) Log.d(TAG, "onGalaxyWatch4HeartRateComplicationRemoved")
+
+            galaxyWatch4HeartRateWatcherJob?.cancel()
+            galaxyWatch4HeartRateWatcherJob = null
         }
 
         private fun subscribeToWeatherComplicationData() {
@@ -278,6 +329,7 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
             if (DEBUG_LOGS) Log.d(TAG, "onDestroy")
 
             unregisterReceiver()
+            onGalaxyWatch4HeartRateComplicationRemoved()
             Wearable.getDataClient(service).removeListener(this)
             Wearable.getMessageClient(service).removeListener(this)
             timeDependentUpdateHandler.cancelUpdate()
@@ -369,7 +421,7 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
         @SuppressLint("NewApi")
         private fun handleGalaxyWatch4WearOSJanuaryBug() {
             try {
-                if (isGalaxyWatch4BuggyWearOSVersion && ambient) {
+                if (isGalaxyWatch4AODBuggyWearOSVersion && ambient) {
                     val now = LocalDateTime.now()
                     val seconds = now.second
                     val targetMinute = now.minute + 1
