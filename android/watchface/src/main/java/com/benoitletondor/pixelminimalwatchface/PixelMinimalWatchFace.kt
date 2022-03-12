@@ -928,12 +928,21 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
             ANDROID_12_BOTTOM_RIGHT_COMPLICATION_ID,
         )
 
-        private val normalComplicationDataTypes = intArrayOf(
-            ComplicationData.TYPE_ICON,
-            ComplicationData.TYPE_SHORT_TEXT,
-            ComplicationData.TYPE_RANGED_VALUE,
-            ComplicationData.TYPE_SMALL_IMAGE
-        )
+        private val normalComplicationDataTypes = if (Device.isSamsungGalaxyWatch) {
+            intArrayOf(
+                ComplicationData.TYPE_SHORT_TEXT,
+                ComplicationData.TYPE_ICON,
+                ComplicationData.TYPE_RANGED_VALUE,
+                ComplicationData.TYPE_SMALL_IMAGE
+            )
+        } else {
+            intArrayOf(
+                ComplicationData.TYPE_ICON,
+                ComplicationData.TYPE_SHORT_TEXT,
+                ComplicationData.TYPE_RANGED_VALUE,
+                ComplicationData.TYPE_SMALL_IMAGE
+            )
+        }
 
         private val largeComplicationDataTypes = intArrayOf(
             ComplicationData.TYPE_LONG_TEXT,
