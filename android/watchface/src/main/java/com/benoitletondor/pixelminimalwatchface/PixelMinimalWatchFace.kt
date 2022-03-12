@@ -929,8 +929,8 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
         )
 
         private val normalComplicationDataTypes = intArrayOf(
-            ComplicationData.TYPE_ICON,
             ComplicationData.TYPE_SHORT_TEXT,
+            ComplicationData.TYPE_ICON,
             ComplicationData.TYPE_RANGED_VALUE,
             ComplicationData.TYPE_SMALL_IMAGE
         )
