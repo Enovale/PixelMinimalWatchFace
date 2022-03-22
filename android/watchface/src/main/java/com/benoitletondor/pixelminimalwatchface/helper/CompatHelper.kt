@@ -49,11 +49,11 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 private val galaxyWatch4AODBuggyWearOSVersions = setOf(
-    "R860XXU1EVA8",
-    "R860XXU1EVA9",
+    "EVA8",
+    "EVA9",
 )
 
-val isGalaxyWatch4AODBuggyWearOSVersion = Device.isSamsungGalaxyWatch && Build.VERSION.INCREMENTAL in galaxyWatch4AODBuggyWearOSVersions
+val isGalaxyWatch4AODBuggyWearOSVersion = Device.isSamsungGalaxyWatch && Build.VERSION.INCREMENTAL.takeLast(4) in galaxyWatch4AODBuggyWearOSVersions
 val isGalaxyWatch4CalendarBuggyWearOSVersion = Device.isSamsungGalaxyWatch && Build.VERSION.SECURITY_PATCH.startsWith("2022")
 
 fun Context.getTopAndBottomMargins(): Float {
