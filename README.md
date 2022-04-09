@@ -31,12 +31,6 @@ Part of this project is inspired by [Cole Gerdemann](https://github.com/Corvette
 
 You can contact me regarding Pixel Minimal Watch Face using this email: [pixelwatchface@benoitletondor.com](mailto:pixelwatchface@benoitletondor.com)
 
-### Donate
-
-If you feel like supporting an indie developer and open source development by making a donation, it would mean so much to me:
-
-<a href="https://paypal.me/benoitletondor"><img alt="Donate on Paypal" src="https://user-images.githubusercontent.com/868054/103790523-9baf8600-5041-11eb-93f0-2c334e632897.png" width=170 /></a>
-
 
 ### Copyright
 
