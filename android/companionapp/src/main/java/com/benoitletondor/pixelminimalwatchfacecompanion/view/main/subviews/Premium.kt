@@ -34,9 +34,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.benoitletondor.pixelminimalwatchfacecompanion.R
-import com.benoitletondor.pixelminimalwatchfacecompanion.ui.AppMaterialTheme
-import com.benoitletondor.pixelminimalwatchfacecompanion.ui.blueButtonColors
-import com.benoitletondor.pixelminimalwatchfacecompanion.ui.primaryGreen
+import com.benoitletondor.pixelminimalwatchfacecompanion.ui.*
 import com.benoitletondor.pixelminimalwatchfacecompanion.view.main.MainViewModel
 import kotlinx.coroutines.launch
 
@@ -51,6 +49,7 @@ fun Premium(
         donateButtonPressed = viewModel::onDonateButtonPressed,
         onSupportButtonPressed = viewModel::onSupportButtonPressed,
         isBatterySyncActivated = step.isBatterySyncActivated,
+        maybeWarning = step.maybeWarning,
         debugPhoneBatteryIndicatorButtonPressed = viewModel::onDebugPhoneBatteryIndicatorButtonPressed,
     )
 }
@@ -63,6 +62,7 @@ private fun PremiumLayout(
     donateButtonPressed: () -> Unit,
     onSupportButtonPressed: () -> Unit,
     isBatterySyncActivated: Boolean,
+    maybeWarning: String?,
     debugPhoneBatteryIndicatorButtonPressed: () -> Unit,
 ) {
     val bottomSheetScaffoldState = rememberBottomSheetScaffoldState(
@@ -86,6 +86,7 @@ private fun PremiumLayout(
         PremiumLayoutContent(
             bottomSheetScaffoldState,
             donateButtonPressed = donateButtonPressed,
+            maybeWarning = maybeWarning,
         )
     }
 }
@@ -95,6 +96,7 @@ private fun PremiumLayout(
 private fun PremiumLayoutContent(
     bottomSheetScaffoldState: BottomSheetScaffoldState,
     donateButtonPressed: () -> Unit,
+    maybeWarning: String?,
 ) {
     val coroutineScope = rememberCoroutineScope()
 
@@ -131,6 +133,35 @@ private fun PremiumLayoutContent(
             modifier = Modifier.fillMaxWidth(),
             color = MaterialTheme.colors.onBackground,
         )
+
+        if (maybeWarning != null) {
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Column(
+                modifier = Modifier.fillMaxWidth()
+                    .background(color = orange, shape = RoundedCornerShape(10))
+                    .padding(horizontal = 10.dp, vertical = 6.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Text(
+                    text = "⚠️",
+                    fontSize = 16.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth(),
+                    color = MaterialTheme.colors.onBackground,
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = maybeWarning,
+                    fontSize = 16.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth(),
+                    color = MaterialTheme.colors.onBackground,
+                )
+            }
+        }
 
         Spacer(modifier = Modifier.height(30.dp))
 
@@ -419,6 +450,23 @@ private fun Preview() {
             donateButtonPressed = {},
             onSupportButtonPressed = {},
             isBatterySyncActivated = true,
+            maybeWarning = null,
+            debugPhoneBatteryIndicatorButtonPressed = {},
+        )
+    }
+}
+
+@Composable
+@Preview(showSystemUi = true, name = "Warning")
+private fun PreviewWarning() {
+    AppMaterialTheme {
+        PremiumLayout(
+            installWatchFaceButtonPressed = {},
+            syncPremiumStatusButtonPressed = {},
+            donateButtonPressed = {},
+            onSupportButtonPressed = {},
+            isBatterySyncActivated = true,
+            maybeWarning = "This is a warning",
             debugPhoneBatteryIndicatorButtonPressed = {},
         )
     }
