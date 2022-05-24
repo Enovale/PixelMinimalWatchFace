@@ -36,6 +36,7 @@ import com.benoitletondor.pixelminimalwatchfacecompanion.R
 import com.benoitletondor.pixelminimalwatchfacecompanion.sync.Sync
 import com.benoitletondor.pixelminimalwatchfacecompanion.ui.AppMaterialTheme
 import com.benoitletondor.pixelminimalwatchfacecompanion.ui.blueButtonColors
+import com.benoitletondor.pixelminimalwatchfacecompanion.ui.primaryGreen
 import com.benoitletondor.pixelminimalwatchfacecompanion.ui.whiteTextButtonColors
 import com.benoitletondor.pixelminimalwatchfacecompanion.view.main.MainViewModel
 
@@ -239,9 +240,12 @@ private fun InstallAutoLayout(
         color = MaterialTheme.colors.onBackground,
     )
 
-    TextButton(
+    Button(
         onClick = onOpenPlayStoreButtonPressed,
-        colors = whiteTextButtonColors(),
+        colors = ButtonDefaults.buttonColors(
+            backgroundColor = Color.White,
+            contentColor = primaryGreen,
+        ),
     ) {
         Text(
             text = "Open PlayStore on watch".uppercase(),

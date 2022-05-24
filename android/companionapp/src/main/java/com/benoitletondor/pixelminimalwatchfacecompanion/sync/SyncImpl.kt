@@ -57,8 +57,9 @@ class SyncImpl @Inject constructor(@ApplicationContext private val context: Cont
         putDataRequest.setUrgent()
         dataClient.putDataItem(putDataRequest).await()
 
-        // Sending also as message
-        getConnectedWatchNode()?.let { watchNode ->
+        // Send also as message
+        val watchNodes = getConnectedWatchNodes()
+        for(watchNode in watchNodes) {
             messageClient.sendMessage(
                 watchNode.id,
                 KEY_PREMIUM,
@@ -123,37 +124,38 @@ class SyncImpl @Inject constructor(@ApplicationContext private val context: Cont
     }
 
     override suspend fun sendBatterySyncStatus(syncActivated: Boolean) {
-        val watchNode = getConnectedWatchNode() ?: throw IllegalStateException("Unable to reach watch")
+        val watchNodes = getConnectedWatchNodes()
 
-        messageClient.sendMessage(
-            watchNode.id,
-            KEY_SYNC_ACTIVATED,
-            byteArrayOf(if(syncActivated) { 1 } else { 0 }),
-        ).await()
+        for(watchNode in watchNodes) {
+            messageClient.sendMessage(
+                watchNode.id,
+                KEY_SYNC_ACTIVATED,
+                byteArrayOf(if(syncActivated) { 1 } else { 0 }),
+            ).await()
+        }
     }
 
     override suspend fun sendBatteryStatus(batteryPercentage: Int) {
-        val watchNode = getConnectedWatchNode() ?: throw IllegalStateException("Unable to reach watch")
+        val watchNodes = getConnectedWatchNodes()
 
-        messageClient.sendMessage(
-            watchNode.id,
-            KEY_BATTERY_STATUS_PERCENT,
-            byteArrayOf(batteryPercentage.toByte()),
-        ).await()
+        for(watchNode in watchNodes) {
+            messageClient.sendMessage(
+                watchNode.id,
+                KEY_BATTERY_STATUS_PERCENT,
+                byteArrayOf(batteryPercentage.toByte()),
+            ).await()
+        }
     }
 
-    private suspend fun getConnectedWatchNode(): Node? {
-        try {
-            val capabilityResult = capabilityClient.getCapability(BuildConfig.WATCH_CAPABILITY, CapabilityClient.FILTER_REACHABLE).await()
-
-            if (capabilityResult.name != BuildConfig.WATCH_CAPABILITY) {
-                return null
-            }
-
-            return capabilityResult.nodes.findBestNode()
+    private suspend fun getConnectedWatchNodes(): Set<Node> {
+        return try {
+            capabilityClient.getCapability(BuildConfig.WATCH_CAPABILITY, CapabilityClient.FILTER_REACHABLE)
+                .await()
+                .nodes
+                .filterNearby()
         } catch (t: Throwable) {
             Log.e("Sync", "Unable to find watch node", t)
-            return null
+            emptySet()
         }
     }
 
@@ -165,6 +167,6 @@ private suspend fun <T> Task<T>.await() = suspendCancellableCoroutine<T> { conti
     addOnCanceledListener { continuation.cancel() }
 }
 
-private fun Set<Node>.findBestNode(): Node? {
-    return firstOrNull { it.isNearby } ?: firstOrNull()
+private fun Set<Node>.filterNearby(): Set<Node> {
+    return filter { it.isNearby }.toSet()
 }

@@ -61,6 +61,7 @@ fun Context.getTopAndBottomMargins(): Float {
         Device.isOppoWatch -> dpToPx(5).toFloat()
         Device.isSamsungGalaxyWatchBigScreen(this) -> dpToPx(29).toFloat()
         Device.isSamsungGalaxyWatch -> dpToPx(26).toFloat()
+        Device.isWearOS3 -> dpToPx(24).toFloat()
         else -> resources.getDimension(R.dimen.screen_top_and_bottom_margin)
     }
 }
