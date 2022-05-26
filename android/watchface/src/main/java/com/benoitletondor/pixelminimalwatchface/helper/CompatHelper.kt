@@ -54,7 +54,12 @@ private val galaxyWatch4AODBuggyWearOSVersions = setOf(
 )
 
 val isGalaxyWatch4AODBuggyWearOSVersion = Device.isSamsungGalaxyWatch && Build.VERSION.INCREMENTAL.takeLast(4) in galaxyWatch4AODBuggyWearOSVersions
-val isGalaxyWatch4CalendarBuggyWearOSVersion = Device.isSamsungGalaxyWatch && Build.VERSION.SECURITY_PATCH.startsWith("2022")
+val isGalaxyWatch4CalendarBuggyWearOSVersion = Device.isSamsungGalaxyWatch && (
+    Build.VERSION.SECURITY_PATCH.startsWith("2022-01") ||
+    Build.VERSION.SECURITY_PATCH.startsWith("2022-02") ||
+    Build.VERSION.SECURITY_PATCH.startsWith("2022-03") ||
+    Build.VERSION.SECURITY_PATCH.startsWith("2022-04")
+)
 
 fun Context.getTopAndBottomMargins(): Float {
     return when {
