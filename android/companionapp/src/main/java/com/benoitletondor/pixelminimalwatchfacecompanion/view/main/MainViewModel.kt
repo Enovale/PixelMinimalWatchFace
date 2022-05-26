@@ -24,6 +24,7 @@ import com.benoitletondor.pixelminimalwatchfacecompanion.billing.PremiumCheckSta
 import com.benoitletondor.pixelminimalwatchfacecompanion.billing.PremiumPurchaseFlowResult
 import com.benoitletondor.pixelminimalwatchfacecompanion.config.Config
 import com.benoitletondor.pixelminimalwatchfacecompanion.config.getVouchers
+import com.benoitletondor.pixelminimalwatchfacecompanion.config.getWarning
 import com.benoitletondor.pixelminimalwatchfacecompanion.helper.MutableLiveFlow
 import com.benoitletondor.pixelminimalwatchfacecompanion.helper.combine
 import com.benoitletondor.pixelminimalwatchfacecompanion.storage.Storage
@@ -65,6 +66,7 @@ class MainViewModel @Inject constructor(
         isSyncingStateFlow,
         userForcedInstallStatusFlow,
         storage.isBatterySyncActivatedFlow(),
+        flow { emit(config.getWarning()) },
         ::computeStep,
     ).stateIn(viewModelScope, SharingStarted.Eagerly, Step.Loading)
     val stepFlow: Flow<Step> = currentStepFlow
@@ -248,7 +250,7 @@ class MainViewModel @Inject constructor(
         class Error(val error: Throwable) : Step()
         class InstallWatchFace(val appInstalledStatus: AppInstalledStatus) : Step()
         object NotPremium : Step()
-        class Premium(val isBatterySyncActivated: Boolean) : Step()
+        class Premium(val isBatterySyncActivated: Boolean, val maybeWarning: String?) : Step()
     }
 
     sealed class NavigationDestination {
@@ -289,6 +291,7 @@ class MainViewModel @Inject constructor(
             isSyncing: Boolean,
             userForcedInstallStatus: UserForcedInstallStatus,
             isBatterySyncActivated: Boolean,
+            maybeWarning: String?,
         ) : Step {
             if (userIsBuyingPremium) {
                 return Step.Loading
@@ -307,7 +310,7 @@ class MainViewModel @Inject constructor(
                 is PremiumCheckStatus.Error -> Step.Error(premiumStatus.error)
                 PremiumCheckStatus.Initializing -> Step.Loading
                 PremiumCheckStatus.NotPremium -> Step.NotPremium
-                PremiumCheckStatus.Premium -> Step.Premium(isBatterySyncActivated)
+                PremiumCheckStatus.Premium -> Step.Premium(isBatterySyncActivated, maybeWarning)
             }
         }
     }

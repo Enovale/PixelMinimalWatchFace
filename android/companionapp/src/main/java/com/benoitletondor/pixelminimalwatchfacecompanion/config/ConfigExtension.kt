@@ -16,9 +16,11 @@
 package com.benoitletondor.pixelminimalwatchfacecompanion.config
 
 import android.util.Log
+import kotlinx.coroutines.CancellationException
 import org.json.JSONArray
 
 private const val PROMO_CODES_KEY = "promocodes"
+private const val WARNING_KEY = "warning"
 
 fun Config.getVouchers(): List<String> {
     val promocodes: MutableList<String> = mutableListOf()
@@ -37,4 +39,16 @@ fun Config.getVouchers(): List<String> {
     }
 
     return promocodes
+}
+
+suspend fun Config.getWarning(): String? {
+    try {
+        fetch()
+    } catch (e: Exception) {
+        if (e is CancellationException) {
+            throw e
+        }
+    }
+
+    return getString(WARNING_KEY)?.let { if (it.isEmpty() || it.isBlank()) { null } else it }
 }

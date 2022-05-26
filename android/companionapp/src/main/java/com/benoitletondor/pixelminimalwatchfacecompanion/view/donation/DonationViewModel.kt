@@ -59,7 +59,7 @@ class DonationViewModel @Inject constructor(
                         items = skus.map { skuDetails ->
                             DonationItem(
                                 sku = skuDetails.sku,
-                                title = skuDetails.title.replace("(Pixel Minimal Watch Face - Watch Faces for WearOS)", ""),
+                                title = skuDetails.title.replace("(Pixel Minimal Watch Face)", ""),
                                 description = skuDetails.description,
                                 price = skuDetails.price,
                             )

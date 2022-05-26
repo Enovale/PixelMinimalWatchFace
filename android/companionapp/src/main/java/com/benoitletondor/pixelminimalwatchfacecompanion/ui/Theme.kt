@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.Color
 val primaryBlue = Color(0xFF5484f8)
 val primaryRed = Color(0xFFda482f)
 val primaryGreen = Color(0xFF54A74C)
+val orange = Color(0xFFbc5100)
 
 @Composable
 fun AppMaterialTheme(content: @Composable () -> Unit) {

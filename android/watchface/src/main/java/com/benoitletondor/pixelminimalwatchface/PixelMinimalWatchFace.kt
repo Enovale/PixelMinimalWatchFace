@@ -653,6 +653,7 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
         }
 
         override fun onDraw(canvas: Canvas, bounds: Rect) {
+
             // Update drawer if needed
             if ( useAndroid12Style != storage.useAndroid12Style() ) {
                 useAndroid12Style = storage.useAndroid12Style()
@@ -686,6 +687,8 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
             }
 
             calendar.timeInMillis = System.currentTimeMillis()
+
+            if (DEBUG_LOGS) Log.d(TAG, "draw")
 
             watchFaceDrawer.draw(
                 canvas,
