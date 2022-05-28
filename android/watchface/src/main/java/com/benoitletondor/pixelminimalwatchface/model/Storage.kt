@@ -20,6 +20,9 @@ import android.graphics.ColorFilter
 import androidx.annotation.ColorInt
 import com.benoitletondor.pixelminimalwatchface.R
 import com.benoitletondor.pixelminimalwatchface.helper.DEFAULT_TIME_SIZE
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 const val DEFAULT_APP_VERSION = -1
 
@@ -63,10 +66,13 @@ private const val KEY_WIDGETS_SIZE = "widgetSize"
 interface Storage {
     fun getComplicationColors(): ComplicationColors
     fun setComplicationColors(complicationColors: ComplicationColors)
+    fun watchComplicationColors(): Flow<ComplicationColors>
     fun isUserPremium(): Boolean
     fun setUserPremium(premium: Boolean)
+    fun watchIsUserPremium(): Flow<Boolean>
     fun setUse24hTimeFormat(use: Boolean)
     fun getUse24hTimeFormat(): Boolean
+    fun watchUse24hTimeFormat(): Flow<Boolean>
     fun getInstallTimestamp(): Long
     fun hasRatingBeenDisplayed(): Boolean
     fun setRatingDisplayed(sent: Boolean)
@@ -74,30 +80,42 @@ interface Storage {
     fun setAppVersion(version: Int)
     fun showWearOSLogo(): Boolean
     fun setShowWearOSLogo(shouldShowWearOSLogo: Boolean)
+    fun watchShowWearOSLogo(): Flow<Boolean>
     fun showComplicationsInAmbientMode(): Boolean
     fun setShowComplicationsInAmbientMode(show: Boolean)
+    fun watchShowComplicationsInAmbientMode(): Flow<Boolean>
     fun useNormalTimeStyleInAmbientMode(): Boolean
     fun setUseNormalTimeStyleInAmbientMode(useNormalTime: Boolean)
+    fun watchUseNormalTimeStyleInAmbientMode(): Flow<Boolean>
     fun useThinTimeStyleInRegularMode(): Boolean
     fun setUseThinTimeStyleInRegularMode(useThinTime: Boolean)
+    fun watchUseThinTimeStyleInRegularMode(): Flow<Boolean>
     fun getTimeSize(): Int
     fun setTimeSize(timeSize: Int)
+    fun watchTimeSize(): Flow<Int>
     fun getDateAndBatterySize(): Int
     fun setDateAndBatterySize(size: Int)
+    fun watchDateAndBatterySize(): Flow<Int>
     fun showSecondsRing(): Boolean
     fun setShowSecondsRing(showSecondsRing: Boolean)
+    fun watchShowSecondsRing(): Flow<Boolean>
     fun showWeather(): Boolean
     fun setShowWeather(show: Boolean)
+    fun watchShowWeather(): Flow<Boolean>
     fun showWatchBattery(): Boolean
     fun setShowWatchBattery(show: Boolean)
+    fun watchShowWatchBattery(): Flow<Boolean>
     fun hasFeatureDropSummer2021NotificationBeenShown(): Boolean
     fun setFeatureDropSummer2021NotificationShown()
     fun getUseShortDateFormat(): Boolean
     fun setUseShortDateFormat(useShortDateFormat: Boolean)
+    fun watchUseShortDateFormat(): Flow<Boolean>
     fun setShowDateInAmbient(showDateInAmbient: Boolean)
     fun getShowDateInAmbient(): Boolean
+    fun watchShowDateInAmbient(): Flow<Boolean>
     fun showPhoneBattery(): Boolean
     fun setShowPhoneBattery(show: Boolean)
+    fun watchShowPhoneBattery(): Flow<Boolean>
     @ColorInt fun getTimeAndDateColor(): Int
     fun getTimeAndDateColorFilter(): ColorFilter
     fun setTimeAndDateColor(@ColorInt color: Int)
@@ -106,12 +124,15 @@ interface Storage {
     fun setBatteryIndicatorColor(@ColorInt color: Int)
     fun useAndroid12Style(): Boolean
     fun setUseAndroid12Style(useAndroid12Style: Boolean)
+    fun watchUseAndroid12Style(): Flow<Boolean>
     fun hideBatteryInAmbient(): Boolean
     fun setHideBatteryInAmbient(hide: Boolean)
+    fun watchHideBatteryInAmbient(): Flow<Boolean>
     fun getSecondRingColor(): ColorFilter
     fun setSecondRingColor(@ColorInt color: Int)
     fun getWidgetsSize(): Int
     fun setWidgetsSize(widgetsSize: Int)
+    fun watchWidgetsSize(): Flow<Int>
 }
 
 class StorageImpl(
@@ -136,7 +157,7 @@ class StorageImpl(
     private val showPhoneBatteryCache = StorageCachedBoolValue(sharedPreferences, KEY_SHOW_PHONE_BATTERY, false)
     private val timeAndDateColorCache = StorageCachedColorValue(sharedPreferences, appContext, KEY_TIME_AND_DATE_COLOR, R.color.white)
     private val batteryIndicatorColorCache = StorageCachedColorValue(sharedPreferences, appContext, KEY_BATTERY_COLOR, R.color.white)
-    private var cacheComplicationsColor: ComplicationColors? = null
+    private val cacheComplicationsColorMutableFlow = MutableStateFlow(loadComplicationColors())
     private val useAndroid12StyleCache = StorageCachedBoolValue(sharedPreferences, KEY_USE_ANDROID_12_STYLE, false)
     private val hideBatteryInAmbientCache = StorageCachedBoolValue(sharedPreferences, KEY_HIDE_BATTERY_IN_AMBIENT, false)
     private val secondRingColorCache = StorageCachedColorValue(sharedPreferences, appContext, KEY_SECONDS_RING_COLOR, R.color.white)
@@ -151,12 +172,7 @@ class StorageImpl(
         }
     }
 
-    override fun getComplicationColors(): ComplicationColors {
-        val cacheComplicationsColor = cacheComplicationsColor
-        if( cacheComplicationsColor != null ) {
-            return cacheComplicationsColor
-        }
-
+    private fun loadComplicationColors(): ComplicationColors {
         val baseColor = sharedPreferences.getInt(
             KEY_COMPLICATION_COLORS,
             DEFAULT_COMPLICATION_COLOR
@@ -204,7 +220,7 @@ class StorageImpl(
 
         val defaultColors = ComplicationColorsProvider.getDefaultComplicationColors(appContext)
 
-        val colors = ComplicationColors(
+        return ComplicationColors(
             if( leftColor == DEFAULT_COMPLICATION_COLOR ) { defaultColors.leftColor } else { ComplicationColor(leftColor, ComplicationColorsProvider.getLabelForColor(appContext, leftColor),false) },
             if( middleColor == DEFAULT_COMPLICATION_COLOR ) { defaultColors.middleColor } else { ComplicationColor(middleColor, ComplicationColorsProvider.getLabelForColor(appContext, middleColor),false) },
             if( rightColor == DEFAULT_COMPLICATION_COLOR ) { defaultColors.rightColor } else { ComplicationColor(rightColor, ComplicationColorsProvider.getLabelForColor(appContext, rightColor),false) },
@@ -214,13 +230,12 @@ class StorageImpl(
             if( android12BottomLeftColor == DEFAULT_COMPLICATION_COLOR ) { defaultColors.android12BottomLeftColor } else { ComplicationColor(android12BottomLeftColor, ComplicationColorsProvider.getLabelForColor(appContext, android12BottomLeftColor),false) },
             if( android12BottomRightColor == DEFAULT_COMPLICATION_COLOR ) { defaultColors.android12BottomRightColor } else { ComplicationColor(android12BottomRightColor, ComplicationColorsProvider.getLabelForColor(appContext, android12BottomRightColor),false) },
         )
-
-        this.cacheComplicationsColor = colors
-        return colors
     }
 
+    override fun getComplicationColors(): ComplicationColors = cacheComplicationsColorMutableFlow.value
+
     override fun setComplicationColors(complicationColors: ComplicationColors) {
-        cacheComplicationsColor = complicationColors
+        cacheComplicationsColorMutableFlow.value = complicationColors
         sharedPreferences.edit()
             .putInt(
                 KEY_LEFT_COMPLICATION_COLOR,
@@ -273,13 +288,19 @@ class StorageImpl(
             .apply()
     }
 
+    override fun watchComplicationColors(): StateFlow<ComplicationColors> = cacheComplicationsColorMutableFlow
+
     override fun isUserPremium(): Boolean = isPremiumUserCache.get()
 
     override fun setUserPremium(premium: Boolean) = isPremiumUserCache.set(premium)
 
+    override fun watchIsUserPremium(): Flow<Boolean> = isPremiumUserCache.watchChanges()
+
     override fun setUse24hTimeFormat(use: Boolean) = use24hFormatCache.set(use)
 
     override fun getUse24hTimeFormat(): Boolean = use24hFormatCache.get()
+
+    override fun watchUse24hTimeFormat(): Flow<Boolean> = use24hFormatCache.watchChanges()
 
     override fun getInstallTimestamp(): Long {
         return sharedPreferences.getLong(KEY_INSTALL_TIMESTAMP, -1)
@@ -301,41 +322,61 @@ class StorageImpl(
 
     override fun setShowWearOSLogo(shouldShowWearOSLogo: Boolean) = showWearOSLogoCache.set(shouldShowWearOSLogo)
 
+    override fun watchShowWearOSLogo(): Flow<Boolean> = showWearOSLogoCache.watchChanges()
+
     override fun showComplicationsInAmbientMode(): Boolean = showComplicationsInAmbientModeCache.get()
 
     override fun setShowComplicationsInAmbientMode(show: Boolean) = showComplicationsInAmbientModeCache.set(show)
+
+    override fun watchShowComplicationsInAmbientMode(): Flow<Boolean> = showComplicationsInAmbientModeCache.watchChanges()
 
     override fun useNormalTimeStyleInAmbientMode(): Boolean = useNormalTimeStyleInAmbientModeCache.get()
 
     override fun setUseNormalTimeStyleInAmbientMode(useNormalTime: Boolean) = useNormalTimeStyleInAmbientModeCache.set(useNormalTime)
 
+    override fun watchUseNormalTimeStyleInAmbientMode(): Flow<Boolean> = useNormalTimeStyleInAmbientModeCache.watchChanges()
+
     override fun useThinTimeStyleInRegularMode(): Boolean = useThinTimeStyleInNormalModeCache.get()
 
     override fun setUseThinTimeStyleInRegularMode(useThinTime: Boolean) = useThinTimeStyleInNormalModeCache.set(useThinTime)
+
+    override fun watchUseThinTimeStyleInRegularMode(): Flow<Boolean> = useThinTimeStyleInNormalModeCache.watchChanges()
 
     override fun getTimeSize(): Int = timeSizeCache.get()
 
     override fun setTimeSize(timeSize: Int) = timeSizeCache.set(timeSize)
 
+    override fun watchTimeSize(): Flow<Int> = timeSizeCache.watchChanges()
+
     override fun getDateAndBatterySize(): Int = dateAndBatterySizeCache.get()
 
     override fun setDateAndBatterySize(size: Int) = dateAndBatterySizeCache.set(size)
+
+    override fun watchDateAndBatterySize(): Flow<Int> = dateAndBatterySizeCache.watchChanges()
 
     override fun showSecondsRing(): Boolean = showSecondsRingCache.get()
 
     override fun setShowSecondsRing(showSecondsRing: Boolean) = showSecondsRingCache.set(showSecondsRing)
 
+    override fun watchShowSecondsRing(): Flow<Boolean> = showSecondsRingCache.watchChanges()
+
     override fun showWeather(): Boolean = showWeatherCache.get()
 
     override fun setShowWeather(show: Boolean) = showWeatherCache.set(show)
+
+    override fun watchShowWeather(): Flow<Boolean> = showWeatherCache.watchChanges()
 
     override fun showWatchBattery(): Boolean = showWatchBattery.get()
 
     override fun setShowWatchBattery(show: Boolean) = showWatchBattery.set(show)
 
+    override fun watchShowWatchBattery(): Flow<Boolean> = showWatchBattery.watchChanges()
+
     override fun showPhoneBattery(): Boolean = showPhoneBatteryCache.get()
 
     override fun setShowPhoneBattery(show: Boolean) = showPhoneBatteryCache.set(show)
+
+    override fun watchShowPhoneBattery(): Flow<Boolean> = showPhoneBatteryCache.watchChanges()
 
     override fun getTimeAndDateColor(): Int = timeAndDateColorCache.get().color
 
@@ -353,9 +394,13 @@ class StorageImpl(
 
     override fun setUseAndroid12Style(useAndroid12Style: Boolean) = useAndroid12StyleCache.set(useAndroid12Style)
 
+    override fun watchUseAndroid12Style(): Flow<Boolean> = useAndroid12StyleCache.watchChanges()
+
     override fun hideBatteryInAmbient(): Boolean = hideBatteryInAmbientCache.get()
 
     override fun setHideBatteryInAmbient(hide: Boolean) = hideBatteryInAmbientCache.set(hide)
+
+    override fun watchHideBatteryInAmbient(): Flow<Boolean> = hideBatteryInAmbientCache.watchChanges()
 
     override fun getSecondRingColor(): ColorFilter = secondRingColorCache.get().colorFilter
 
@@ -364,6 +409,8 @@ class StorageImpl(
     override fun getWidgetsSize(): Int = widgetsSizeCache.get()
 
     override fun setWidgetsSize(widgetsSize: Int) = widgetsSizeCache.set(widgetsSize)
+
+    override fun watchWidgetsSize(): Flow<Int> = widgetsSizeCache.watchChanges()
 
     override fun hasFeatureDropSummer2021NotificationBeenShown(): Boolean {
         return sharedPreferences.getBoolean(KEY_FEATURE_DROP_2021_NOTIFICATION, false)
@@ -377,7 +424,11 @@ class StorageImpl(
 
     override fun setUseShortDateFormat(useShortDateFormat: Boolean) = useShortDateFormatCache.set(useShortDateFormat)
 
+    override fun watchUseShortDateFormat(): Flow<Boolean> = useShortDateFormatCache.watchChanges()
+
     override fun setShowDateInAmbient(showDateInAmbient: Boolean) = showDateInAmbientCache.set(showDateInAmbient)
 
     override fun getShowDateInAmbient(): Boolean = showDateInAmbientCache.get()
+
+    override fun watchShowDateInAmbient(): Flow<Boolean> = showDateInAmbientCache.watchChanges()
 }

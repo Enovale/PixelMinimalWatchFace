@@ -67,7 +67,7 @@
 
         <activity
             android:name=".settings.phonebattery.PhoneBatteryConfigurationActivity"
-            android:theme="@style/Theme.AppCompat.NoActionBar"/>
+            android:label="@string/phone_battery_configuration_title"/>
 
         <activity
             android:name=".settings.phonebattery.troubleshoot.PhoneBatterySyncTroubleshootActivity"

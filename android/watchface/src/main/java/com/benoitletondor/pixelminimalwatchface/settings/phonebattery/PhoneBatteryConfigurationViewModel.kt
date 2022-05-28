@@ -28,15 +28,16 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 private const val DATA_KEY_SYNC_ACTIVATED = "/batterySync/syncActivated"
 private const val QUERY_SYNC_STATUS_PATH = "/batterySync/queryStatus"
 private const val QUERY_ACTIVATED_SYNC_PATH = "/batterySync/activate"
 private const val QUERY_DEACTIVATED_SYNC_PATH = "/batterySync/deactivate"
 
-class PhoneBatteryConfigurationViewModel(application: Application)
-    : AndroidViewModel(application), MessageClient.OnMessageReceivedListener
-{
+class PhoneBatteryConfigurationViewModel(
+    application: Application
+) : AndroidViewModel(application), MessageClient.OnMessageReceivedListener {
     private val storage: Storage = Injection.storage(application)
 
     private val mutableStateFlow = MutableStateFlow<State>(State.Loading)
@@ -44,7 +45,7 @@ class PhoneBatteryConfigurationViewModel(application: Application)
         get(): State = mutableStateFlow.value
         set(newValue) { mutableStateFlow.value = newValue }
 
-    val stateFlow: Flow<State> = mutableStateFlow
+    val stateFlow: StateFlow<State> = mutableStateFlow
 
     private val errorEventMutableFlow = MutableSharedFlow<ErrorEventType>()
     val errorEventFlow: Flow<ErrorEventType> = errorEventMutableFlow
@@ -235,12 +236,12 @@ class PhoneBatteryConfigurationViewModel(application: Application)
 
     sealed class State {
         object Loading : State()
-        class PhoneNotFound(val syncActivated: Boolean) : State()
-        class PhoneFound(val node: Node) : State()
-        class WaitingForPhoneStatusResponse(val node: Node) : State()
-        class PhoneStatusResponse(val node: Node, val syncActivated: Boolean) : State()
-        class SendingStatusSyncToPhone(val node: Node, val activating: Boolean) : State()
-        class Error(val errorType: ErrorType, val syncActivated: Boolean) : State()
+        data class PhoneNotFound(val syncActivated: Boolean) : State()
+        data class PhoneFound(val node: Node) : State()
+        data class WaitingForPhoneStatusResponse(val node: Node) : State()
+        data class PhoneStatusResponse(val node: Node, val syncActivated: Boolean) : State()
+        data class SendingStatusSyncToPhone(val node: Node, val activating: Boolean) : State()
+        data class Error(val errorType: ErrorType, val syncActivated: Boolean) : State()
     }
 
     enum class ErrorType {
