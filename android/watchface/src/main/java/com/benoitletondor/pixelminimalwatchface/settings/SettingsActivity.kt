@@ -758,12 +758,6 @@ class SettingsActivity : ComponentActivity() {
             } else {
                 lifecycleScope.launch { updateRegularComplications() }
             }
-        } else if ( requestCode == COMPLICATION_PHONE_BATTERY_SETUP_REQUEST_CODE ) {
-            if (storage.useAndroid12Style()) {
-                lifecycleScope.launch { updateAndroid12Complications() }
-            } else {
-                lifecycleScope.launch { updateRegularComplications() }
-            }
         } else if ( requestCode == TIME_AND_DATE_COLOR_REQUEST_CODE && resultCode == RESULT_OK ) {
             val color = data?.getParcelableExtra<ComplicationColor>(ColorSelectionActivity.RESULT_SELECTED_COLOR)
             if (color != null) {
