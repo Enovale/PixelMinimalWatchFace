@@ -42,7 +42,7 @@ import com.benoitletondor.pixelminimalwatchface.R
 import com.benoitletondor.pixelminimalwatchface.compose.WearTheme
 import com.benoitletondor.pixelminimalwatchface.compose.component.ChipButton
 import com.benoitletondor.pixelminimalwatchface.compose.component.ExplanationText
-import com.benoitletondor.pixelminimalwatchface.compose.component.RotatoryAwareScalingLazyColumn
+import com.benoitletondor.pixelminimalwatchface.compose.component.RotatoryAwareLazyColumn
 import com.google.android.wearable.intent.RemoteIntent
 
 class FeedbackActivity : ComponentActivity() {
@@ -85,8 +85,8 @@ class FeedbackActivity : ComponentActivity() {
         onNegativeButtonPressed: () -> Unit,
     ) {
         WearTheme {
-            RotatoryAwareScalingLazyColumn(
-                contentPadding = PaddingValues(horizontal = 20.dp),
+            RotatoryAwareLazyColumn(
+                horizontalPadding = 20.dp,
             ) {
                 item {
                     Text(
@@ -140,8 +140,8 @@ class FeedbackActivity : ComponentActivity() {
     @Composable
     private fun NegativeStep() {
         WearTheme {
-            RotatoryAwareScalingLazyColumn(
-                contentPadding = PaddingValues(horizontal = 20.dp),
+            RotatoryAwareLazyColumn(
+                horizontalPadding = 20.dp,
             ) {
                 item {
                     Text(
@@ -228,8 +228,8 @@ class FeedbackActivity : ComponentActivity() {
     @Composable
     private fun PositiveStep() {
         WearTheme {
-            RotatoryAwareScalingLazyColumn(
-                contentPadding = PaddingValues(horizontal = 20.dp),
+            RotatoryAwareLazyColumn(
+                horizontalPadding = 20.dp,
             ) {
                 item {
                     Text(

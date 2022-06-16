@@ -13,15 +13,20 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  */
-package com.benoitletondor.pixelminimalwatchfacecompanion.device
+package com.benoitletondor.pixelminimalwatchface.compose.component
 
-import android.content.Intent
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
+import androidx.wear.compose.material.Text
 
-interface Device {
-    fun isBatteryOptimizationOff(): Boolean
-    fun getBatteryOptimizationOptOutIntents(): List<Intent>
-    fun startForegroundService()
-    fun isForegroundServiceStarted(): Boolean
-    fun finishForegroundService()
-    fun hasNotificationsListenerPermission(): Boolean
+@Composable
+fun SettingButtonSecondaryText(text: String) {
+    Text(
+        text = text,
+        fontWeight = FontWeight.Normal,
+        color = Color(0xFFAAAAAA),
+        fontSize = 11.sp,
+    )
 }

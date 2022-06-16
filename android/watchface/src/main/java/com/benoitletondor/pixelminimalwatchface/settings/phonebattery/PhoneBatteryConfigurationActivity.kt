@@ -22,6 +22,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -37,7 +38,7 @@ import com.benoitletondor.pixelminimalwatchface.BuildConfig
 import com.benoitletondor.pixelminimalwatchface.compose.WearTheme
 import com.benoitletondor.pixelminimalwatchface.compose.component.ChipButton
 import com.benoitletondor.pixelminimalwatchface.compose.component.ExplanationText
-import com.benoitletondor.pixelminimalwatchface.compose.component.RotatoryAwareScalingLazyColumn
+import com.benoitletondor.pixelminimalwatchface.compose.component.RotatoryAwareLazyColumn
 import com.benoitletondor.pixelminimalwatchface.compose.component.SettingToggleChip
 import com.benoitletondor.pixelminimalwatchface.helper.await
 import com.benoitletondor.pixelminimalwatchface.settings.phonebattery.troubleshoot.PhoneBatterySyncTroubleshootActivity
@@ -113,8 +114,8 @@ class PhoneBatteryConfigurationActivity : ComponentActivity(), CapabilityClient.
     @Composable
     private fun Content(state: PhoneBatteryConfigurationViewModel.State) {
         WearTheme {
-            RotatoryAwareScalingLazyColumn(
-                contentPadding = PaddingValues(horizontal = 20.dp),
+            RotatoryAwareLazyColumn(
+                horizontalPadding = 20.dp,
             ) {
                 item(key = "Title") {
                     Text(
@@ -140,7 +141,7 @@ class PhoneBatteryConfigurationActivity : ComponentActivity(), CapabilityClient.
         }
     }
 
-    private fun ScalingLazyListScope.ConnectedView(syncActivated: Boolean) {
+    private fun LazyListScope.ConnectedView(syncActivated: Boolean) {
         item(key = "ConnectedViewText1") {
             ExplanationText(
                 text = "Connected to your phone's companion app successfully.",
@@ -178,7 +179,7 @@ class PhoneBatteryConfigurationActivity : ComponentActivity(), CapabilityClient.
         }
     }
 
-    private fun ScalingLazyListScope.LoadingView(connecting: Boolean) {
+    private fun LazyListScope.LoadingView(connecting: Boolean) {
         item(key = "LoadingViewTitle+$connecting") {
             Text(
                 text = if (connecting) "Connecting to your phone…" else "Syncing state with phone…",
@@ -196,7 +197,7 @@ class PhoneBatteryConfigurationActivity : ComponentActivity(), CapabilityClient.
         }
     }
 
-    private fun ScalingLazyListScope.ErrorView(syncActivated: Boolean) {
+    private fun LazyListScope.ErrorView(syncActivated: Boolean) {
         item(key = "ErrorViewTitle") {
             Text(
                 text = "Connection error",

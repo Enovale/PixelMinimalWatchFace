@@ -62,6 +62,9 @@ private const val KEY_USE_ANDROID_12_STYLE = "useAndroid12Style"
 private const val KEY_HIDE_BATTERY_IN_AMBIENT = "hideBatteryInAmbient"
 private const val KEY_SECONDS_RING_COLOR = "secondsRingColor"
 private const val KEY_WIDGETS_SIZE = "widgetSize"
+private const val KEY_NOTIFICATIONS_SYNC_ENABLED = "notificationsSyncEnabled"
+private const val KEY_NOTIFICATION_ICONS_COLOR = "notificationIconsColor"
+private const val KEY_SHOW_NOTIFICATIONS_AMBIENT = "showNotificationsAmbient"
 
 interface Storage {
     fun getComplicationColors(): ComplicationColors
@@ -133,6 +136,15 @@ interface Storage {
     fun getWidgetsSize(): Int
     fun setWidgetsSize(widgetsSize: Int)
     fun watchWidgetsSize(): Flow<Int>
+    fun isNotificationsSyncActivated(): Boolean
+    fun setNotificationsSyncActivated(activated: Boolean)
+    fun watchIsNotificationsSyncActivated(): Flow<Boolean>
+    fun setNotificationIconsColor(@ColorInt color: Int)
+    @ColorInt fun getNotificationIconsColor(): Int
+    fun getNotificationIconsColorFilter(): ColorFilter
+    fun getShowNotificationsInAmbient(): Boolean
+    fun setShowNotificationsInAmbient(show: Boolean)
+    fun watchShowNotificationsInAmbient(): Flow<Boolean>
 }
 
 class StorageImpl(
@@ -165,6 +177,9 @@ class StorageImpl(
     private val useNormalTimeStyleInAmbientModeCache = StorageCachedBoolValue(sharedPreferences, KEY_USE_NORMAL_TIME_STYLE_IN_AMBIENT, false)
     private val useThinTimeStyleInNormalModeCache = StorageCachedBoolValue(sharedPreferences, KEY_USE_THIN_TIME_STYLE_IN_REGULAR, false)
     private val hasRatingBeenDisplayedCache = StorageCachedBoolValue(sharedPreferences, KEY_RATING_NOTIFICATION_SENT, false)
+    private val notificationsSyncEnabledCache = StorageCachedBoolValue(sharedPreferences, KEY_NOTIFICATIONS_SYNC_ENABLED, false)
+    private val notificationIconsColorCache = StorageCachedColorValue(sharedPreferences, appContext, KEY_NOTIFICATION_ICONS_COLOR, R.color.white)
+    private val showNotificationsInAmbientCache = StorageCachedBoolValue(sharedPreferences, KEY_SHOW_NOTIFICATIONS_AMBIENT, false)
 
     init {
         if( getInstallTimestamp() < 0 ) {
@@ -411,6 +426,25 @@ class StorageImpl(
     override fun setWidgetsSize(widgetsSize: Int) = widgetsSizeCache.set(widgetsSize)
 
     override fun watchWidgetsSize(): Flow<Int> = widgetsSizeCache.watchChanges()
+
+    override fun isNotificationsSyncActivated(): Boolean = notificationsSyncEnabledCache.get()
+
+    override fun setNotificationsSyncActivated(activated: Boolean) = notificationsSyncEnabledCache.set(activated)
+
+    override fun watchIsNotificationsSyncActivated(): Flow<Boolean> = notificationsSyncEnabledCache.watchChanges()
+
+    override fun setNotificationIconsColor(@ColorInt color: Int) = notificationIconsColorCache.set(color)
+
+    @ColorInt
+    override fun getNotificationIconsColor(): Int = notificationIconsColorCache.get().color
+
+    override fun getNotificationIconsColorFilter(): ColorFilter = notificationIconsColorCache.get().colorFilter
+
+    override fun getShowNotificationsInAmbient(): Boolean = showNotificationsInAmbientCache.get()
+
+    override fun setShowNotificationsInAmbient(show: Boolean) = showNotificationsInAmbientCache.set(show)
+
+    override fun watchShowNotificationsInAmbient(): Flow<Boolean> = showNotificationsInAmbientCache.watchChanges()
 
     override fun hasFeatureDropSummer2021NotificationBeenShown(): Boolean {
         return sharedPreferences.getBoolean(KEY_FEATURE_DROP_2021_NOTIFICATION, false)

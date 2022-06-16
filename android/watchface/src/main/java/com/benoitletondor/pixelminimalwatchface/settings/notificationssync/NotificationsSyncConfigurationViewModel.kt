@@ -13,7 +13,7 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  */
-package com.benoitletondor.pixelminimalwatchface.settings.phonebattery
+package com.benoitletondor.pixelminimalwatchface.settings.notificationssync
 
 import android.app.Application
 import android.content.Context
@@ -23,8 +23,8 @@ import androidx.lifecycle.viewModelScope
 import com.benoitletondor.pixelminimalwatchface.Injection
 import com.benoitletondor.pixelminimalwatchface.helper.await
 import com.benoitletondor.pixelminimalwatchface.helper.findBestCompanionNode
-import com.benoitletondor.pixelminimalwatchface.helper.startPhoneBatterySync
-import com.benoitletondor.pixelminimalwatchface.helper.stopPhoneBatterySync
+import com.benoitletondor.pixelminimalwatchface.helper.startNotificationsSync
+import com.benoitletondor.pixelminimalwatchface.helper.stopNotificationsSync
 import com.benoitletondor.pixelminimalwatchface.model.Storage
 import com.google.android.gms.wearable.*
 import kotlinx.coroutines.*
@@ -33,10 +33,10 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
-private const val DATA_KEY_SYNC_ACTIVATED = "/batterySync/syncActivated"
-private const val QUERY_SYNC_STATUS_PATH = "/batterySync/queryStatus"
+private const val DATA_KEY_SYNC_STATUS = "/notificationsSync/syncStatus"
+private const val QUERY_SYNC_STATUS_PATH = "/notificationsSync/queryStatus"
 
-class PhoneBatteryConfigurationViewModel(
+class NotificationsSyncConfigurationViewModel(
     application: Application
 ) : AndroidViewModel(application), MessageClient.OnMessageReceivedListener {
     private val storage: Storage = Injection.storage(application)
@@ -63,7 +63,7 @@ class PhoneBatteryConfigurationViewModel(
             delay(5000)
             if (state is State.Loading) {
                 Log.e(TAG, "Timeout while searching for phone node")
-                state = State.PhoneNotFound(syncActivated = storage.showPhoneBattery())
+                state = State.PhoneNotFound(syncActivated = storage.isNotificationsSyncActivated())
             }
         }
     }
@@ -76,22 +76,33 @@ class PhoneBatteryConfigurationViewModel(
     }
 
     override fun onMessageReceived(messageEvent: MessageEvent) {
-        if (messageEvent.path == DATA_KEY_SYNC_ACTIVATED) {
+        if (messageEvent.path == DATA_KEY_SYNC_STATUS) {
             try {
                 val currentState = state
-                if (currentState is State.WaitingForPhoneStatusResponse) {
-                    val syncActivated = messageEvent.data[0].toInt() == 1
+                if (currentState is State.WaitingForPhoneStatusResponse || currentState is State.PhoneStatusResponse) {
+                    val syncStatusInt = messageEvent.data[0].toInt()
+                    val syncStatus = NotificationsSyncStatus.fromIntValue(syncStatusInt)
+                        ?: throw IllegalArgumentException("Unknown sync status value: $syncStatusInt")
+
+                    val node = when(currentState) {
+                        is State.PhoneStatusResponse -> currentState.node
+                        is State.WaitingForPhoneStatusResponse -> currentState.node
+                        else -> throw IllegalStateException("Unexpected state: $currentState")
+                    }
 
                     state = State.PhoneStatusResponse(
-                        node = currentState.node,
-                        syncActivated = syncActivated,
+                        node = node,
+                        syncStatus = syncStatus,
                     )
 
-                    storage.setShowPhoneBattery(syncActivated)
+                    storage.setNotificationsSyncActivated(syncStatus == NotificationsSyncStatus.ACTIVATED)
                 }
             } catch (t: Throwable) {
                 Log.e(TAG, "Error while parsing sync activated response from phone", t)
-                state = State.Error(ErrorType.NO_RESPONSE_FROM_PHONE, syncActivated = storage.showPhoneBattery())
+                state = State.Error(
+                    ErrorType.NO_RESPONSE_FROM_PHONE,
+                    syncActivated = storage.isNotificationsSyncActivated(),
+                )
             }
         }
     }
@@ -106,7 +117,7 @@ class PhoneBatteryConfigurationViewModel(
 
     fun onPhoneAppDetectionFailed(error: Throwable) {
         Log.e(TAG, "Error while searching for phone node", error)
-        state = State.PhoneNotFound(syncActivated = storage.showPhoneBattery())
+        state = State.PhoneNotFound(syncActivated = storage.isNotificationsSyncActivated())
     }
 
     fun onSyncWithPhoneActivated() {
@@ -120,14 +131,17 @@ class PhoneBatteryConfigurationViewModel(
             state = State.SendingStatusSyncToPhone(currentState.node, activating = true)
 
             try {
-                currentState.node.startPhoneBatterySync(getApplication())
+                currentState.node.startNotificationsSync(getApplication())
 
                 state = State.WaitingForPhoneStatusResponse(currentState.node)
                 delay(5000)
 
                 val newState = state
                 if (newState is State.WaitingForPhoneStatusResponse && newState.node.id == currentState.node.id) {
-                    state = State.Error(ErrorType.NO_RESPONSE_FROM_PHONE, syncActivated = storage.showPhoneBattery())
+                    state = State.Error(
+                        ErrorType.NO_RESPONSE_FROM_PHONE,
+                        syncActivated = storage.isNotificationsSyncActivated(),
+                    )
                 }
             } catch (t: Throwable) {
                 if (t is CancellationException) {
@@ -135,7 +149,10 @@ class PhoneBatteryConfigurationViewModel(
                 }
 
                 Log.e(TAG, "Error sending activate sync query", t)
-                state = State.Error(ErrorType.UNABLE_TO_SEND_SYNC_QUERY_MESSAGE, syncActivated = storage.showPhoneBattery())
+                state = State.Error(
+                    ErrorType.UNABLE_TO_SEND_SYNC_QUERY_MESSAGE,
+                    syncActivated = storage.isNotificationsSyncActivated(),
+                )
             }
         }
     }
@@ -151,14 +168,17 @@ class PhoneBatteryConfigurationViewModel(
             state = State.SendingStatusSyncToPhone(currentState.node, activating = false)
 
             try {
-                currentState.node.stopPhoneBatterySync(getApplication())
+                currentState.node.stopNotificationsSync(getApplication())
 
                 state = State.WaitingForPhoneStatusResponse(currentState.node)
                 delay(5000)
 
                 val newState = state
                 if (newState is State.WaitingForPhoneStatusResponse && newState.node.id == currentState.node.id) {
-                    state = State.Error(ErrorType.NO_RESPONSE_FROM_PHONE, syncActivated = storage.showPhoneBattery())
+                    state = State.Error(
+                        ErrorType.NO_RESPONSE_FROM_PHONE,
+                        syncActivated = storage.isNotificationsSyncActivated(),
+                    )
                 }
             } catch (t: Throwable) {
                 if (t is CancellationException) {
@@ -166,14 +186,16 @@ class PhoneBatteryConfigurationViewModel(
                 }
 
                 Log.e(TAG, "Error sending activate sync query", t)
-                state = State.Error(ErrorType.UNABLE_TO_SEND_SYNC_QUERY_MESSAGE, syncActivated = storage.showPhoneBattery())
+                state = State.Error(ErrorType.UNABLE_TO_SEND_SYNC_QUERY_MESSAGE, syncActivated = storage.isNotificationsSyncActivated())
             }
         }
     }
 
     private fun onPhoneNodeFound(node: Node) {
         when(val currentState = state) {
-            is State.Loading, is State.PhoneNotFound, is State.Error -> {
+            is State.Loading,
+            is State.PhoneNotFound,
+            is State.Error -> {
                 state = State.PhoneFound(node)
                 checkPhoneStatus(node)
             }
@@ -186,7 +208,9 @@ class PhoneBatteryConfigurationViewModel(
                     checkPhoneStatus(node)
                 }
             }
-            is State.PhoneStatusResponse, is State.SendingStatusSyncToPhone, is State.WaitingForPhoneStatusResponse -> Unit // No-op
+            is State.PhoneStatusResponse,
+            is State.SendingStatusSyncToPhone,
+            is State.WaitingForPhoneStatusResponse -> Unit // No-op
         }
     }
 
@@ -197,7 +221,7 @@ class PhoneBatteryConfigurationViewModel(
                 Wearable.getMessageClient(getApplication() as Context).sendMessage(
                     phoneNode.id,
                     QUERY_SYNC_STATUS_PATH,
-                    byteArrayOf(if (storage.showPhoneBattery()) { 1 } else { 0 }),
+                    byteArrayOf(if (storage.isNotificationsSyncActivated()) { 1 } else { 0 }),
                 ).await()
 
                 state = State.WaitingForPhoneStatusResponse(phoneNode)
@@ -205,7 +229,10 @@ class PhoneBatteryConfigurationViewModel(
 
                 val currentState = state
                 if (currentState is State.WaitingForPhoneStatusResponse && phoneNode.id == currentState.node.id) {
-                    state = State.Error(ErrorType.NO_RESPONSE_FROM_PHONE, syncActivated = storage.showPhoneBattery())
+                    state = State.Error(
+                        ErrorType.NO_RESPONSE_FROM_PHONE,
+                        syncActivated = storage.isNotificationsSyncActivated(),
+                    )
                 }
             } catch (t: Throwable) {
                 if (t is CancellationException) {
@@ -213,18 +240,25 @@ class PhoneBatteryConfigurationViewModel(
                 }
 
                 Log.e(TAG, "Error sending sync status query", t)
-                state = State.Error(ErrorType.UNABLE_TO_SEND_SYNC_QUERY_MESSAGE, syncActivated = storage.showPhoneBattery())
+                state = State.Error(
+                    ErrorType.UNABLE_TO_SEND_SYNC_QUERY_MESSAGE,
+                    syncActivated = storage.isNotificationsSyncActivated(),
+                )
             }
         }
     }
 
     fun onForceDeactivateSyncClicked() {
-        storage.setShowPhoneBattery(false)
+        storage.setNotificationsSyncActivated(false)
 
         when(val state = state) {
             is State.Error -> this.state = State.Error(state.errorType, syncActivated = false)
             is State.PhoneNotFound -> this.state = State.PhoneNotFound(syncActivated = false)
-            State.Loading, is State.PhoneFound, is State.PhoneStatusResponse, is State.SendingStatusSyncToPhone, is State.WaitingForPhoneStatusResponse -> Unit
+            State.Loading,
+            is State.PhoneFound,
+            is State.PhoneStatusResponse,
+            is State.SendingStatusSyncToPhone,
+            is State.WaitingForPhoneStatusResponse -> Unit
         }
     }
 
@@ -240,7 +274,7 @@ class PhoneBatteryConfigurationViewModel(
         data class PhoneNotFound(val syncActivated: Boolean) : State()
         data class PhoneFound(val node: Node) : State()
         data class WaitingForPhoneStatusResponse(val node: Node) : State()
-        data class PhoneStatusResponse(val node: Node, val syncActivated: Boolean) : State()
+        data class PhoneStatusResponse(val node: Node, val syncStatus: NotificationsSyncStatus) : State()
         data class SendingStatusSyncToPhone(val node: Node, val activating: Boolean) : State()
         data class Error(val errorType: ErrorType, val syncActivated: Boolean) : State()
     }
@@ -254,7 +288,18 @@ class PhoneBatteryConfigurationViewModel(
         PHONE_CHANGED
     }
 
+    enum class NotificationsSyncStatus(val intValue: Int) {
+        DEACTIVATED(0),
+        ACTIVATED(1),
+        ACTIVATED_MISSING_PERMISSION(2);
+
+        companion object {
+            fun fromIntValue(intValue: Int): NotificationsSyncStatus?
+                = values().firstOrNull { it.intValue == intValue }
+        }
+    }
+
     companion object {
-        private const val TAG = "PhoneBatteryConfigurationVM"
+        private const val TAG = "NotificationsSyncConfigVM"
     }
 }

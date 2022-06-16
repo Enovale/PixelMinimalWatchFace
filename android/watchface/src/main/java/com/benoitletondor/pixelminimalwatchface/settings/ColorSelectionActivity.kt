@@ -31,7 +31,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material.*
 import com.benoitletondor.pixelminimalwatchface.compose.WearTheme
-import com.benoitletondor.pixelminimalwatchface.compose.component.RotatoryAwareScalingLazyColumn
+import com.benoitletondor.pixelminimalwatchface.compose.component.RotatoryAwareLazyColumn
 import com.benoitletondor.pixelminimalwatchface.model.ComplicationColor
 import com.benoitletondor.pixelminimalwatchface.model.ComplicationColorsProvider
 
@@ -45,7 +45,7 @@ class ColorSelectionActivity : ComponentActivity() {
 
         setContent {
             WearTheme {
-                RotatoryAwareScalingLazyColumn {
+                RotatoryAwareLazyColumn {
                     listOf(defaultColor).plus(availableColors).forEach { color ->
                         item {
                             ColorItem(

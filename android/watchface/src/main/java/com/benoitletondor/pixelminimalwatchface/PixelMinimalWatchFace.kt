@@ -45,6 +45,7 @@ import com.benoitletondor.pixelminimalwatchface.model.ComplicationLocation
 import com.benoitletondor.pixelminimalwatchface.model.DEFAULT_APP_VERSION
 import com.benoitletondor.pixelminimalwatchface.model.Storage
 import com.benoitletondor.pixelminimalwatchface.rating.FeedbackActivity
+import com.benoitletondor.pixelminimalwatchface.settings.notificationssync.NotificationsSyncConfigurationActivity
 import com.benoitletondor.pixelminimalwatchface.settings.phonebattery.*
 import com.google.android.gms.wearable.*
 import kotlinx.coroutines.*
@@ -53,8 +54,8 @@ import java.lang.ref.WeakReference
 import java.time.LocalDateTime
 import java.util.*
 import java.util.concurrent.Executors
-import kotlin.collections.HashSet
 import kotlin.math.max
+
 
 const val MISC_NOTIFICATION_CHANNEL_ID = "rating"
 private const val DATA_KEY_PREMIUM = "premium"
@@ -129,6 +130,8 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
         private var screenHeight = -1
         private var windowInsets: WindowInsets? = null
 
+        private lateinit var phoneNotifications: PhoneNotifications
+
         private val timeZoneReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context, intent: Intent) {
                 calendar.timeZone = TimeZone.getDefault()
@@ -148,12 +151,14 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
             )
 
             calendar = Calendar.getInstance()
+            phoneNotifications = PhoneNotifications(this@PixelMinimalWatchFace)
 
             initWatchFaceDrawer()
 
             Wearable.getDataClient(service).addListener(this)
             Wearable.getMessageClient(service).addListener(this)
             syncPhoneBatteryStatus()
+            syncNotificationsDisplayStatus()
             complicationProviderInfoRetriever.init()
         }
 
@@ -346,6 +351,7 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
             Wearable.getMessageClient(service).removeListener(this)
             timeDependentUpdateHandler.cancelUpdate()
             complicationProviderInfoRetriever.release()
+            phoneNotifications.onDestroy()
             cancel()
 
             super.onDestroy()
@@ -642,10 +648,42 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
                             return
                         }
                     }
-                    if ( storage.showPhoneBattery() && phoneBatteryStatus.isStale(System.currentTimeMillis()) && watchFaceDrawer.tapIsOnBattery(x, y)) {
+                    if (storage.isUserPremium() &&
+                        storage.showPhoneBattery() &&
+                        phoneBatteryStatus.isStale(System.currentTimeMillis()) &&
+                        watchFaceDrawer.tapIsOnBattery(x, y)) {
                         startActivity(Intent(this@PixelMinimalWatchFace, PhoneBatteryConfigurationActivity::class.java).apply {
                             flags = FLAG_ACTIVITY_NEW_TASK
                         })
+                        return
+                    }
+                    if (storage.isUserPremium() &&
+                        storage.isNotificationsSyncActivated() &&
+                        watchFaceDrawer.isTapOnNotifications(x, y)) {
+
+                        when(val currentState = phoneNotifications.notificationsStateFlow.value) {
+                            is PhoneNotifications.NotificationState.DataReceived -> {
+                                if (currentState.icons.isNotEmpty()) {
+                                    Toast.makeText(
+                                        this@PixelMinimalWatchFace,
+                                        if (Device.isSamsungGalaxyWatch) {
+                                            "Swipe from left to go to notifications"
+                                        } else {
+                                            "Swipe from bottom to go to notifications"
+                                        },
+                                        Toast.LENGTH_SHORT,
+                                    ).show()
+                                }
+                            }
+                            is PhoneNotifications.NotificationState.Unknown -> {
+                                if (currentState.isStale(System.currentTimeMillis())) {
+                                    startActivity(Intent(this@PixelMinimalWatchFace, NotificationsSyncConfigurationActivity::class.java).apply {
+                                        flags = FLAG_ACTIVITY_NEW_TASK
+                                    })
+                                }
+                            }
+                        }
+
                         return
                     }
                 }
@@ -700,6 +738,7 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
                 if( shouldShowWeather ) { weatherComplicationData } else { null },
                 if( shouldShowBattery ) { batteryComplicationData } else { null },
                 if (storage.showPhoneBattery()) { phoneBatteryStatus } else { null },
+                if (storage.isNotificationsSyncActivated()) { phoneNotifications.notificationsStateFlow.value } else { null },
             )
 
             if( !ambient && isVisible && !timeDependentUpdateHandler.hasUpdateScheduled() ) {
@@ -796,9 +835,17 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
                 if (event.type == DataEvent.TYPE_CHANGED) {
                     val dataMap = DataMapItem.fromDataItem(event.dataItem).dataMap
 
-                    if (dataMap.containsKey(DATA_KEY_PREMIUM)) {
-                        handleIsPremiumCallback(dataMap.getBoolean(DATA_KEY_PREMIUM))
+                    when(event.dataItem.uri.path) {
+                        "/premium" -> {
+                            if (dataMap.containsKey(DATA_KEY_PREMIUM)) {
+                                handleIsPremiumCallback(dataMap.getBoolean(DATA_KEY_PREMIUM))
+                            }
+                        }
+                        "/notifications" -> {
+                            phoneNotifications.onNewData(dataMap)
+                        }
                     }
+
                 }
             }
         }
@@ -894,14 +941,54 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
                     }
 
                     if (storage.showPhoneBattery()) {
-                        capabilityInfo.nodes.findBestNode()?.startPhoneBatterySync(this@PixelMinimalWatchFace)
+                        capabilityInfo.nodes.findBestCompanionNode()?.startPhoneBatterySync(this@PixelMinimalWatchFace)
                     } else {
-                        capabilityInfo.nodes.findBestNode()?.stopPhoneBatterySync(this@PixelMinimalWatchFace)
+                        capabilityInfo.nodes.findBestCompanionNode()?.stopPhoneBatterySync(this@PixelMinimalWatchFace)
                     }
 
-                } catch (t: Throwable) {
-                    Log.e("PixelWatchFace", "Error while sending phone battery sync signal", t)
+                } catch (e: Exception) {
+                    if (e is CancellationException) throw e
+
+                    Log.e(TAG, "Error while sending phone battery sync signal", e)
                 }
+            }
+        }
+
+        private fun syncNotificationsDisplayStatus() {
+            launch {
+                try {
+                    val capabilityInfo = withTimeout(5000) {
+                        Wearable.getCapabilityClient(service).getCapability(BuildConfig.COMPANION_APP_CAPABILITY, CapabilityClient.FILTER_REACHABLE).await()
+                    }
+
+                    if (storage.isNotificationsSyncActivated()) {
+                        capabilityInfo.nodes.findBestCompanionNode()?.startNotificationsSync(this@PixelMinimalWatchFace)
+                    } else {
+                        capabilityInfo.nodes.findBestCompanionNode()?.stopNotificationsSync(this@PixelMinimalWatchFace)
+                    }
+
+                } catch (e: Exception) {
+                    if (e is CancellationException) throw e
+
+                    Log.e(TAG, "Error while sending notifications sync signal", e)
+                }
+            }
+
+            launch {
+                storage.watchIsNotificationsSyncActivated()
+                    .collectLatest { activated ->
+                        if (!activated) {
+                            Log.d(TAG, "Notifications from phone deactivated: invalidate")
+                            invalidate()
+                        } else {
+                            phoneNotifications.notificationsStateFlow
+                                .collect { state ->
+                                    Log.d(TAG, "Notifications from phone received, invalidate: $state")
+                                    invalidate()
+                                }
+                        }
+                    }
+
             }
         }
     }

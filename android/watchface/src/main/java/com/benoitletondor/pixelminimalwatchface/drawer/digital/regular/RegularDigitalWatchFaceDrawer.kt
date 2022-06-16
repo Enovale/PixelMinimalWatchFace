@@ -28,10 +28,7 @@ import androidx.annotation.ColorInt
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.drawable.toBitmap
-import com.benoitletondor.pixelminimalwatchface.DEBUG_LOGS
-import com.benoitletondor.pixelminimalwatchface.PhoneBatteryStatus
-import com.benoitletondor.pixelminimalwatchface.PixelMinimalWatchFace
-import com.benoitletondor.pixelminimalwatchface.R
+import com.benoitletondor.pixelminimalwatchface.*
 import com.benoitletondor.pixelminimalwatchface.drawer.WatchFaceDrawer
 import com.benoitletondor.pixelminimalwatchface.helper.*
 import com.benoitletondor.pixelminimalwatchface.model.ComplicationColors
@@ -77,6 +74,7 @@ class RegularDigitalWatchFaceDrawer(
         strokeWidth = 10F
         isAntiAlias = true
     }
+    private val notificationsPaint = Paint()
     private val distanceBetweenPhoneAndWatchBattery: Int = context.dpToPx(3)
     private val titleSize: Int = context.resources.getDimensionPixelSize(R.dimen.complication_title_size)
     private val textSize: Int = context.resources.getDimensionPixelSize(R.dimen.complication_text_size)
@@ -222,6 +220,12 @@ class RegularDigitalWatchFaceDrawer(
         return drawingState.tapIsOnBattery(x, y)
     }
 
+    override fun isTapOnNotifications(x: Int, y: Int): Boolean {
+        val drawingState = drawingState as? RegularDrawerDrawingState.CacheAvailable ?: return false
+
+        return drawingState.isTapOnNotifications(x, y)
+    }
+
     override fun draw(
         canvas: Canvas,
         calendar: Calendar,
@@ -232,6 +236,7 @@ class RegularDigitalWatchFaceDrawer(
         weatherComplicationData: ComplicationData?,
         batteryComplicationData: ComplicationData?,
         phoneBatteryStatus: PhoneBatteryStatus?,
+        notificationsState: PhoneNotifications.NotificationState?,
     ) {
         setPaintVariables(muteMode, ambient, lowBitAmbient, burnInProtection)
         drawBackground(canvas)
@@ -260,6 +265,7 @@ class RegularDigitalWatchFaceDrawer(
                 weatherComplicationData,
                 batteryComplicationData,
                 phoneBatteryStatus,
+                notificationsState,
             )
         }
     }
@@ -273,13 +279,13 @@ class RegularDigitalWatchFaceDrawer(
         val timeTextBounds = Rect().apply {
             timePaint.getTextBounds(timeText, 0, timeText.length, this)
         }
-        val timeYOffset = centerY + (timeTextBounds.height() / 2.0f ) - 5f
+        val timeYOffset = centerY + (timeTextBounds.height() / 2.0f ) + context.resources.getDimensionPixelSize(R.dimen.time_y_offset)
 
         val dateText = "May, 15"
         val dateTextHeight = Rect().apply {
             datePaint.getTextBounds(dateText, 0, dateText.length, this)
         }.height()
-        val dateYOffset = timeYOffset + (timeTextBounds.height() / 2) - (dateTextHeight / 2.0f ) + context.dpToPx(8)
+        val dateYOffset = timeYOffset + (timeTextBounds.height() / 2) - (dateTextHeight / 2.0f ) + context.resources.getDimensionPixelSize(R.dimen.space_between_time_and_date)
 
         val complicationsDrawingCache = buildComplicationDrawingCache(
             timeYOffset - timeTextBounds.height(),
@@ -318,7 +324,7 @@ class RegularDigitalWatchFaceDrawer(
 
         val sizeOfComplication = if( isRound ) { ((screenWidth / 4.5) * widgetsScaleFactor).toInt() } else { (min(topBottom.toInt() - topAndBottomMargins - context.dpToPx(2), (screenWidth / 3.5).toInt()) * widgetsScaleFactor).toInt() }
         // If watch is round, align top widgets with the top of the time, otherwise center them in the top space
-        val verticalOffset = if ( isRound ) { topBottom.toInt() - sizeOfComplication - context.dpToPx(6) } else { topAndBottomMargins + ((topBottom.toInt() - topAndBottomMargins) / 2) - (sizeOfComplication / 2) }
+        val verticalOffset = if ( isRound ) { topBottom.toInt() - sizeOfComplication - context.resources.getDimensionPixelSize(R.dimen.space_between_time_and_top_widgets) } else { topAndBottomMargins + ((topBottom.toInt() - topAndBottomMargins) / 2) - (sizeOfComplication / 2) }
         val distanceBetweenComplications = context.dpToPx(3)
 
         val maxWidth = max(sizeOfComplication, wearOsImage.width)
@@ -378,7 +384,13 @@ class RegularDigitalWatchFaceDrawer(
 
         return ComplicationsDrawingCache(
             iconXOffset,
-            iconYOffset.toFloat()
+            iconYOffset.toFloat(),
+            notificationsRect = Rect(
+                if (isRound) { (screenWidth / 7f).toInt() } else { context.dpToPx(15) },
+                bottomTop.toInt(),
+                if (isRound) { screenWidth - (screenWidth / 7f).toInt() } else { screenWidth - context.dpToPx(15) },
+                bottomTop.toInt() + availableBottomSpace.toInt() - batteryIconSize - context.dpToPx(2),
+            ),
         )
     }
 
@@ -402,6 +414,7 @@ class RegularDigitalWatchFaceDrawer(
         weatherComplicationData: ComplicationData?,
         batteryComplicationData: ComplicationData?,
         phoneBatteryStatus: PhoneBatteryStatus?,
+        notificationsState: PhoneNotifications.NotificationState?,
     ) {
         val timeText = if( storage.getUse24hTimeFormat()) {
             timeFormatter24H.calendar = calendar
@@ -445,6 +458,10 @@ class RegularDigitalWatchFaceDrawer(
                 phoneBatteryStatus,
             )
         }
+
+        if (isUserPremium && notificationsState != null && (!ambient || storage.getShowNotificationsInAmbient())) {
+            drawNotifications(canvas, notificationsPaint, notificationsState)
+        }
     }
 
     private fun ComplicationsDrawingCache.drawComplications(
@@ -461,7 +478,7 @@ class RegularDigitalWatchFaceDrawer(
                     return@forEach
                 }
 
-                if( complicationId == PixelMinimalWatchFace.BOTTOM_COMPLICATION_ID && (storage.showWatchBattery() || storage.showPhoneBattery()) ) {
+                if( complicationId == PixelMinimalWatchFace.BOTTOM_COMPLICATION_ID && (storage.showWatchBattery() || storage.showPhoneBattery() || storage.isNotificationsSyncActivated()) ) {
                     return@forEach
                 }
 
@@ -518,6 +535,11 @@ class RegularDigitalWatchFaceDrawer(
 
         secondsRingPaint.apply {
             colorFilter = storage.getSecondRingColor()
+        }
+
+        notificationsPaint.apply {
+            isAntiAlias = !(ambient && lowBitAmbient)
+            colorFilter = if( ambient ) { weatherAndBatteryIconColorFilterDimmed } else { storage.getNotificationIconsColorFilter() }
         }
 
         ACTIVE_COMPLICATIONS.forEach {

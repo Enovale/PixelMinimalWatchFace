@@ -27,6 +27,7 @@ fun SettingChip(
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
     label: String,
+    secondaryLabel: String? = null,
     @DrawableRes iconDrawable: Int?,
 ) {
     Chip(
@@ -35,6 +36,11 @@ fun SettingChip(
         label = { Text(
             text = label,
         ) },
+        secondaryLabel = secondaryLabel?.let {
+            { SettingButtonSecondaryText(
+                text = it,
+            ) }
+        },
         onClick = onClick,
         icon = iconDrawable?.let {
             { Icon(

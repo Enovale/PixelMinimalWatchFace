@@ -25,17 +25,23 @@ import androidx.wear.compose.material.*
 
 @Composable
 fun SettingToggleChip(
+    modifier: Modifier = Modifier,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
     label: String,
+    secondaryLabel: String? = null,
     @DrawableRes iconDrawable: Int?,
-    modifier: Modifier = Modifier,
 ) {
     ToggleChip(
         label = {
             Text(
                 text = label,
             )
+        },
+        secondaryLabel = secondaryLabel?.let {
+            { SettingButtonSecondaryText(
+                text = it,
+            ) }
         },
         toggleControl = {
             Icon (

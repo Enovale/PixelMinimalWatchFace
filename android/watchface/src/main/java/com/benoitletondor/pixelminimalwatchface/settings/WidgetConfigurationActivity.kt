@@ -43,7 +43,7 @@ import com.benoitletondor.pixelminimalwatchface.PixelMinimalWatchFace.Companion.
 import com.benoitletondor.pixelminimalwatchface.PixelMinimalWatchFace.Companion.getSupportedComplicationTypes
 import com.benoitletondor.pixelminimalwatchface.R
 import com.benoitletondor.pixelminimalwatchface.compose.WearTheme
-import com.benoitletondor.pixelminimalwatchface.compose.component.RotatoryAwareScalingLazyColumn
+import com.benoitletondor.pixelminimalwatchface.compose.component.RotatoryAwareLazyColumn
 import com.benoitletondor.pixelminimalwatchface.compose.component.SettingComplicationSlot
 import com.benoitletondor.pixelminimalwatchface.model.ComplicationColor
 import com.benoitletondor.pixelminimalwatchface.model.ComplicationColorsProvider
@@ -95,7 +95,7 @@ class WidgetConfigurationActivity : ComponentActivity() {
             val complicationColor by complicationColorMutableFlow.collectAsState()
 
             WearTheme {
-                RotatoryAwareScalingLazyColumn {
+                RotatoryAwareLazyColumn {
                     item {
                         Text(
                             text = title as String,

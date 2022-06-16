@@ -13,7 +13,7 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  */
-package com.benoitletondor.pixelminimalwatchface.settings.phonebattery.troubleshoot
+package com.benoitletondor.pixelminimalwatchface.settings.notificationssync.troubleshoot
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -33,7 +33,7 @@ import com.benoitletondor.pixelminimalwatchface.compose.WearTheme
 import com.benoitletondor.pixelminimalwatchface.compose.component.ExplanationText
 import com.benoitletondor.pixelminimalwatchface.compose.component.RotatoryAwareLazyColumn
 
-class PhoneBatterySyncTroubleshootActivity : ComponentActivity() {
+class NotificationsSyncTroubleshootActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,7 +45,7 @@ class PhoneBatterySyncTroubleshootActivity : ComponentActivity() {
                 ) {
                     item {
                         Text(
-                            text = "(Beta) Phone battery sync troubleshoot",
+                            text = "(Beta) Notifications sync troubleshoot",
                             textAlign = TextAlign.Center,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier
@@ -56,7 +56,7 @@ class PhoneBatterySyncTroubleshootActivity : ComponentActivity() {
 
                     item {
                         ExplanationText(
-                            text = "To sync your phone battery with your watch, your phone needs to be able to send updates to your watch.",
+                            text = "To sync notifications with your watch, your phone needs to be able to send updates to your watch.",
                         )
                     }
 
@@ -81,7 +81,11 @@ class PhoneBatterySyncTroubleshootActivity : ComponentActivity() {
                             )
 
                             ExplanationText(
-                                text = "3. Try disabling battery optimisation for \"Pixel Minimal Watch Face\" on your phone.",
+                                text = "3. Make sure \"Pixel Minimal Watch Face\" has the notification access permission on your phone.",
+                            )
+
+                            ExplanationText(
+                                text = "4. Try disabling battery optimisation for \"Pixel Minimal Watch Face\" on your phone.",
                             )
                         }
                     }
