@@ -75,7 +75,7 @@
 
         <activity
             android:name=".FeatureDropActivity"
-            android:label="@string/feature_drop_2021_notification_title"/>
+            android:label="@string/feature_drop_notification_title"/>
 
         <activity android:name="android.support.wearable.complications.ComplicationHelperActivity"/>
 

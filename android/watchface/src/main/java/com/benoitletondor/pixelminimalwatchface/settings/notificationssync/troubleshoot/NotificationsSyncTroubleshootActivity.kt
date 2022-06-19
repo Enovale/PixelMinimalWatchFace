@@ -45,7 +45,7 @@ class NotificationsSyncTroubleshootActivity : ComponentActivity() {
                 ) {
                     item {
                         Text(
-                            text = "(Beta) Notifications sync troubleshoot",
+                            text = "(Beta) Notification icons sync troubleshoot",
                             textAlign = TextAlign.Center,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier
@@ -56,7 +56,7 @@ class NotificationsSyncTroubleshootActivity : ComponentActivity() {
 
                     item {
                         ExplanationText(
-                            text = "To sync notifications with your watch, your phone needs to be able to send updates to your watch.",
+                            text = "To sync phone notification icons with your watch, your phone needs to be able to send updates to your watch.",
                         )
                     }
 

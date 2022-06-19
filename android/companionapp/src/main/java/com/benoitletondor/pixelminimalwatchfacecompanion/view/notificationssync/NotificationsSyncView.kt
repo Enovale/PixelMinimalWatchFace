@@ -79,7 +79,7 @@ fun NotificationsSyncView(navController: NavController, viewModel: Notifications
     AppTopBarScaffold(
         navController = navController,
         showBackButton = true,
-        title = "Notifications display",
+        title = "Notification icons sync",
         content = {
             NotificationsSyncLayout(
                 onAskPermissionButtonPressed = viewModel::onAskPermissionButtonPressed,
@@ -125,7 +125,7 @@ private fun ActivatedNotificationsSyncLayout(
         Spacer(modifier = Modifier.height(10.dp))
 
         Text(
-            text = "✔ Notifications sync ready",
+            text = "✔ Notification icons sync ready",
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth(),
             color = MaterialTheme.colorScheme.onBackground,
@@ -135,7 +135,7 @@ private fun ActivatedNotificationsSyncLayout(
         Spacer(modifier = Modifier.height(10.dp))
 
         Text(
-            text = "Everything seems to be ready to sync your notifications with the watch face.",
+            text = "Everything seems to be ready to sync your notification icons with the watch face.",
             modifier = Modifier.fillMaxWidth(),
             color = MaterialTheme.colorScheme.onBackground,
         )
@@ -160,14 +160,14 @@ private fun ActivatedNotificationsSyncLayout(
         )
 
         Text(
-            text = "- Tap the \"Notifications display setup\" button",
+            text = "- Tap the \"Phone notification icons\" button",
             textAlign = TextAlign.Start,
             modifier = Modifier.fillMaxWidth(),
             color = MaterialTheme.colorScheme.onBackground,
         )
 
         Text(
-            text = "- Disable the \"Show notifications\" switch",
+            text = "- Disable the \"Show notification icons\" switch",
             textAlign = TextAlign.Start,
             modifier = Modifier.fillMaxWidth(),
             color = MaterialTheme.colorScheme.onBackground,
@@ -197,7 +197,7 @@ private fun ActivatedNoPermissionNotificationsSyncLayout(
         Spacer(modifier = Modifier.height(10.dp))
 
         Text(
-            text = "⚠️Notifications permission missing",
+            text = "⚠️Notification permission missing",
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth(),
             color = MaterialTheme.colorScheme.onBackground,
@@ -244,7 +244,7 @@ private fun DeactivatedPermissionsNotificationsSyncLayout(
         Spacer(modifier = Modifier.height(10.dp))
 
         Text(
-            text = "❌ Notifications sync is disabled",
+            text = "❌ Notification icons sync is disabled",
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth(),
             color = MaterialTheme.colorScheme.onBackground,
@@ -269,14 +269,14 @@ private fun DeactivatedPermissionsNotificationsSyncLayout(
         )
 
         Text(
-            text = "- Tap the \"Notifications display setup\" button",
+            text = "- Tap the \"Phone notification icons\" button",
             textAlign = TextAlign.Start,
             modifier = Modifier.fillMaxWidth(),
             color = MaterialTheme.colorScheme.onBackground,
         )
 
         Text(
-            text = "- Enable the \"Show notifications\" switch",
+            text = "- Enable the \"Show notification icons\" switch",
             textAlign = TextAlign.Start,
             modifier = Modifier.fillMaxWidth(),
             color = MaterialTheme.colorScheme.onBackground,

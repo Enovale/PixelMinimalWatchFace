@@ -432,7 +432,7 @@ private fun TroubleshootingContent(
                 Spacer(modifier = Modifier.height(20.dp))
 
                 Text(
-                    text = "Manage notifications display permission?",
+                    text = "Manage notification icons display?",
                     textAlign = TextAlign.Start,
                     modifier = Modifier.fillMaxWidth(),
                     color = MaterialTheme.colorScheme.onBackground,
@@ -446,7 +446,7 @@ private fun TroubleshootingContent(
                     colors = blueButtonColors(),
                 ) {
                     Text(
-                        text = "Setup notifications display",
+                        text = "Setup notification icons sync",
                         textAlign = TextAlign.Center,
                     )
                 }

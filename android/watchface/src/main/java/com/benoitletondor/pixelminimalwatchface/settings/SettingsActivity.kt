@@ -357,7 +357,7 @@ class SettingsActivity : ComponentActivity() {
     ) {
         item(key = "NotificationsDisplaySection") {
             SettingSectionItem(
-                label = "Display notifications",
+                label = "Display phone notifications",
                 includeBottomPadding = false,
             )
         }
@@ -382,7 +382,7 @@ class SettingsActivity : ComponentActivity() {
 
         item(key = "NotificationsDisplayButton") {
             SettingChip(
-                label = "(Beta) Notifications display setup",
+                label = "(Beta) Phone notification icons",
                 onClick = {
                     startActivityForResult(
                         Intent(this@SettingsActivity, NotificationsSyncConfigurationActivity::class.java),

@@ -53,7 +53,7 @@ private const val KEY_SECONDS_RING = "secondsRing"
 private const val KEY_SHOW_WEATHER = "showWeather"
 private const val KEY_SHOW_WATCH_BATTERY = "showBattery"
 private const val KEY_SHOW_PHONE_BATTERY = "showPhoneBattery"
-private const val KEY_FEATURE_DROP_2021_NOTIFICATION = "featureDrop2021Notification_5"
+private const val KEY_FEATURE_DROP_2022_NOTIFICATION = "featureDrop2022Notification"
 private const val KEY_USE_SHORT_DATE_FORMAT = "useShortDateFormat"
 private const val KEY_SHOW_DATE_AMBIENT = "showDateAmbient"
 private const val KEY_TIME_AND_DATE_COLOR = "timeAndDateColor"
@@ -108,8 +108,8 @@ interface Storage {
     fun showWatchBattery(): Boolean
     fun setShowWatchBattery(show: Boolean)
     fun watchShowWatchBattery(): Flow<Boolean>
-    fun hasFeatureDropSummer2021NotificationBeenShown(): Boolean
-    fun setFeatureDropSummer2021NotificationShown()
+    fun hasFeatureDropSummer2022NotificationBeenShown(): Boolean
+    fun setFeatureDropSummer2022NotificationShown()
     fun getUseShortDateFormat(): Boolean
     fun setUseShortDateFormat(useShortDateFormat: Boolean)
     fun watchUseShortDateFormat(): Flow<Boolean>
@@ -446,12 +446,12 @@ class StorageImpl(
 
     override fun watchShowNotificationsInAmbient(): Flow<Boolean> = showNotificationsInAmbientCache.watchChanges()
 
-    override fun hasFeatureDropSummer2021NotificationBeenShown(): Boolean {
-        return sharedPreferences.getBoolean(KEY_FEATURE_DROP_2021_NOTIFICATION, false)
+    override fun hasFeatureDropSummer2022NotificationBeenShown(): Boolean {
+        return sharedPreferences.getBoolean(KEY_FEATURE_DROP_2022_NOTIFICATION, false)
     }
 
-    override fun setFeatureDropSummer2021NotificationShown() {
-        sharedPreferences.edit().putBoolean(KEY_FEATURE_DROP_2021_NOTIFICATION, true).apply()
+    override fun setFeatureDropSummer2022NotificationShown() {
+        sharedPreferences.edit().putBoolean(KEY_FEATURE_DROP_2022_NOTIFICATION, true).apply()
     }
 
     override fun getUseShortDateFormat(): Boolean = useShortDateFormatCache.get()

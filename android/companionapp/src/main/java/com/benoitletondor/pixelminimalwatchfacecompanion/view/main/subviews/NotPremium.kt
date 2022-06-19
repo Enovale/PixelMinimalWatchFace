@@ -102,13 +102,13 @@ private fun NotPremiumLayout(
             modifier = Modifier.fillMaxWidth(),
         )
 
-        Spacer(modifier = Modifier.height(15.dp))
+        Spacer(modifier = Modifier.height(10.dp))
 
         Pager(
             drawViewPager = drawViewPager,
         )
 
-        Spacer(Modifier.height(10.dp))
+        Spacer(Modifier.height(5.dp))
 
         Text(
             text = "To unlock widgets, weather and battery indicators, become a premium user:",

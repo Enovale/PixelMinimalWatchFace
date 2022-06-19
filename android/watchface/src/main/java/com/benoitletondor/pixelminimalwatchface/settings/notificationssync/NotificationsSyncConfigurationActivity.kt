@@ -120,7 +120,7 @@ class NotificationsSyncConfigurationActivity : ComponentActivity(), CapabilityCl
             ) {
                 item(key = "Title") {
                     Text(
-                        text = "(Beta) Notifications display setup",
+                        text = "(Beta) Phone notification icons setup",
                         textAlign = TextAlign.Center,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier
@@ -162,7 +162,7 @@ class NotificationsSyncConfigurationActivity : ComponentActivity(), CapabilityCl
                                 viewModel.onSyncWithPhoneDeactivated()
                             }
                         },
-                        label = "Show notifications",
+                        label = "Show notification icons",
                         iconDrawable = null,
                     )
                 }
@@ -193,7 +193,7 @@ class NotificationsSyncConfigurationActivity : ComponentActivity(), CapabilityCl
 
                 item(key = "ConnectedMissingPermissionViewText2") {
                     ExplanationText(
-                        text = "To display notifications, the phone companion app needs to have the notification access permission",
+                        text = "To display phone notification icons, the phone companion app needs to have the notification access permission",
                     )
                 }
 
@@ -227,14 +227,14 @@ class NotificationsSyncConfigurationActivity : ComponentActivity(), CapabilityCl
                         )
 
                         ExplanationText(
-                            text = "- Then tap \"Setup notifications display\" button",
+                            text = "- Then tap \"Setup notification icons sync\" button",
                         )
                     }
                 }
 
                 item(key = "ConnectedMissingPermissionViewDisableTitle") {
                     Text(
-                        text = "Want to disable notifications display?",
+                        text = "Want to disable notification icons?",
                         modifier = Modifier.padding(top = 8.dp),
                     )
                 }
@@ -242,7 +242,7 @@ class NotificationsSyncConfigurationActivity : ComponentActivity(), CapabilityCl
                 item(key = "ConnectedMissingPermissionViewDisableCTA") {
                     ChipButton(
                         onClick = viewModel::onSyncWithPhoneDeactivated,
-                        text = "Deactivate notifications display",
+                        text = "Deactivate notification icons",
                     )
                 }
             }
@@ -317,7 +317,7 @@ class NotificationsSyncConfigurationActivity : ComponentActivity(), CapabilityCl
         if (syncActivated) {
             item(key = "ErrorViewForceDeactivateButton") {
                 ChipButton(
-                    text = "Deactivate notifications display",
+                    text = "Deactivate notifications icons",
                     onClick = viewModel::onForceDeactivateSyncClicked,
                     backgroundColor = MaterialTheme.colors.error,
                     modifier = Modifier.padding(top = 8.dp),
