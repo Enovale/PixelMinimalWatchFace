@@ -113,7 +113,6 @@ private fun OnboardingViewLayout(
 
         Button(
             onClick = onContinueButtonPressed,
-            colors = blueButtonColors(),
         ) {
             Text(text = "Let's go")
         }
