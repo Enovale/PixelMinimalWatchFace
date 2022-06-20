@@ -486,7 +486,7 @@ class RegularDigitalWatchFaceDrawer(
             }
         }
 
-        if( storage.showWearOSLogo() ) {
+        if( storage.showWearOSLogo() && (!ambient || storage.getShowWearOSLogoInAmbient()) ) {
             val wearOsImage = if( ambient ) { wearOSLogoAmbient } else { wearOSLogo }
             canvas.drawBitmap(wearOsImage, iconXOffset, iconYOffset, wearOSLogoPaint)
         }

@@ -540,7 +540,7 @@ class Android12DigitalWatchFaceDrawer(
             ambient,
             calendar,
             isUserPremium,
-            drawWearOsLogo = !isUserPremium || notificationsState == null,
+            drawWearOsLogo = (!isUserPremium || notificationsState == null) && (!ambient || storage.getShowWearOSLogoInAmbient()),
         )
 
         if( drawDate ) {

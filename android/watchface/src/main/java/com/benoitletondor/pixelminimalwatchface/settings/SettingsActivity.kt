@@ -118,6 +118,7 @@ class SettingsActivity : ComponentActivity() {
         val showWatchBattery by storage.watchShowWatchBattery().collectAsState(storage.showWatchBattery())
         val showPhoneBattery by storage.watchShowPhoneBattery().collectAsState(storage.showPhoneBattery())
         val showNotifications by storage.watchIsNotificationsSyncActivated().collectAsState(storage.isNotificationsSyncActivated())
+        val showWearOSLogo by storage.watchShowWearOSLogo().collectAsState(storage.showWearOSLogo())
 
         WearTheme {
             RotatoryAwareLazyColumn {
@@ -145,6 +146,7 @@ class SettingsActivity : ComponentActivity() {
                     showPhoneBattery = showPhoneBattery,
                     showWatchBattery = showWatchBattery,
                     showNotifications = showNotifications,
+                    showWearOSLogo = showWearOSLogo,
                 )
 
                 if (isUserPremium) {
@@ -173,6 +175,8 @@ class SettingsActivity : ComponentActivity() {
                     showWatchBattery = showWatchBattery,
                     showPhoneBattery = showPhoneBattery,
                     showNotifications = showNotifications,
+                    useAndroid12 = useAndroid12,
+                    showWearOSLogo = showWearOSLogo,
                 )
 
                 SupportSection(
@@ -201,6 +205,7 @@ class SettingsActivity : ComponentActivity() {
         showPhoneBattery: Boolean,
         showWatchBattery: Boolean,
         showNotifications: Boolean,
+        showWearOSLogo: Boolean,
     ) {
         item(key = "WidgetsSection") { SettingSectionItem(label = "Widgets") }
 
@@ -262,8 +267,6 @@ class SettingsActivity : ComponentActivity() {
 
         if (!showNotifications || !useAndroid12) {
             item(key = "ShowWearOSLogo") {
-                val showWearOSLogo by storage.watchShowWearOSLogo().collectAsState(storage.showWearOSLogo())
-
                 SettingToggleChip(
                     label = if (useAndroid12 || !isUserPremium) { "Show WearOS logo" } else { "WearOS logo as middle widget" },
                     checked = showWearOSLogo,
@@ -636,6 +639,8 @@ class SettingsActivity : ComponentActivity() {
         showWatchBattery: Boolean,
         showPhoneBattery: Boolean,
         showNotifications: Boolean,
+        useAndroid12: Boolean,
+        showWearOSLogo: Boolean,
     ) {
         item(key = "AmbientSection") {
             SettingSectionItem(
@@ -690,6 +695,20 @@ class SettingsActivity : ComponentActivity() {
                     checked = showNotificationsInAmbient,
                     onCheckedChange = { storage.setShowNotificationsInAmbient(it) },
                     iconDrawable = R.drawable.ic_baseline_notifications_none_24,
+                    modifier = Modifier.heightIn(min = 70.dp),
+                )
+            }
+        }
+
+        if (showWearOSLogo && (!showNotifications || !useAndroid12)) {
+            item(key = "ShowWearOSLogoInAmbientMode") {
+                val showWearOSLogoInAmbient by storage.watchShowWearOSLogoInAmbient().collectAsState(storage.getShowWearOSLogoInAmbient())
+
+                SettingToggleChip(
+                    label = "Show Wear OS logo in ambient mode",
+                    checked = showWearOSLogoInAmbient,
+                    onCheckedChange = { storage.setShowWearOSLogoInAmbient(it) },
+                    iconDrawable = R.drawable.ic_wear_os_logo_white,
                     modifier = Modifier.heightIn(min = 70.dp),
                 )
             }

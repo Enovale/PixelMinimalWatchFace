@@ -66,6 +66,7 @@ private const val KEY_WIDGETS_SIZE = "widgetSize"
 private const val KEY_NOTIFICATIONS_SYNC_ENABLED = "notificationsSyncEnabled"
 private const val KEY_NOTIFICATION_ICONS_COLOR = "notificationIconsColor"
 private const val KEY_SHOW_NOTIFICATIONS_AMBIENT = "showNotificationsAmbient"
+private const val KEY_SHOW_WEAR_OS_LOGO_AMBIENT = "showWearOSLogoAmbient"
 
 interface Storage {
     fun getComplicationColors(): ComplicationColors
@@ -149,6 +150,9 @@ interface Storage {
     fun getShowNotificationsInAmbient(): Boolean
     fun setShowNotificationsInAmbient(show: Boolean)
     fun watchShowNotificationsInAmbient(): Flow<Boolean>
+    fun getShowWearOSLogoInAmbient(): Boolean
+    fun setShowWearOSLogoInAmbient(show: Boolean)
+    fun watchShowWearOSLogoInAmbient(): Flow<Boolean>
 }
 
 class StorageImpl(
@@ -185,6 +189,7 @@ class StorageImpl(
     private val notificationsSyncEnabledCache = StorageCachedBoolValue(sharedPreferences, KEY_NOTIFICATIONS_SYNC_ENABLED, false)
     private val notificationIconsColorCache = StorageCachedColorValue(sharedPreferences, appContext, KEY_NOTIFICATION_ICONS_COLOR, R.color.white)
     private val showNotificationsInAmbientCache = StorageCachedBoolValue(sharedPreferences, KEY_SHOW_NOTIFICATIONS_AMBIENT, false)
+    private val showWearOSLogoInAmbientCache = StorageCachedBoolValue(sharedPreferences, KEY_SHOW_WEAR_OS_LOGO_AMBIENT, true)
 
     init {
         if( getInstallTimestamp() < 0 ) {
@@ -456,6 +461,12 @@ class StorageImpl(
     override fun setShowNotificationsInAmbient(show: Boolean) = showNotificationsInAmbientCache.set(show)
 
     override fun watchShowNotificationsInAmbient(): Flow<Boolean> = showNotificationsInAmbientCache.watchChanges()
+
+    override fun getShowWearOSLogoInAmbient(): Boolean = showWearOSLogoInAmbientCache.get()
+
+    override fun setShowWearOSLogoInAmbient(show: Boolean) = showWearOSLogoInAmbientCache.set(show)
+
+    override fun watchShowWearOSLogoInAmbient(): Flow<Boolean> = showWearOSLogoInAmbientCache.watchChanges()
 
     override fun hasFeatureDropSummer2022NotificationBeenShown(): Boolean {
         return sharedPreferences.getBoolean(KEY_FEATURE_DROP_2022_NOTIFICATION, false)

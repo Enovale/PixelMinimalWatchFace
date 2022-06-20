@@ -114,11 +114,17 @@ class FeatureDropActivity : ComponentActivity() {
 
         item(key = "Item3") {
             Text(
-                text = "- Revamped settings with a clearer WearOS 3 inspired interface",
+                text = "- You can now hide WearOS logo in ambient mode",
             )
         }
 
         item(key = "Item4") {
+            Text(
+                text = "- Revamped settings with a clearer WearOS 3 inspired interface",
+            )
+        }
+
+        item(key = "Item5") {
             Text(
                 text = "- Bug fixes and optimisations",
             )
