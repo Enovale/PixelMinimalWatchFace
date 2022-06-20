@@ -82,7 +82,7 @@ class FeatureDropActivity : ComponentActivity() {
 
         item(key = "Intro") {
             Text(
-                text = "This feature drop contains lots of technical improvements along with brand new things:",
+                text = "New features available:",
                 modifier = Modifier.padding(
                     top = 16.dp,
                     bottom = 8.dp,
@@ -92,36 +92,33 @@ class FeatureDropActivity : ComponentActivity() {
 
         item(key = "Item1") {
             Text(
-                text = "- New beta feature: notification icons of your phone displayed on the watch face directly, just like Pixel phones!",
+                text = "- Beta: notification icons! Icons of your phone's notifications displayed on the watch face, just like Pixel phones!",
             )
         }
 
         item(key = "Item1_2") {
             Text(
-                text = "It requires a sync between your phone and watch (a watch face cannot access the notifications directly, sadly)",
-                fontSize = 13.sp,
-                modifier = Modifier.padding(start = 6.dp),
-            )
-        }
-
-        item(key = "Item1_3") {
-            Text(
-                text = "That means the companion app needs to be installed on your phone and sometimes it can fail. It's early in the beta so please report issues.",
+                text = "Requires sync between your phone and watch via the companion app (a watch face cannot access notifications directly, sadly). It's early in the beta so bugs can happen, please report issues.",
                 fontSize = 13.sp,
                 modifier = Modifier.padding(
-                    start = 6.dp,
-                    bottom = 6.dp,
+                    bottom = 6.dp
                 ),
             )
         }
 
         item(key = "Item2") {
             Text(
-                text = "- Revamped settings with a clearer WearOS 3 inspired interface",
+                text = "- You can now select a different color for time and date",
             )
         }
 
         item(key = "Item3") {
+            Text(
+                text = "- Revamped settings with a clearer WearOS 3 inspired interface",
+            )
+        }
+
+        item(key = "Item4") {
             Text(
                 text = "- Bug fixes and optimisations",
             )

@@ -53,10 +53,11 @@ private const val KEY_SECONDS_RING = "secondsRing"
 private const val KEY_SHOW_WEATHER = "showWeather"
 private const val KEY_SHOW_WATCH_BATTERY = "showBattery"
 private const val KEY_SHOW_PHONE_BATTERY = "showPhoneBattery"
-private const val KEY_FEATURE_DROP_2022_NOTIFICATION = "featureDrop2022Notification"
+private const val KEY_FEATURE_DROP_2022_NOTIFICATION = "featureDrop2022Notification_1"
 private const val KEY_USE_SHORT_DATE_FORMAT = "useShortDateFormat"
 private const val KEY_SHOW_DATE_AMBIENT = "showDateAmbient"
-private const val KEY_TIME_AND_DATE_COLOR = "timeAndDateColor"
+private const val KEY_TIME_COLOR = "timeAndDateColor"
+private const val KEY_DATE_COLOR = "dateColor"
 private const val KEY_BATTERY_COLOR = "batteryColor"
 private const val KEY_USE_ANDROID_12_STYLE = "useAndroid12Style"
 private const val KEY_HIDE_BATTERY_IN_AMBIENT = "hideBatteryInAmbient"
@@ -119,9 +120,12 @@ interface Storage {
     fun showPhoneBattery(): Boolean
     fun setShowPhoneBattery(show: Boolean)
     fun watchShowPhoneBattery(): Flow<Boolean>
-    @ColorInt fun getTimeAndDateColor(): Int
-    fun getTimeAndDateColorFilter(): ColorFilter
-    fun setTimeAndDateColor(@ColorInt color: Int)
+    @ColorInt fun getTimeColor(): Int
+    fun getTimeColorFilter(): ColorFilter
+    fun setTimeColor(@ColorInt color: Int)
+    @ColorInt fun getDateColor(): Int
+    fun getDateColorFilter(): ColorFilter
+    fun setDateColor(@ColorInt color: Int)
     @ColorInt fun getBatteryIndicatorColor(): Int
     fun getBatteryIndicatorColorFilter(): ColorFilter
     fun setBatteryIndicatorColor(@ColorInt color: Int)
@@ -167,7 +171,8 @@ class StorageImpl(
     private val useShortDateFormatCache = StorageCachedBoolValue(sharedPreferences, KEY_USE_SHORT_DATE_FORMAT, false)
     private val showDateInAmbientCache = StorageCachedBoolValue(sharedPreferences, KEY_SHOW_DATE_AMBIENT, true)
     private val showPhoneBatteryCache = StorageCachedBoolValue(sharedPreferences, KEY_SHOW_PHONE_BATTERY, false)
-    private val timeAndDateColorCache = StorageCachedColorValue(sharedPreferences, appContext, KEY_TIME_AND_DATE_COLOR, R.color.white)
+    private val timeColorCache = StorageCachedColorValue(sharedPreferences, appContext, KEY_TIME_COLOR, R.color.white)
+    private val dateColorCache = StorageCachedResolvedColorValue(sharedPreferences, KEY_DATE_COLOR, timeColorCache.get().color)
     private val batteryIndicatorColorCache = StorageCachedColorValue(sharedPreferences, appContext, KEY_BATTERY_COLOR, R.color.white)
     private val cacheComplicationsColorMutableFlow = MutableStateFlow(loadComplicationColors())
     private val useAndroid12StyleCache = StorageCachedBoolValue(sharedPreferences, KEY_USE_ANDROID_12_STYLE, false)
@@ -393,11 +398,17 @@ class StorageImpl(
 
     override fun watchShowPhoneBattery(): Flow<Boolean> = showPhoneBatteryCache.watchChanges()
 
-    override fun getTimeAndDateColor(): Int = timeAndDateColorCache.get().color
+    override fun getTimeColor(): Int = timeColorCache.get().color
 
-    override fun getTimeAndDateColorFilter(): ColorFilter = timeAndDateColorCache.get().colorFilter
+    override fun getTimeColorFilter(): ColorFilter = timeColorCache.get().colorFilter
 
-    override fun setTimeAndDateColor(color: Int) = timeAndDateColorCache.set(color)
+    override fun setTimeColor(color: Int) = timeColorCache.set(color)
+
+    override fun getDateColor(): Int = dateColorCache.get().color
+
+    override fun getDateColorFilter(): ColorFilter = dateColorCache.get().colorFilter
+
+    override fun setDateColor(color: Int) = dateColorCache.set(color)
 
     override fun getBatteryIndicatorColor(): Int = batteryIndicatorColorCache.get().color
 

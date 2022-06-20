@@ -336,7 +336,7 @@ class SettingsActivity : ComponentActivity() {
         item(key = "BatteryIndicatorsColor") {
             SettingChip(
                 label = "Battery indicators colors",
-                secondaryLabel = "(doesn't affect ambient mode)",
+                secondaryLabel = "(doesn't affect ambient)",
                 onClick = {
                     startActivityForResult(
                         ColorSelectionActivity.createIntent(
@@ -396,7 +396,7 @@ class SettingsActivity : ComponentActivity() {
         item(key = "NotificationsDisplayColor") {
             SettingChip(
                 label = "Notification icons colors",
-                secondaryLabel = "(doesn't affect ambient mode)",
+                secondaryLabel = "(doesn't affect ambient)",
                 onClick = {
                     startActivityForResult(
                         ColorSelectionActivity.createIntent(
@@ -527,22 +527,41 @@ class SettingsActivity : ComponentActivity() {
             )
         }
 
-        item(key = "TimeDataColor") {
+        item(key = "TimeColor") {
             SettingChip(
-                label = "Time and date color",
-                secondaryLabel = "(doesn't affect ambient mode)",
+                label = "Time color",
+                secondaryLabel = "(doesn't affect ambient)",
                 onClick = {
                     startActivityForResult(
                         ColorSelectionActivity.createIntent(
                             this@SettingsActivity,
                             ComplicationColor(getColor(R.color.white), getString(R.string.color_default), true)
                         ),
-                        TIME_AND_DATE_COLOR_REQUEST_CODE
+                        TIME_COLOR_REQUEST_CODE
                     )
                 },
                 iconDrawable = R.drawable.ic_palette_24,
                 modifier = Modifier
                     .padding(top = 10.dp)
+                    .heightIn(min = 70.dp),
+            )
+        }
+
+        item(key = "DateColor") {
+            SettingChip(
+                label = "Date color",
+                secondaryLabel = "(doesn't affect ambient)",
+                onClick = {
+                    startActivityForResult(
+                        ColorSelectionActivity.createIntent(
+                            this@SettingsActivity,
+                            ComplicationColor(getColor(R.color.white), getString(R.string.color_default), true)
+                        ),
+                        DATE_COLOR_REQUEST_CODE
+                    )
+                },
+                iconDrawable = R.drawable.ic_palette_24,
+                modifier = Modifier
                     .heightIn(min = 70.dp),
             )
         }
@@ -913,10 +932,15 @@ class SettingsActivity : ComponentActivity() {
             } else {
                 lifecycleScope.launch { updateRegularComplications() }
             }
-        } else if ( requestCode == TIME_AND_DATE_COLOR_REQUEST_CODE && resultCode == RESULT_OK ) {
+        } else if ( requestCode == TIME_COLOR_REQUEST_CODE && resultCode == RESULT_OK ) {
             val color = data?.getParcelableExtra<ComplicationColor>(ColorSelectionActivity.RESULT_SELECTED_COLOR)
             if (color != null) {
-                storage.setTimeAndDateColor(color.color)
+                storage.setTimeColor(color.color)
+            }
+        } else if ( requestCode == DATE_COLOR_REQUEST_CODE && resultCode == RESULT_OK ) {
+            val color = data?.getParcelableExtra<ComplicationColor>(ColorSelectionActivity.RESULT_SELECTED_COLOR)
+            if (color != null) {
+                storage.setDateColor(color.color)
             }
         } else if ( requestCode == BATTERY_COLOR_REQUEST_CODE && resultCode == RESULT_OK ) {
             val color = data?.getParcelableExtra<ComplicationColor>(ColorSelectionActivity.RESULT_SELECTED_COLOR)
@@ -1002,10 +1026,11 @@ class SettingsActivity : ComponentActivity() {
         private const val COMPLICATION_BATTERY_PERMISSION_REQUEST_CODE = 1004
         private const val COMPLICATION_CONFIG_REQUEST_CODE = 1005
         private const val COMPLICATION_PHONE_BATTERY_SETUP_REQUEST_CODE = 1006
-        private const val TIME_AND_DATE_COLOR_REQUEST_CODE = 1007
+        private const val TIME_COLOR_REQUEST_CODE = 1007
         private const val BATTERY_COLOR_REQUEST_CODE = 1008
         private const val SECONDS_RING_COLOR_REQUEST_CODE = 1009
         private const val NOTIFICATIONS_SYNC_SETUP_REQUEST_CODE = 1010
         private const val NOTIFICATIONS_COLOR_REQUEST_CODE = 1011
+        private const val DATE_COLOR_REQUEST_CODE = 1012
     }
 }

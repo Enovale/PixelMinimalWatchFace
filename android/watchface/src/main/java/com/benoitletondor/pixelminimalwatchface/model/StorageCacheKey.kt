@@ -75,6 +75,23 @@ class StorageCachedColorValue(
     }
 }
 
+class StorageCachedResolvedColorValue(
+    private val sharedPreferences: SharedPreferences,
+    private val key: String,
+    @ColorInt private val colorInt: Int,
+) : StorageCachedValue<CachedColorValues>(
+    getter = {
+        val color = sharedPreferences.getInt(key, colorInt)
+        val colorFilter = PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN)
+        CachedColorValues(color, colorFilter)
+    },
+    setter = { sharedPreferences.edit { putInt(key, it.color) } }
+) {
+    fun set(@ColorInt color: Int) {
+        set(CachedColorValues(color, PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN)))
+    }
+}
+
 data class CachedColorValues(
     @ColorInt val color: Int,
     val colorFilter: ColorFilter,
