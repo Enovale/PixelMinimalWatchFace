@@ -53,7 +53,7 @@ private const val KEY_SECONDS_RING = "secondsRing"
 private const val KEY_SHOW_WEATHER = "showWeather"
 private const val KEY_SHOW_WATCH_BATTERY = "showBattery"
 private const val KEY_SHOW_PHONE_BATTERY = "showPhoneBattery"
-private const val KEY_FEATURE_DROP_2022_NOTIFICATION = "featureDrop2022Notification_1"
+private const val KEY_FEATURE_DROP_2022_NOTIFICATION = "featureDrop2022Notification_2"
 private const val KEY_USE_SHORT_DATE_FORMAT = "useShortDateFormat"
 private const val KEY_SHOW_DATE_AMBIENT = "showDateAmbient"
 private const val KEY_TIME_COLOR = "timeAndDateColor"
@@ -67,6 +67,7 @@ private const val KEY_NOTIFICATIONS_SYNC_ENABLED = "notificationsSyncEnabled"
 private const val KEY_NOTIFICATION_ICONS_COLOR = "notificationIconsColor"
 private const val KEY_SHOW_NOTIFICATIONS_AMBIENT = "showNotificationsAmbient"
 private const val KEY_SHOW_WEAR_OS_LOGO_AMBIENT = "showWearOSLogoAmbient"
+private const val KEY_BETA_NOTIFICATIONS_DISCLAIMER_SHOWN = "betaNotificationsDisclaimerBeenShown"
 
 interface Storage {
     fun getComplicationColors(): ComplicationColors
@@ -153,6 +154,8 @@ interface Storage {
     fun getShowWearOSLogoInAmbient(): Boolean
     fun setShowWearOSLogoInAmbient(show: Boolean)
     fun watchShowWearOSLogoInAmbient(): Flow<Boolean>
+    fun hasBetaNotificationsDisclaimerBeenShown(): Boolean
+    fun setBetaNotificationsDisclaimerShown()
 }
 
 class StorageImpl(
@@ -190,6 +193,7 @@ class StorageImpl(
     private val notificationIconsColorCache = StorageCachedColorValue(sharedPreferences, appContext, KEY_NOTIFICATION_ICONS_COLOR, R.color.white)
     private val showNotificationsInAmbientCache = StorageCachedBoolValue(sharedPreferences, KEY_SHOW_NOTIFICATIONS_AMBIENT, false)
     private val showWearOSLogoInAmbientCache = StorageCachedBoolValue(sharedPreferences, KEY_SHOW_WEAR_OS_LOGO_AMBIENT, true)
+    private val betaNotificationsDisclaimerShownCache = StorageCachedBoolValue(sharedPreferences, KEY_BETA_NOTIFICATIONS_DISCLAIMER_SHOWN, false)
 
     init {
         if( getInstallTimestamp() < 0 ) {
@@ -467,6 +471,10 @@ class StorageImpl(
     override fun setShowWearOSLogoInAmbient(show: Boolean) = showWearOSLogoInAmbientCache.set(show)
 
     override fun watchShowWearOSLogoInAmbient(): Flow<Boolean> = showWearOSLogoInAmbientCache.watchChanges()
+
+    override fun hasBetaNotificationsDisclaimerBeenShown(): Boolean = betaNotificationsDisclaimerShownCache.get()
+
+    override fun setBetaNotificationsDisclaimerShown() = betaNotificationsDisclaimerShownCache.set(true)
 
     override fun hasFeatureDropSummer2022NotificationBeenShown(): Boolean {
         return sharedPreferences.getBoolean(KEY_FEATURE_DROP_2022_NOTIFICATION, false)

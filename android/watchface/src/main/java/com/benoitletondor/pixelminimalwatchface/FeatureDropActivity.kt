@@ -35,6 +35,7 @@ import androidx.wear.compose.material.Text
 import com.benoitletondor.pixelminimalwatchface.compose.WearTheme
 import com.benoitletondor.pixelminimalwatchface.compose.component.ChipButton
 import com.benoitletondor.pixelminimalwatchface.compose.component.RotatoryAwareLazyColumn
+import com.benoitletondor.pixelminimalwatchface.compose.productSansFontFamily
 import com.benoitletondor.pixelminimalwatchface.settings.SettingsActivity
 
 class FeatureDropActivity : ComponentActivity() {
@@ -68,6 +69,7 @@ class FeatureDropActivity : ComponentActivity() {
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillParentMaxWidth(),
                 fontSize = 16.sp,
+                fontFamily = productSansFontFamily,
             )
         }
 
@@ -77,6 +79,7 @@ class FeatureDropActivity : ComponentActivity() {
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillParentMaxWidth(),
                 fontSize = 16.sp,
+                fontFamily = productSansFontFamily,
             )
         }
 
@@ -92,13 +95,13 @@ class FeatureDropActivity : ComponentActivity() {
 
         item(key = "Item1") {
             Text(
-                text = "- Beta: notification icons! Icons of your phone's notifications displayed on the watch face, just like Pixel phones!",
+                text = "- Premium: (Beta) notification icons! Icons of your phone's notifications, just like Pixel phones!",
             )
         }
 
         item(key = "Item1_2") {
             Text(
-                text = "Requires sync between your phone and watch via the companion app (a watch face cannot access notifications directly, sadly). It's early in the beta so bugs can happen, please report issues.",
+                text = "Requires sync between phone and watch via the companion app (a watch face cannot access notifications directly, sadly).",
                 fontSize = 13.sp,
                 modifier = Modifier.padding(
                     bottom = 6.dp

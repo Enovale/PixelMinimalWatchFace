@@ -42,6 +42,7 @@ import com.benoitletondor.pixelminimalwatchface.compose.component.RotatoryAwareL
 import com.benoitletondor.pixelminimalwatchface.compose.component.SettingToggleChip
 import com.benoitletondor.pixelminimalwatchface.helper.await
 import com.benoitletondor.pixelminimalwatchface.helper.openCompanionAppOnPhone
+import com.benoitletondor.pixelminimalwatchface.settings.notificationssync.betadisclaimer.BetaDisclaimerActivity
 import com.benoitletondor.pixelminimalwatchface.settings.notificationssync.troubleshoot.NotificationsSyncTroubleshootActivity
 import com.google.android.gms.wearable.*
 import com.google.android.gms.wearable.CapabilityClient
@@ -87,6 +88,16 @@ class NotificationsSyncConfigurationActivity : ComponentActivity(), CapabilityCl
         lifecycleScope.launch {
             viewModel.retryEventFlow.collect {
                 checkIfPhoneHasApp()
+            }
+        }
+
+        lifecycleScope.launch {
+            viewModel.navigationEventFlow.collect { event ->
+                when(event) {
+                    NotificationsSyncConfigurationViewModel.NavigationEvent.SHOW_BETA_DISCLAIMER -> {
+                        startActivity(Intent(this@NotificationsSyncConfigurationActivity, BetaDisclaimerActivity::class.java))
+                    }
+                }
             }
         }
     }

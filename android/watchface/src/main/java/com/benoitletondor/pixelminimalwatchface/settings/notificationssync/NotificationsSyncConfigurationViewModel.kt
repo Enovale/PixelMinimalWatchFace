@@ -21,6 +21,7 @@ import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.benoitletondor.pixelminimalwatchface.Injection
+import com.benoitletondor.pixelminimalwatchface.helper.MutableLiveFlow
 import com.benoitletondor.pixelminimalwatchface.helper.await
 import com.benoitletondor.pixelminimalwatchface.helper.findBestCompanionNode
 import com.benoitletondor.pixelminimalwatchface.helper.startNotificationsSync
@@ -29,7 +30,6 @@ import com.benoitletondor.pixelminimalwatchface.model.Storage
 import com.google.android.gms.wearable.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -48,16 +48,26 @@ class NotificationsSyncConfigurationViewModel(
 
     val stateFlow: StateFlow<State> = mutableStateFlow
 
-    private val errorEventMutableFlow = MutableSharedFlow<ErrorEventType>()
+    private val errorEventMutableFlow = MutableLiveFlow<ErrorEventType>()
     val errorEventFlow: Flow<ErrorEventType> = errorEventMutableFlow
 
-    private val retryEventMutableFlow = MutableSharedFlow<Unit>()
+    private val retryEventMutableFlow = MutableLiveFlow<Unit>()
     val retryEventFlow: Flow<Unit> = retryEventMutableFlow
+
+    private val navigationEventMutableFlow = MutableLiveFlow<NavigationEvent>()
+    val navigationEventFlow: Flow<NavigationEvent> = navigationEventMutableFlow
 
     private var syncStatusQueryJob: Job? = null
 
     init {
         Wearable.getMessageClient(application as Context).addListener(this)
+
+        if (!storage.hasBetaNotificationsDisclaimerBeenShown()) {
+            storage.setBetaNotificationsDisclaimerShown()
+            viewModelScope.launch {
+                navigationEventMutableFlow.emit(NavigationEvent.SHOW_BETA_DISCLAIMER)
+            }
+        }
 
         viewModelScope.launch {
             delay(5000)
@@ -286,6 +296,10 @@ class NotificationsSyncConfigurationViewModel(
 
     enum class ErrorEventType {
         PHONE_CHANGED
+    }
+
+    enum class NavigationEvent {
+        SHOW_BETA_DISCLAIMER
     }
 
     enum class NotificationsSyncStatus(val intValue: Int) {

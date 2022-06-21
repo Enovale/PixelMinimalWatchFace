@@ -77,6 +77,8 @@
             android:name=".FeatureDropActivity"
             android:label="@string/feature_drop_notification_title"/>
 
+        <activity android:name=".settings.notificationssync.betadisclaimer.BetaDisclaimerActivity" />
+
         <activity android:name="android.support.wearable.complications.ComplicationHelperActivity"/>
 
         <activity
