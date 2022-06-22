@@ -24,7 +24,7 @@ import android.graphics.drawable.Icon
 import android.support.wearable.complications.ComplicationData
 import android.support.wearable.complications.ComplicationText
 import android.text.format.DateUtils
-import androidx.core.graphics.drawable.toBitmap
+import com.benoitletondor.pixelminimalwatchface.helper.toBitmap
 import com.benoitletondor.pixelminimalwatchface.helper.capitalize
 import com.benoitletondor.pixelminimalwatchface.helper.dpToPx
 import com.benoitletondor.pixelminimalwatchface.helper.sameAs

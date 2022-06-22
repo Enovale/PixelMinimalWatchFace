@@ -224,4 +224,4 @@ private fun Set<Node>.filterNearby(): Set<Node> {
 }
 
 private const val NOTIFICATION_ICON_SIZE_PX = 32
-private const val NUMBER_OF_NOTIFICATIONS_TO_SEND = 6
+private const val NUMBER_OF_NOTIFICATIONS_TO_SEND = 5
