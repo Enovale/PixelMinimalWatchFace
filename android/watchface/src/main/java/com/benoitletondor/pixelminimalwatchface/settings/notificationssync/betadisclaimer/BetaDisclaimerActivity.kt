@@ -65,7 +65,7 @@ class BetaDisclaimerActivity : ComponentActivity() {
 
         item {
             Text(
-                text = "- It cannot display your watch notifications, there's no way for a watch face to access them.",
+                text = "- It cannot display your watch notifications, only your phone ones, there's no way for a watch face to access them.",
             )
         }
 
