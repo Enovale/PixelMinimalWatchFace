@@ -17,36 +17,35 @@ package com.benoitletondor.pixelminimalwatchface.helper
 
 import android.annotation.SuppressLint
 import android.app.PendingIntent
-import android.content.Context
-import android.graphics.drawable.Icon
-import android.net.Uri
-import android.support.wearable.complications.ComplicationData
-import android.support.wearable.complications.ComplicationText
-import android.util.Log
-import com.benoitletondor.pixelminimalwatchface.Device
-import com.benoitletondor.pixelminimalwatchface.R
-import org.json.JSONObject
-import kotlin.math.roundToInt
 import android.content.ComponentName
 import android.content.ContentResolver
+import android.content.Context
 import android.content.Intent
 import android.database.ContentObserver
+import android.graphics.drawable.Icon
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.support.wearable.complications.ComplicationData
 import android.support.wearable.complications.ComplicationProviderInfo
+import android.support.wearable.complications.ComplicationText
+import android.util.Log
 import androidx.core.content.pm.PackageInfoCompat
+import com.benoitletondor.pixelminimalwatchface.Device
 import com.benoitletondor.pixelminimalwatchface.PixelMinimalWatchFace
+import com.benoitletondor.pixelminimalwatchface.R
 import com.benoitletondor.pixelminimalwatchface.model.Storage
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.channels.sendBlocking
+import kotlinx.coroutines.channels.onFailure
+import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.flow
+import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.math.roundToInt
 
 private val galaxyWatch4AODBuggyWearOSVersions = setOf(
     "EVA8",
@@ -204,7 +203,7 @@ fun ComplicationProviderInfo.isSamsungHeartRateProvider(): Boolean {
 }
 
 private fun Context.getShealthAppVersion(): Long {
-    val packageInfo = packageManager.getPackageInfo(S_HEALTH_PACKAGE_NAME, 0);
+    val packageInfo = packageManager.getPackageInfo(S_HEALTH_PACKAGE_NAME, 0)
     return PackageInfoCompat.getLongVersionCode(packageInfo)
 }
 
@@ -278,12 +277,10 @@ fun Context.watchSamsungHeartRateUpdates(): Flow<Unit> = callbackFlow {
         override fun onChange(selfChange: Boolean) {
             super.onChange(selfChange)
 
-            try {
-                sendBlocking(Unit)
-            } catch (e: CancellationException) {
-                unregister(this)
-                throw e
-            }
+            trySendBlocking(Unit)
+                .onFailure {
+                    unregister(this)
+                }
         }
     }
 

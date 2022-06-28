@@ -22,6 +22,11 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
 
+    <!-- For API 30+, we need to query packages to fetch icons from notifications -->
+    <uses-permission
+        android:name="android.permission.QUERY_ALL_PACKAGES"
+        tools:ignore="QueryAllPackagesPermission" />
+
     <queries>
         <intent>
             <action android:name="android.intent.action.SENDTO" />
@@ -38,10 +43,6 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:ignore="AllowBackup,GoogleAppIndexingWarning">
-        <activity
-            android:name=".view.onboarding.OnboardingActivity"
-            android:theme="@style/OnboardingTheme"
-            android:screenOrientation="sensorPortrait"/>
         <activity
             android:name=".view.main.MainActivity"
             android:screenOrientation="sensorPortrait"
@@ -64,6 +65,10 @@
                 <data
                     android:scheme="pixelminimalwatchface"
                     android:host="donate" />
+
+                <data
+                    android:scheme="pixelminimalwatchface"
+                    android:host="notifications" />
             </intent-filter>
         </activity>
 
@@ -112,6 +117,19 @@
         <service
             android:name=".ForegroundService"
             android:exported="false" />
+
+        <service
+            android:name=".NotificationsListener"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.service.notification.disabled_filter_types"
+                android:value="silent">
+            </meta-data>
+        </service>
     </application>
 
 </manifest>

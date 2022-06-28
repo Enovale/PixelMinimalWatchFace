@@ -15,8 +15,11 @@
    limitations under the License.
 -->
 <resources>
-    <dimen name="time_text_size">59dp</dimen>
-    <dimen name="time_text_size_round">62dp</dimen>
+    <dimen name="time_text_size">57dp</dimen>
+    <dimen name="time_text_size_round">60dp</dimen>
+    <dimen name="space_between_time_and_date">7dp</dimen>
+    <dimen name="time_y_offset">-5dp</dimen>
+    <dimen name="space_between_time_and_top_widgets">4dp</dimen>
     <dimen name="android_12_time_text_size">52dp</dimen>
     <dimen name="date_text_size">14dp</dimen>
     <dimen name="date_text_size_round">14dp</dimen>
