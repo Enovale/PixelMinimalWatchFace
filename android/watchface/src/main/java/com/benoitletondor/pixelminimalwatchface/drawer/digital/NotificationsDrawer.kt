@@ -21,7 +21,7 @@ import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.RectF
 import androidx.core.content.ContextCompat
-import androidx.core.graphics.drawable.toBitmap
+import com.benoitletondor.pixelminimalwatchface.helper.toBitmap
 import com.benoitletondor.pixelminimalwatchface.PhoneNotifications
 import com.benoitletondor.pixelminimalwatchface.R
 import com.benoitletondor.pixelminimalwatchface.helper.dpToPx

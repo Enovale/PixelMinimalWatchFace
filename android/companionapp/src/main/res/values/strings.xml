@@ -16,7 +16,7 @@
 <resources>
     <string name="app_name">Pixel Minimal Watch Face</string>
 
-    <string name="setup_watch_face_instructions">To access all the settings, everything happens on your watch: on the watch face, long press on the time. After 1s, you\'ll see a button appear at the bottom, tap on it to customize.</string>
+    <string name="setup_watch_face_instructions">To access the settings, everything happens on your watch: on the watch face, long press on the time. After 1s, you\'ll see a button appear at the bottom, tap on it to customize.</string>
 
     <string name="premium_error">Unable to reach PlayStore to verify your premium status.\n\nPlease check your connection and try again.\n(%s)</string>
     <string name="error_syncing_title">Error syncing with watch</string>

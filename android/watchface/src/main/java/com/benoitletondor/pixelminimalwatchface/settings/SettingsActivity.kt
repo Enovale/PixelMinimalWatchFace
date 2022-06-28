@@ -240,7 +240,7 @@ class SettingsActivity : ComponentActivity() {
             item(key = "PremiumCompanion") {
                 Column {
                     Text(
-                        text = "To setup widgets, display weather info and battery indicators you have to become a premium user.",
+                        text = "To setup widgets, display weather, battery indicators and notification icons you have to become a premium user.",
                         textAlign = TextAlign.Center,
                         modifier = Modifier.fillParentMaxWidth(),
                     )

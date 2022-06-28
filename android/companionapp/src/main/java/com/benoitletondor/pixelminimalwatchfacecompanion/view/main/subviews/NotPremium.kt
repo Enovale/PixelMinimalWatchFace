@@ -111,7 +111,7 @@ private fun NotPremiumLayout(
         Spacer(Modifier.height(5.dp))
 
         Text(
-            text = "To unlock widgets, weather and battery indicators, become a premium user:",
+            text = "To unlock widgets, weather, battery indicators and notification icons, become a premium user:",
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth(),
             color = MaterialTheme.colorScheme.onBackground,
@@ -190,13 +190,13 @@ private fun Pager(drawViewPager: Boolean = true) {
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .height(250.dp),
+                .height(240.dp),
         )
     } else {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(250.dp)
+                .height(240.dp)
                 .background(Color.DarkGray),
         )
     }
