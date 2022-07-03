@@ -88,6 +88,7 @@ class Android12DigitalWatchFaceDrawer(
     private var currentDateAndBatterySize = storage.getDateAndBatterySize()
     private var currentWidgetsSize = storage.getWidgetsSize()
     private var currentShowWearOSLogo = storage.showWearOSLogo()
+    private var currentShowNotificationIcons = storage.isNotificationsSyncActivated()
     private val weatherAndBatteryIconColorFilterDimmed: ColorFilter = PorterDuffColorFilter(dateAndBatteryColorDimmed, PorterDuff.Mode.SRC_IN)
     private val timeOffsetX = context.dpToPx(-2)
     private val timeCharPaddingX = context.dpToPx(1)
@@ -255,8 +256,10 @@ class Android12DigitalWatchFaceDrawer(
             currentDateAndBatterySize != storage.getDateAndBatterySize() ||
             (currentShowBatteryIndicator != (storage.showPhoneBattery() || storage.showWatchBattery())) ||
             currentWidgetsSize != storage.getWidgetsSize() ||
-            currentShowWearOSLogo != storage.showWearOSLogo()) ) {
+            currentShowWearOSLogo != storage.showWearOSLogo() ||
+            currentShowNotificationIcons != storage.isNotificationsSyncActivated() )) {
 
+            currentShowNotificationIcons = storage.isNotificationsSyncActivated()
             currentShowWearOSLogo = storage.showWearOSLogo()
             currentShowBatteryIndicator = storage.showPhoneBattery() || storage.showWatchBattery()
             drawingState = currentDrawingState.buildCache()
@@ -371,7 +374,7 @@ class Android12DigitalWatchFaceDrawer(
         val batteryHeight = Rect().apply {
             batteryLevelPaint.getTextBounds("22%", 0, 3, this)
         }.height()
-        val batteryBottomY = if (storage.showWearOSLogo()) {
+        val batteryBottomY = if (storage.showWearOSLogo() || storage.isNotificationsSyncActivated()) {
             screenHeight - chinSize - topAndBottomMargins.toInt()
         } else {
             (timeBottomY + batteryHeight + context.dpToPx(1) + verticalPaddingBetweenElements).toInt()
