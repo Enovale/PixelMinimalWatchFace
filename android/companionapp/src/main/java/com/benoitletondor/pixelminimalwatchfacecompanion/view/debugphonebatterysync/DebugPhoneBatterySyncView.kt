@@ -26,7 +26,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -47,7 +47,6 @@ import com.benoitletondor.pixelminimalwatchfacecompanion.ui.blueButtonColors
 import com.benoitletondor.pixelminimalwatchfacecompanion.ui.components.AppTopBarScaffold
 import com.benoitletondor.pixelminimalwatchfacecompanion.ui.primaryBlue
 import com.benoitletondor.pixelminimalwatchfacecompanion.ui.primaryGreen
-
 
 @Composable
 fun DebugPhoneBatterySync(
@@ -129,7 +128,7 @@ private fun DebugPhoneBatterySyncLayout(
             text = "Disable battery optimization",
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth(),
-            color = MaterialTheme.colors.onBackground,
+            color = MaterialTheme.colorScheme.onBackground,
             fontSize = 18.sp,
         )
 
@@ -140,14 +139,14 @@ private fun DebugPhoneBatterySyncLayout(
                 text = "✔️ Battery optimization is off.",
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth(),
-                color = MaterialTheme.colors.onBackground,
+                color = MaterialTheme.colorScheme.onBackground,
             )
         } else {
             Text(
                 text = "The majority of phone battery sync issues can be resolved by disabling battery optimization for the companion app, so that the system doesn't kill the app in background.",
                 textAlign = TextAlign.Start,
                 modifier = Modifier.fillMaxWidth(),
-                color = MaterialTheme.colors.onBackground,
+                color = MaterialTheme.colorScheme.onBackground,
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -156,7 +155,7 @@ private fun DebugPhoneBatterySyncLayout(
                 text = "Search for Pixel Minimal Watch Face and disable battery optimization.",
                 textAlign = TextAlign.Start,
                 modifier = Modifier.fillMaxWidth(),
-                color = MaterialTheme.colors.onBackground,
+                color = MaterialTheme.colorScheme.onBackground,
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -166,7 +165,7 @@ private fun DebugPhoneBatterySyncLayout(
                 colors = blueButtonColors(),
             ) {
                 Text(
-                    text = "Open battery optimization settings".uppercase(),
+                    text = "Open battery optimization settings",
                     textAlign = TextAlign.Center,
                 )
             }
@@ -178,7 +177,7 @@ private fun DebugPhoneBatterySyncLayout(
             text = "Always-on notification",
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth(),
-            color = MaterialTheme.colors.onBackground,
+            color = MaterialTheme.colorScheme.onBackground,
             fontSize = 18.sp,
         )
 
@@ -188,7 +187,7 @@ private fun DebugPhoneBatterySyncLayout(
             text = "If you still experience sync issues, you can try to activate always-on mode.",
             textAlign = TextAlign.Start,
             modifier = Modifier.fillMaxWidth(),
-            color = MaterialTheme.colors.onBackground,
+            color = MaterialTheme.colorScheme.onBackground,
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -197,7 +196,7 @@ private fun DebugPhoneBatterySyncLayout(
             text = "It will use a permanent notification to prevent the system from killing the app.",
             textAlign = TextAlign.Start,
             modifier = Modifier.fillMaxWidth(),
-            color = MaterialTheme.colors.onBackground,
+            color = MaterialTheme.colorScheme.onBackground,
         )
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -209,7 +208,7 @@ private fun DebugPhoneBatterySyncLayout(
 
         Text(
             text = if (isForegroundServiceOn) { "Always-on notification activated" } else { "Always-on notification deactivated" },
-            color = MaterialTheme.colors.onBackground,
+            color = MaterialTheme.colorScheme.onBackground,
             fontSize = 14.sp,
         )
 
@@ -227,7 +226,7 @@ private fun DebugPhoneBatterySyncLayout(
                     fontSize = 16.sp,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth(),
-                    color = MaterialTheme.colors.onBackground,
+                    color = MaterialTheme.colorScheme.onBackground,
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -235,12 +234,12 @@ private fun DebugPhoneBatterySyncLayout(
                 Button(
                     onClick = onNotificationSettingsButtonPressed,
                     colors = ButtonDefaults.buttonColors(
-                        backgroundColor = Color.White,
+                        containerColor = Color.White,
                         contentColor = primaryBlue,
                     ),
                 ) {
                     Text(
-                        text = "Edit always-on notification settings".uppercase(),
+                        text = "Edit always-on notification settings",
                         textAlign = TextAlign.Center,
                     )
                 }

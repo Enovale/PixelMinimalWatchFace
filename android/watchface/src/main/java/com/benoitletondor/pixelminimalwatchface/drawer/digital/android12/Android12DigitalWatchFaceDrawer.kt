@@ -27,10 +27,8 @@ import android.view.WindowInsets
 import androidx.annotation.ColorInt
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
-import com.benoitletondor.pixelminimalwatchface.DEBUG_LOGS
-import com.benoitletondor.pixelminimalwatchface.PhoneBatteryStatus
-import com.benoitletondor.pixelminimalwatchface.PixelMinimalWatchFace
-import com.benoitletondor.pixelminimalwatchface.R
+import com.benoitletondor.pixelminimalwatchface.helper.toBitmap
+import com.benoitletondor.pixelminimalwatchface.*
 import com.benoitletondor.pixelminimalwatchface.drawer.WatchFaceDrawer
 import com.benoitletondor.pixelminimalwatchface.helper.*
 import com.benoitletondor.pixelminimalwatchface.model.ComplicationColors
@@ -61,6 +59,7 @@ class Android12DigitalWatchFaceDrawer(
         typeface = productSansRegularFont
     }
     private val weatherIconPaint = Paint()
+    private val notificationsPaint = Paint()
     @ColorInt
     private val backgroundColor: Int = ContextCompat.getColor(context, R.color.face_background)
     @ColorInt
@@ -89,6 +88,7 @@ class Android12DigitalWatchFaceDrawer(
     private var currentDateAndBatterySize = storage.getDateAndBatterySize()
     private var currentWidgetsSize = storage.getWidgetsSize()
     private var currentShowWearOSLogo = storage.showWearOSLogo()
+    private var currentShowNotificationIcons = storage.isNotificationsSyncActivated()
     private val weatherAndBatteryIconColorFilterDimmed: ColorFilter = PorterDuffColorFilter(dateAndBatteryColorDimmed, PorterDuff.Mode.SRC_IN)
     private val timeOffsetX = context.dpToPx(-2)
     private val timeCharPaddingX = context.dpToPx(1)
@@ -227,6 +227,12 @@ class Android12DigitalWatchFaceDrawer(
         return drawingState.tapIsOnBattery(x, y)
     }
 
+    override fun isTapOnNotifications(x: Int, y: Int): Boolean {
+        val drawingState = drawingState as? Android12DrawingState.CacheAvailable ?: return false
+
+        return drawingState.isTapOnNotifications(x, y)
+    }
+
     override fun draw(
         canvas: Canvas,
         calendar: Calendar,
@@ -236,7 +242,8 @@ class Android12DigitalWatchFaceDrawer(
         burnInProtection: Boolean,
         weatherComplicationData: ComplicationData?,
         batteryComplicationData: ComplicationData?,
-        phoneBatteryStatus: PhoneBatteryStatus?
+        phoneBatteryStatus: PhoneBatteryStatus?,
+        notificationsState: PhoneNotifications.NotificationState?,
     ) {
         setPaintVariables(muteMode, ambient, lowBitAmbient, burnInProtection)
         drawBackground(canvas)
@@ -249,8 +256,10 @@ class Android12DigitalWatchFaceDrawer(
             currentDateAndBatterySize != storage.getDateAndBatterySize() ||
             (currentShowBatteryIndicator != (storage.showPhoneBattery() || storage.showWatchBattery())) ||
             currentWidgetsSize != storage.getWidgetsSize() ||
-            currentShowWearOSLogo != storage.showWearOSLogo()) ) {
+            currentShowWearOSLogo != storage.showWearOSLogo() ||
+            currentShowNotificationIcons != storage.isNotificationsSyncActivated() )) {
 
+            currentShowNotificationIcons = storage.isNotificationsSyncActivated()
             currentShowWearOSLogo = storage.showWearOSLogo()
             currentShowBatteryIndicator = storage.showPhoneBattery() || storage.showWatchBattery()
             drawingState = currentDrawingState.buildCache()
@@ -270,6 +279,7 @@ class Android12DigitalWatchFaceDrawer(
                 weatherComplicationData,
                 batteryComplicationData,
                 phoneBatteryStatus,
+                notificationsState,
             )
         }
     }
@@ -287,18 +297,18 @@ class Android12DigitalWatchFaceDrawer(
         val shouldUseThinFont = (ambient && !storage.useNormalTimeStyleInAmbientMode()) || (!ambient && storage.useThinTimeStyleInRegularMode())
         timePaint.apply {
             isAntiAlias = !(ambient && lowBitAmbient)
-            color = if( ambient ) { timeColorDimmed } else { storage.getTimeAndDateColor() }
+            color = if( ambient ) { timeColorDimmed } else { storage.getTimeColor() }
             typeface = if( shouldUseThinFont ) { productSansThinFont } else { productSansRegularFont }
         }
 
         datePaint.apply {
             isAntiAlias = !(ambient && lowBitAmbient)
-            color = if( ambient ) { dateAndBatteryColorDimmed } else { storage.getTimeAndDateColor() }
+            color = if( ambient ) { dateAndBatteryColorDimmed } else { storage.getDateColor() }
         }
 
         weatherIconPaint.apply {
             isAntiAlias = !ambient
-            colorFilter = if( ambient ) { weatherAndBatteryIconColorFilterDimmed } else { storage.getTimeAndDateColorFilter() }
+            colorFilter = if( ambient ) { weatherAndBatteryIconColorFilterDimmed } else { storage.getDateColorFilter() }
         }
 
         batteryLevelPaint.apply {
@@ -313,6 +323,11 @@ class Android12DigitalWatchFaceDrawer(
 
         secondsRingPaint.apply {
             colorFilter = storage.getSecondRingColor()
+        }
+
+        notificationsPaint.apply {
+            isAntiAlias = !(ambient && lowBitAmbient)
+            colorFilter = if( ambient ) { weatherAndBatteryIconColorFilterDimmed } else { storage.getNotificationIconsColorFilter() }
         }
 
         ACTIVE_COMPLICATIONS.forEach {
@@ -359,7 +374,7 @@ class Android12DigitalWatchFaceDrawer(
         val batteryHeight = Rect().apply {
             batteryLevelPaint.getTextBounds("22%", 0, 3, this)
         }.height()
-        val batteryBottomY = if (storage.showWearOSLogo()) {
+        val batteryBottomY = if (storage.showWearOSLogo() || storage.isNotificationsSyncActivated()) {
             screenHeight - chinSize - topAndBottomMargins.toInt()
         } else {
             (timeBottomY + batteryHeight + context.dpToPx(1) + verticalPaddingBetweenElements).toInt()
@@ -452,7 +467,13 @@ class Android12DigitalWatchFaceDrawer(
                 (timeBottomY + verticalPaddingBetweenElements).toInt(),
                 (centerX + targetWearOSLogoWidth / 2f).toInt(),
                 (timeBottomY + verticalPaddingBetweenElements + targetWearOSLogoHeight).toInt(),
-            )
+            ),
+            notificationsRect = Rect(
+                if (isRound) { (screenWidth / 7f).toInt() } else { context.dpToPx(15) },
+                (timeBottomY + verticalPaddingBetweenElements).toInt(),
+                if (isRound) { screenWidth - (screenWidth / 7f).toInt() } else { screenWidth - context.dpToPx(15) },
+                batteryTopY - verticalPaddingBetweenElements,
+            ),
         )
     }
 
@@ -479,6 +500,7 @@ class Android12DigitalWatchFaceDrawer(
         weatherComplicationData: ComplicationData?,
         batteryComplicationData: ComplicationData?,
         phoneBatteryStatus: PhoneBatteryStatus?,
+        notificationsState: PhoneNotifications.NotificationState?,
     ) {
         val hourText = if( storage.getUse24hTimeFormat()) {
             hourFormatter24H.calendar = calendar
@@ -516,7 +538,13 @@ class Android12DigitalWatchFaceDrawer(
         canvas.drawText(minFirstChar, timeX + (timeCharWidth - minFirstCharWidth) / 2.5f, centerY + timeHeight + distanceBetweenHourAndMin + timePaddingY, timePaint)
         canvas.drawText(minSecondChar, timeX + timeCharWidth + (timeCharWidth - minSecondCharWidth) / 2.5f, centerY + timeHeight + distanceBetweenHourAndMin + timePaddingY, timePaint)
 
-        complicationsDrawingCache.drawComplications(canvas, ambient, calendar, isUserPremium)
+        complicationsDrawingCache.drawComplications(
+            canvas,
+            ambient,
+            calendar,
+            isUserPremium,
+            drawWearOsLogo = (!isUserPremium || notificationsState == null) && (!ambient || storage.getShowWearOSLogoInAmbient()),
+        )
 
         if( drawDate ) {
             drawDateAndWeather(
@@ -547,13 +575,18 @@ class Android12DigitalWatchFaceDrawer(
                 phoneBatteryStatus
             )
         }
+
+        if (isUserPremium && notificationsState != null && (!ambient || storage.getShowNotificationsInAmbient())) {
+            drawNotifications(canvas, notificationsPaint, notificationsState)
+        }
     }
 
     private fun ComplicationsDrawingCache.drawComplications(
         canvas: Canvas,
         ambient: Boolean,
         calendar: Calendar,
-        isUserPremium: Boolean
+        isUserPremium: Boolean,
+        drawWearOsLogo: Boolean,
     ) {
         if( isUserPremium && (storage.showComplicationsInAmbientMode() || !ambient) ) {
             ACTIVE_COMPLICATIONS.forEach { complicationId ->
@@ -562,7 +595,7 @@ class Android12DigitalWatchFaceDrawer(
             }
         }
 
-        if( storage.showWearOSLogo() ) {
+        if( storage.showWearOSLogo() && drawWearOsLogo ) {
             val wearOsImage = if( ambient ) { wearOSLogoAmbient } else { wearOSLogo }
             canvas.drawBitmap(wearOsImage, null, wearOSLogoRect, wearOSLogoPaint)
         }

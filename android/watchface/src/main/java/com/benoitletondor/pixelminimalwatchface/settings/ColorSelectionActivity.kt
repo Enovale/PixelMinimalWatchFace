@@ -15,39 +15,84 @@
  */
 package com.benoitletondor.pixelminimalwatchface.settings
 
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import androidx.wear.widget.WearableLinearLayoutManager
-import com.benoitletondor.pixelminimalwatchface.databinding.ActivityColorSelectionConfigBinding
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.wear.compose.material.*
+import com.benoitletondor.pixelminimalwatchface.compose.WearTheme
+import com.benoitletondor.pixelminimalwatchface.compose.component.RotatoryAwareLazyColumn
 import com.benoitletondor.pixelminimalwatchface.model.ComplicationColor
 import com.benoitletondor.pixelminimalwatchface.model.ComplicationColorsProvider
 
-class ColorSelectionActivity : Activity() {
-    private lateinit var binding: ActivityColorSelectionConfigBinding
+class ColorSelectionActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityColorSelectionConfigBinding.inflate(layoutInflater)
-        setContentView(binding.root)
 
         val defaultColor = intent.getParcelableExtra<ComplicationColor>(EXTRA_DEFAULT_COLOR)!!
-
         val availableColors = ComplicationColorsProvider.getAllComplicationColors(this)
 
-        binding.colorsRecyclerView.apply {
-            isEdgeItemsCenteringEnabled = true
-            layoutManager = WearableLinearLayoutManager(this@ColorSelectionActivity)
-            setHasFixedSize(true)
-            adapter = ColorSelectionRecyclerViewAdapter(listOf(defaultColor).plus(availableColors)) { selectedColor ->
-                setResult(RESULT_OK, Intent().apply {
-                    putExtra(RESULT_SELECTED_COLOR, selectedColor)
-                })
+        setContent {
+            WearTheme {
+                RotatoryAwareLazyColumn {
+                    listOf(defaultColor).plus(availableColors).forEach { color ->
+                        item {
+                            ColorItem(
+                                color = color,
+                                onClick = {
+                                    setResult(RESULT_OK, Intent().apply {
+                                        putExtra(RESULT_SELECTED_COLOR, color)
+                                    })
 
-                finish()
+                                    finish()
+                                }
+                            )
+                        }
+
+                    }
+                }
             }
         }
+    }
+
+    @Composable
+    private fun ColorItem(
+        color: ComplicationColor,
+        onClick: () -> Unit,
+    ) {
+        Chip(
+            modifier = Modifier.fillMaxWidth(),
+            label = {
+                Text(
+                    text = color.label,
+                    fontWeight = FontWeight.Normal,
+                )
+            },
+            icon = {
+                Box(
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .width(40.dp)
+                        .height(40.dp)
+                        .background(Color(color.color))
+                )
+            },
+            onClick = onClick,
+            colors = ChipDefaults.primaryChipColors(
+                backgroundColor = MaterialTheme.colors.surface,
+            ),
+        )
     }
 
     companion object {

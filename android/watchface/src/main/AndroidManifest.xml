@@ -67,7 +67,7 @@
 
         <activity
             android:name=".settings.phonebattery.PhoneBatteryConfigurationActivity"
-            android:theme="@style/Theme.AppCompat.NoActionBar"/>
+            android:label="@string/phone_battery_configuration_title"/>
 
         <activity
             android:name=".settings.phonebattery.troubleshoot.PhoneBatterySyncTroubleshootActivity"
@@ -75,7 +75,9 @@
 
         <activity
             android:name=".FeatureDropActivity"
-            android:label="@string/feature_drop_2021_notification_title"/>
+            android:label="@string/feature_drop_notification_title"/>
+
+        <activity android:name=".settings.notificationssync.betadisclaimer.BetaDisclaimerActivity" />
 
         <activity android:name="android.support.wearable.complications.ComplicationHelperActivity"/>
 
@@ -123,6 +125,10 @@
         </receiver>
 
         <activity android:name=".rating.FeedbackActivity" />
+
+        <activity android:name=".settings.notificationssync.NotificationsSyncConfigurationActivity" />
+
+        <activity android:name=".settings.notificationssync.troubleshoot.NotificationsSyncTroubleshootActivity" />
 
         <meta-data
             android:name="com.google.android.gms.version"

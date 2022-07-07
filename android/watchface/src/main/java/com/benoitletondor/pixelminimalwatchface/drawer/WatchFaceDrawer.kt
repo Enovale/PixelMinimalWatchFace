@@ -21,6 +21,7 @@ import android.support.wearable.complications.ComplicationData
 import android.util.SparseArray
 import android.view.WindowInsets
 import com.benoitletondor.pixelminimalwatchface.PhoneBatteryStatus
+import com.benoitletondor.pixelminimalwatchface.PhoneNotifications
 import com.benoitletondor.pixelminimalwatchface.model.ComplicationColors
 import java.util.*
 
@@ -36,6 +37,7 @@ interface WatchFaceDrawer {
     fun tapIsOnWeather(x: Int, y: Int): Boolean
     fun tapIsInCenterOfScreen(x: Int, y: Int): Boolean
     fun tapIsOnBattery(x: Int, y: Int): Boolean
+    fun isTapOnNotifications(x: Int, y: Int): Boolean
 
     fun draw(
         canvas: Canvas,
@@ -47,5 +49,6 @@ interface WatchFaceDrawer {
         weatherComplicationData: ComplicationData?,
         batteryComplicationData: ComplicationData?,
         phoneBatteryStatus: PhoneBatteryStatus?,
+        notificationsState: PhoneNotifications.NotificationState?,
     )
 }

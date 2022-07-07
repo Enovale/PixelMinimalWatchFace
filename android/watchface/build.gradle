@@ -27,8 +27,8 @@ android {
         applicationId "com.benoitletondor.pixelminimalwatchface"
         minSdkVersion 25
         targetSdkVersion 32
-        versionCode 113
-        versionName "2.0.22"
+        versionCode 138
+        versionName "2.1.1"
         multiDexEnabled true
 
         buildConfigField "String", "COMPANION_APP_PLAYSTORE_URL", '"https://play.google.com/store/apps/details?id=com.benoitletondor.pixelminimalwatchface"'
@@ -52,6 +52,7 @@ android {
 
     buildFeatures {
         viewBinding true
+        compose true
     }
 
     buildTypes {
@@ -74,6 +75,10 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion "$compose_version"
+    }
 }
 
 dependencies {
@@ -85,6 +90,13 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.cardview:cardview:1.0.0'
     implementation 'androidx.activity:activity-ktx:1.4.0'
+
+    implementation "androidx.activity:activity-compose:1.4.0"
+    debugImplementation "androidx.compose.ui:ui-tooling:$compose_version"
+    implementation "androidx.compose.ui:ui-tooling-preview:$compose_version"
+    implementation "androidx.wear.compose:compose-material:1.0.0-rc01"
+    implementation "androidx.wear.compose:compose-foundation:1.0.0-rc01"
+    implementation "androidx.wear.compose:compose-navigation:1.0.0-rc01"
 
     compileOnly 'com.google.android.wearable:wearable:2.8.1'
 }
