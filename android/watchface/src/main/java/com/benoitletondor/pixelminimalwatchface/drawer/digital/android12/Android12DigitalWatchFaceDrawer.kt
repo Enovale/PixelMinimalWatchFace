@@ -344,7 +344,7 @@ class Android12DigitalWatchFaceDrawer(
     }
 
     private fun Android12DrawingState.NoCacheAvailable.buildCache(): Android12DrawingState.CacheAvailable {
-        timePaddingY = if (storage.showWearOSLogo()) {
+        timePaddingY = if (storage.showWearOSLogo() || storage.isNotificationsSyncActivated()) {
             context.dpToPx(-5)
         } else {
             0
