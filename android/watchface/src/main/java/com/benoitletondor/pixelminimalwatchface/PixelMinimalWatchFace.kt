@@ -934,16 +934,23 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
         }
 
         private fun syncPhoneBatteryStatus() {
+            if (DEBUG_LOGS) Log.d(TAG, "syncPhoneBatteryStatus")
+
             launch {
                 try {
                     val capabilityInfo = withTimeout(5000) {
                         Wearable.getCapabilityClient(service).getCapability(BuildConfig.COMPANION_APP_CAPABILITY, CapabilityClient.FILTER_REACHABLE).await()
                     }
 
+                    val phoneNode = capabilityInfo.nodes.findBestCompanionNode()
+                    if (DEBUG_LOGS) Log.d(TAG, "syncPhoneBatteryStatus, phone node: $phoneNode")
+
                     if (storage.showPhoneBattery()) {
-                        capabilityInfo.nodes.findBestCompanionNode()?.startPhoneBatterySync(this@PixelMinimalWatchFace)
+                        if (DEBUG_LOGS) Log.d(TAG, "syncPhoneBatteryStatus, startPhoneBatterySync")
+                        phoneNode?.startPhoneBatterySync(this@PixelMinimalWatchFace)
                     } else {
-                        capabilityInfo.nodes.findBestCompanionNode()?.stopPhoneBatterySync(this@PixelMinimalWatchFace)
+                        if (DEBUG_LOGS) Log.d(TAG, "syncPhoneBatteryStatus, stopPhoneBatterySync")
+                        phoneNode?.stopPhoneBatterySync(this@PixelMinimalWatchFace)
                     }
 
                 } catch (e: Exception) {
@@ -955,16 +962,23 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
         }
 
         private fun syncNotificationsDisplayStatus() {
+            if (DEBUG_LOGS) Log.d(TAG, "syncNotificationsDisplayStatus")
+
             launch {
                 try {
                     val capabilityInfo = withTimeout(5000) {
                         Wearable.getCapabilityClient(service).getCapability(BuildConfig.COMPANION_APP_CAPABILITY, CapabilityClient.FILTER_REACHABLE).await()
                     }
 
+                    val phoneNode = capabilityInfo.nodes.findBestCompanionNode()
+                    if (DEBUG_LOGS) Log.d(TAG, "syncNotificationsDisplayStatus, phone node: $phoneNode")
+
                     if (storage.isNotificationsSyncActivated()) {
-                        capabilityInfo.nodes.findBestCompanionNode()?.startNotificationsSync(this@PixelMinimalWatchFace)
+                        if (DEBUG_LOGS) Log.d(TAG, "syncNotificationsDisplayStatus, startNotificationsSync")
+                        phoneNode?.startNotificationsSync(this@PixelMinimalWatchFace)
                     } else {
-                        capabilityInfo.nodes.findBestCompanionNode()?.stopNotificationsSync(this@PixelMinimalWatchFace)
+                        if (DEBUG_LOGS) Log.d(TAG, "syncNotificationsDisplayStatus, stopNotificationsSync")
+                        phoneNode?.stopNotificationsSync(this@PixelMinimalWatchFace)
                     }
 
                 } catch (e: Exception) {

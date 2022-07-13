@@ -43,5 +43,5 @@
     <string name="donation_loading_error">Unable to contact the PlayStore for donation details (%s).\n\nPlease try again later or contact me using the menu.</string>
     <string name="premium_1_title">4 customisable widgets, weather info, battery indicators, beautifully integrated</string>
     <string name="premium_2_title">Choose the widgets you want</string>
-    <string name="premium_3_title">Customize widgets &amp; battery indicators accent color</string>
+    <string name="premium_3_title">Choose between the regular layout and an Android 12 inspired one</string>
 </resources>

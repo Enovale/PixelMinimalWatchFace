@@ -181,6 +181,10 @@ class NotificationsListener : NotificationListenerService() {
         }
 
         fun onSyncActivated() {
+            if (currentInstance == null) {
+                Log.e(TAG, "onSyncActivated called without a NotificationsListener instance")
+            }
+
             currentInstance?.latestSentNotificationsData = null
             currentInstance?.onChange()
         }
