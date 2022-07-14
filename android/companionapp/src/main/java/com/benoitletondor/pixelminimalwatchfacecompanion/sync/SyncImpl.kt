@@ -176,11 +176,13 @@ class SyncImpl @Inject constructor(
                     return@forEach
                 }
 
+                val asset = icon.loadDrawable(context)
+                    ?.toBitmap(NOTIFICATION_ICON_SIZE_PX, NOTIFICATION_ICON_SIZE_PX)
+                    ?.createAsset() ?: return@forEach
+
                 dataMap.putAsset(
                     "icon/$iconId",
-                    icon.loadDrawable(context)
-                        .toBitmap(NOTIFICATION_ICON_SIZE_PX, NOTIFICATION_ICON_SIZE_PX)
-                        .createAsset()
+                    asset
                 )
             }
             dataMap.putLong(KEY_TIMESTAMP, System.currentTimeMillis())
