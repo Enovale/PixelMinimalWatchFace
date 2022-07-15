@@ -98,7 +98,7 @@ class PhoneBatteryConfigurationActivity : ComponentActivity(), CapabilityClient.
         lifecycleScope.launch(Dispatchers.Default) {
             try {
                 val result = Wearable.getCapabilityClient(this@PhoneBatteryConfigurationActivity)
-                    .getCapability(BuildConfig.COMPANION_APP_CAPABILITY, CapabilityClient.FILTER_ALL)
+                    .getCapability(BuildConfig.COMPANION_APP_CAPABILITY, CapabilityClient.FILTER_REACHABLE)
                     .await()
                 viewModel.onPhoneAppDetectionResult(result.nodes)
             } catch (t: Throwable) {
