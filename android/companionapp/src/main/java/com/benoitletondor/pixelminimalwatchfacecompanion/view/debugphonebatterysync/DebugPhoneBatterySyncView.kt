@@ -97,6 +97,7 @@ fun DebugPhoneBatterySync(
         content = {
             DebugPhoneBatterySyncLayout(
                 isBatteryOptimizationOff = state.isBatteryOptimizationOff,
+                isAndroid13OrMore = Build.VERSION.SDK_INT >= 33,
                 onDisableBatteryOptimizationButtonPressed = viewModel::onDisableBatteryOptimizationButtonPressed,
                 isForegroundServiceOn = state.isForegroundServiceOn,
                 onForegroundServiceSwitchedChanged = viewModel::onForegroundServiceSwitchedChanged,
@@ -109,6 +110,7 @@ fun DebugPhoneBatterySync(
 @Composable
 private fun DebugPhoneBatterySyncLayout(
     isBatteryOptimizationOff: Boolean,
+    isAndroid13OrMore: Boolean,
     onDisableBatteryOptimizationButtonPressed: () -> Unit,
     isForegroundServiceOn: Boolean,
     onForegroundServiceSwitchedChanged: (Boolean) -> Unit,
@@ -174,7 +176,7 @@ private fun DebugPhoneBatterySyncLayout(
         Spacer(modifier = Modifier.height(40.dp))
 
         Text(
-            text = "Always-on notification",
+            text = if (isAndroid13OrMore) "Always-on mode" else "Always-on notification",
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth(),
             color = MaterialTheme.colorScheme.onBackground,
@@ -193,7 +195,7 @@ private fun DebugPhoneBatterySyncLayout(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "It will use a permanent notification to prevent the system from killing the app.",
+            text = if (isAndroid13OrMore) "It will go into active mode to prevent the system from killing the app." else "It will use a permanent notification to prevent the system from killing the app.",
             textAlign = TextAlign.Start,
             modifier = Modifier.fillMaxWidth(),
             color = MaterialTheme.colorScheme.onBackground,
@@ -207,12 +209,16 @@ private fun DebugPhoneBatterySyncLayout(
         )
 
         Text(
-            text = if (isForegroundServiceOn) { "Always-on notification activated" } else { "Always-on notification deactivated" },
+            text = if (isForegroundServiceOn) {
+                if (isAndroid13OrMore) "Always-on mode activated" else "Always-on notification activated"
+            } else {
+                if (isAndroid13OrMore) "Always-on mode deactivated"  else "Always-on notification deactivated"
+            },
             color = MaterialTheme.colorScheme.onBackground,
             fontSize = 14.sp,
         )
 
-        if (isForegroundServiceOn && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        if (isForegroundServiceOn && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !isAndroid13OrMore) {
             Spacer(modifier = Modifier.height(20.dp))
 
             Column(
@@ -256,6 +262,7 @@ private fun PreviewBatteryOptimOff() {
     AppMaterialTheme {
         DebugPhoneBatterySyncLayout(
             isBatteryOptimizationOff = true,
+            isAndroid13OrMore = false,
             onDisableBatteryOptimizationButtonPressed = {},
             isForegroundServiceOn = true,
             onForegroundServiceSwitchedChanged = {},
@@ -270,6 +277,37 @@ private fun PreviewBatteryOptimOn() {
     AppMaterialTheme {
         DebugPhoneBatterySyncLayout(
             isBatteryOptimizationOff = false,
+            isAndroid13OrMore = false,
+            onDisableBatteryOptimizationButtonPressed = {},
+            isForegroundServiceOn = false,
+            onForegroundServiceSwitchedChanged = {},
+            onNotificationSettingsButtonPressed = {},
+        )
+    }
+}
+
+@Composable
+@Preview(showSystemUi = true, name = "Battery optimization off, foreground on, android 13")
+private fun PreviewBatteryOptimOffAndroid13() {
+    AppMaterialTheme {
+        DebugPhoneBatterySyncLayout(
+            isBatteryOptimizationOff = true,
+            isAndroid13OrMore = true,
+            onDisableBatteryOptimizationButtonPressed = {},
+            isForegroundServiceOn = true,
+            onForegroundServiceSwitchedChanged = {},
+            onNotificationSettingsButtonPressed = {},
+        )
+    }
+}
+
+@Composable
+@Preview(showSystemUi = true, name = "Battery optimization on, foreground off, android 13")
+private fun PreviewBatteryOptimOnAndroid13() {
+    AppMaterialTheme {
+        DebugPhoneBatterySyncLayout(
+            isBatteryOptimizationOff = false,
+            isAndroid13OrMore = true,
             onDisableBatteryOptimizationButtonPressed = {},
             isForegroundServiceOn = false,
             onForegroundServiceSwitchedChanged = {},

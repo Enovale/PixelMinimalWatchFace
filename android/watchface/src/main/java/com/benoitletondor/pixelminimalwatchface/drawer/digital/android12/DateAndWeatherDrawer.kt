@@ -132,7 +132,7 @@ class DateAndWeatherDrawerImpl(
             cachedWeatherBitmap
         } else {
             try {
-                val bitmap = weatherIcon.loadDrawable(context).toBitmap(weatherIconRect.right - weatherIconRect.left, weatherIconRect.bottom - weatherIconRect.top)
+                val bitmap = weatherIcon.loadDrawable(context)?.toBitmap(weatherIconRect.right - weatherIconRect.left, weatherIconRect.bottom - weatherIconRect.top)
 
                 currentWeatherBitmap = bitmap
                 currentWeatherIcon = weatherIcon
