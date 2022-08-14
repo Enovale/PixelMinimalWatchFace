@@ -110,7 +110,7 @@ class NotificationsSyncConfigurationActivity : ComponentActivity(), CapabilityCl
         lifecycleScope.launch(Dispatchers.Default) {
             try {
                 val result = Wearable.getCapabilityClient(this@NotificationsSyncConfigurationActivity)
-                    .getCapability(BuildConfig.COMPANION_APP_CAPABILITY, CapabilityClient.FILTER_ALL)
+                    .getCapability(BuildConfig.COMPANION_APP_CAPABILITY, CapabilityClient.FILTER_REACHABLE)
                     .await()
                 viewModel.onPhoneAppDetectionResult(result.nodes)
             } catch (t: Throwable) {
