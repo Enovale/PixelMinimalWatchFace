@@ -207,9 +207,11 @@ class SettingsActivity : ComponentActivity() {
         showNotifications: Boolean,
         showWearOSLogo: Boolean,
     ) {
-        item(key = "WidgetsSection") { SettingSectionItem(label = "Widgets") }
+
 
         if (isUserPremium) {
+            item(key = "WidgetsSection") { SettingSectionItem(label = "Widgets") }
+
             if (useAndroid12) {
                 item(key = "Android12Complications") {
                     Android12Complications()
@@ -237,6 +239,8 @@ class SettingsActivity : ComponentActivity() {
                 )
             }
         } else {
+            item(key = "PremiumSection") { SettingSectionItem(label = "Premium features") }
+
             item(key = "PremiumCompanion") {
                 Column {
                     Text(
@@ -246,20 +250,25 @@ class SettingsActivity : ComponentActivity() {
                     )
 
                     Text(
-                        text = "Install the companion app on your phone to continue",
+                        text = "You can buy it from the phone companion app and sync it with your watch to setup premium features right here.",
                         textAlign = TextAlign.Center,
                         modifier = Modifier.fillParentMaxWidth(),
                     )
 
-                    Chip(
-                        label = { Text("Open companion app on phone") },
+                    SettingChip(
+                        label ="Become premium",
                         onClick = ::openAppOnPhone,
-                        icon = {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_phonelink_setup_white),
-                                contentDescription = null,
-                            )
-                        }
+                        iconDrawable = R.drawable.ic_baseline_stars_24,
+                        modifier = Modifier.padding(top = 6.dp),
+                    )
+
+                    Text(
+                        text = "Already bought premium? Sync it from the phone app using the \"Troubleshoot\" button.",
+                        textAlign = TextAlign.Center,
+                        fontSize = 12.sp,
+                        modifier = Modifier
+                            .fillParentMaxWidth()
+                            .padding(top = 10.dp),
                     )
                 }
             }
