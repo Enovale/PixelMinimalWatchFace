@@ -395,6 +395,11 @@ private val oneUIWatchHomeAppNames = setOf(
 private val samsungHealthAppNames = setOf(
     "Samsung Health",
     "三星健康",
+    "S 健康",
+    "S Health",
+    "Sབདེ་ཐང་།",
+    "삼성 헬스",
+    "S헬스",
 )
 
 private val waterProviderNames = setOf(
@@ -835,7 +840,6 @@ private val heartRateProviderNames = setOf(
     "شرح قلب",
     "Yurak puls",
     "Nhịp tim",
-    "心率",
     "心率",
     "心跳率",
 )

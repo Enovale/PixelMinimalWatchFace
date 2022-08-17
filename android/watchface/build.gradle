@@ -21,14 +21,14 @@ def keystoreProperties = new Properties()
 keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 
 android {
-    compileSdkVersion 32
+    compileSdkVersion 33
 
     defaultConfig {
         applicationId "com.benoitletondor.pixelminimalwatchface"
         minSdkVersion 25
         targetSdkVersion 32
-        versionCode 143
-        versionName "2.1.3"
+        versionCode 146
+        versionName "2.1.4"
         multiDexEnabled true
 
         buildConfigField "String", "COMPANION_APP_PLAYSTORE_URL", '"https://play.google.com/store/apps/details?id=com.benoitletondor.pixelminimalwatchface"'
@@ -89,14 +89,14 @@ dependencies {
     implementation 'com.google.android.gms:play-services-wearable:17.1.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.cardview:cardview:1.0.0'
-    implementation 'androidx.activity:activity-ktx:1.5.0'
+    implementation 'androidx.activity:activity-ktx:1.5.1'
 
-    implementation "androidx.activity:activity-compose:1.5.0"
+    implementation "androidx.activity:activity-compose:1.5.1"
     debugImplementation "androidx.compose.ui:ui-tooling:$compose_version"
     implementation "androidx.compose.ui:ui-tooling-preview:$compose_version"
-    implementation "androidx.wear.compose:compose-material:1.0.0-rc02"
-    implementation "androidx.wear.compose:compose-foundation:1.0.0-rc02"
-    implementation "androidx.wear.compose:compose-navigation:1.0.0-rc02"
+    implementation "androidx.wear.compose:compose-material:1.0.0"
+    implementation "androidx.wear.compose:compose-foundation:1.0.0"
+    implementation "androidx.wear.compose:compose-navigation:1.0.0"
 
     compileOnly 'com.google.android.wearable:wearable:2.8.1'
 }
