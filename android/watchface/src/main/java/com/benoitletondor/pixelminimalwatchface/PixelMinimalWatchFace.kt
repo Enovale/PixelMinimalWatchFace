@@ -579,8 +579,11 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
 
                 try {
                     complicationData.shortText?.getText(this@PixelMinimalWatchFace, System.currentTimeMillis())?.let { text ->
+                        val percentIndex = text.indexOf("%")
+                        val batteryChargePercentage = text.substring(0, if (percentIndex > 0) {percentIndex} else {text.length} ).toInt()
+
                         lastWatchBatteryStatus = WatchBatteryStatus.DataReceived(
-                            batteryPercentage = text.substring(0, text.indexOf("%")).toInt(),
+                            batteryPercentage = batteryChargePercentage,
                         )
 
                         if (DEBUG_LOGS) Log.d(TAG, "onComplicationDataUpdate, batteryComplicationData saved: $lastWatchBatteryStatus")
