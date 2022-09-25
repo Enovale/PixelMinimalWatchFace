@@ -23,6 +23,7 @@ import com.benoitletondor.pixelminimalwatchface.helper.DEFAULT_TIME_SIZE
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flow
 
 const val DEFAULT_APP_VERSION = -1
 
@@ -319,11 +320,11 @@ class StorageImpl(
 
     override fun watchComplicationColors(): StateFlow<ComplicationColors> = cacheComplicationsColorMutableFlow
 
-    override fun isUserPremium(): Boolean = isPremiumUserCache.get()
+    override fun isUserPremium(): Boolean = true
 
     override fun setUserPremium(premium: Boolean) = isPremiumUserCache.set(premium)
 
-    override fun watchIsUserPremium(): Flow<Boolean> = isPremiumUserCache.watchChanges()
+    override fun watchIsUserPremium(): Flow<Boolean> = flow { emit(true) }
 
     override fun setUse24hTimeFormat(use: Boolean) = use24hFormatCache.set(use)
 
