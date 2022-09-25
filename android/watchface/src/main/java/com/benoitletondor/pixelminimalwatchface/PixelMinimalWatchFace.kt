@@ -841,7 +841,7 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
                     when(event.dataItem.uri.path) {
                         "/premium" -> {
                             if (dataMap.containsKey(DATA_KEY_PREMIUM)) {
-                                handleIsPremiumCallback(dataMap.getBoolean(DATA_KEY_PREMIUM))
+                                handleIsPremiumCallback(true)
                             }
                         }
                         "/notifications" -> {
@@ -871,7 +871,7 @@ class PixelMinimalWatchFace : CanvasWatchFaceService() {
                 }
             } else if (messageEvent.path == DATA_KEY_PREMIUM) {
                 try {
-                    handleIsPremiumCallback(messageEvent.data[0].toInt() == 1)
+                    handleIsPremiumCallback(true)
                 } catch (t: Throwable) {
                     Log.e("PixelWatchFace", "Error while parsing premium status from phone", t)
                     Toast.makeText(service, R.string.premium_error, Toast.LENGTH_LONG).show()

@@ -36,7 +36,7 @@ class StorageImpl @Inject constructor(@ApplicationContext context: Context) : St
     private val notificationsSyncActivatedMutableFlow = MutableStateFlow(isNotificationsSyncActivated())
 
     override fun isUserPremium(): Boolean
-        = sharedPreferences.getBoolean(PREMIUM_KEY, false)
+        = true
 
     override fun setUserPremium(premium: Boolean) {
         sharedPreferences.edit {

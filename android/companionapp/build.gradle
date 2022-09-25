@@ -46,10 +46,10 @@ android {
 
     signingConfigs {
         debug {
-            keyAlias "pixelwatchface"
-            keyPassword "pixelwatchfacedebug"
+            keyAlias "enova"
+            keyPassword "w5R6PBKZ%%7Ky@"
             storeFile file("../key/debug.jks")
-            storePassword "pixelwatchfacedebug"
+            storePassword "w5R6PBKZ%%7Ky@"
         }
         release {
             keyAlias keystoreProperties['keyAlias']
